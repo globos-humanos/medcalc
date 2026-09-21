@@ -1,0 +1,4 @@
+const cam={id:'cam-icu',name:'CAM-ICU',shortName:'CAM-ICU',categoryId:'icu',description:'Confusion Assessment Method for ICU delirium screening.',type:'score',
+inputs:[{id:'acute',label:'Acute onset or fluctuating course?',type:'boolean'},{id:'inattention',label:'Inattention?',type:'boolean'},{id:'disorganized',label:'Disorganized thinking?',type:'boolean'},{id:'consciousness',label:'Altered level of consciousness?',type:'boolean'}],
+calculate(v){const positive=v.acute&&v.inattention&&(v.disorganized||v.consciousness);return{value:positive?'Positive':'Negative',unit:'CAM-ICU',interpretation:positive?'Delirium screen positive':'Delirium screen negative',note:'A positive CAM-ICU screen supports delirium when the assessment is performed correctly; it is not a substitute for clinical evaluation.'}}
+};export default cam

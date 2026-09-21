@@ -1,0 +1,4 @@
+const stopbang={id:'stopbang',name:'STOP-BANG',shortName:'STOP-BANG',categoryId:'respiratory',description:'Obstructive sleep apnea screening questionnaire.',type:'score',
+inputs:[{id:'snore',label:'Snoring?',type:'boolean'},{id:'tired',label:'Tired / sleepy during daytime?',type:'boolean'},{id:'observed',label:'Observed apnea?',type:'boolean'},{id:'pressure',label:'High blood pressure?',type:'boolean'},{id:'bmi',label:'BMI >35 kg/m²?',type:'boolean'},{id:'age',label:'Age >50 years?',type:'boolean'},{id:'neck',label:'Neck circumference >40 cm?',type:'boolean'},{id:'male',label:'Male sex?',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/8',interpretation:s<=2?'Low risk':s<=4?'Intermediate risk':'High risk'}}
+};export default stopbang

@@ -1,0 +1,4 @@
+const alvarado={id:'alvarado',name:'Alvarado Score',shortName:'Alvarado',categoryId:'emergency',description:'Clinical score for suspected acute appendicitis.',type:'score',
+inputs:[{id:'migration',label:'Migration of pain to right lower quadrant?',type:'boolean'},{id:'anorexia',label:'Anorexia?',type:'boolean'},{id:'nausea',label:'Nausea/vomiting?',type:'boolean'},{id:'tenderness',label:'Right lower quadrant tenderness?',type:'boolean'},{id:'rebound',label:'Rebound tenderness?',type:'boolean'},{id:'temp',label:'Temperature ≥37.3°C?',type:'boolean'},{id:'wbc',label:'WBC >10,000/mm³?',type:'boolean'},{id:'neutrophils',label:'Neutrophilia / left shift?',type:'boolean'}],
+calculate(v){const s=(v.migration?1:0)+(v.anorexia?1:0)+(v.nausea?1:0)+(v.tenderness?2:0)+(v.rebound?1:0)+(v.temp?1:0)+(v.wbc?2:0)+(v.neutrophils?1:0);return{value:s,unit:'/9',interpretation:s<=4?'Low probability':s<=6?'Intermediate probability':'High probability'}}
+};export default alvarado

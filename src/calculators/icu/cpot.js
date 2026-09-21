@@ -1,0 +1,4 @@
+const calc={id:'cpot',name:'Critical-Care Pain Observation Tool',shortName:'CPOT',categoryId:'icu',description:'Behavioral pain assessment for critically ill adults unable to self-report.',type:'score',
+inputs:['Facial expression','Body movements','Muscle tension','Compliance with ventilator / vocalization'].map((label,i)=>({id:`c${i}`,label,type:'choice',options:[0,1,2].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'/8',interpretation:s>=3?'Pain likely / clinically significant score':'Lower CPOT score'}}
+};export default calc

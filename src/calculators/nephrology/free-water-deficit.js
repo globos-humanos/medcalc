@@ -1,0 +1,4 @@
+const calc={id:'free-water-deficit',name:'Free Water Deficit',shortName:'Free Water Deficit',categoryId:'nephrology',description:'Estimated free-water deficit in hypernatremia.',type:'calculation',
+inputs:[{id:'weight',label:'Body weight',unit:'kg',min:1,max:300},{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'na',label:'Serum sodium',unit:'mmol/L',min:120,max:250},{id:'target',label:'Target sodium',unit:'mmol/L',min:120,max:180}],
+calculate(v){const tbw=Number(v.weight)*(v.sex==='male'?0.6:0.5);const value=tbw*(Number(v.na)/Number(v.target)-1);return{value,unit:'L',note:'TBW fraction should be individualized, particularly in older adults and obesity.'}}
+};export default calc

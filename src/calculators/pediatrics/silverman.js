@@ -1,0 +1,4 @@
+const calc={id:'silverman-andersen',name:'Silverman-Andersen Score',shortName:'Silverman-Andersen',categoryId:'pediatrics',description:'Neonatal respiratory distress assessment.',type:'score',
+inputs:['Upper chest movement','Lower chest retraction','Xiphoid retraction','Nasal flaring','Expiratory grunt'].map((label,i)=>({id:`s${i}`,label,type:'choice',options:[0,1,2].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'/10',interpretation:s<=3?'Mild distress':s<=6?'Moderate distress':'Severe distress'}}
+};export default calc

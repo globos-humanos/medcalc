@@ -1,0 +1,4 @@
+const ich={id:'ich',name:'ICH Score',shortName:'ICH',categoryId:'neurology',description:'Intracerebral hemorrhage severity score.',type:'score',
+inputs:[{id:'gcs',label:'GCS',min:3,max:15},{id:'volume',label:'Hematoma volume',unit:'mL',min:0,max:300},{id:'ivh',label:'Intraventricular hemorrhage?',type:'boolean'},{id:'infratentorial',label:'Infratentorial origin?',type:'boolean'},{id:'age',label:'Age ≥80?',type:'boolean'}],
+calculate(v){const g=Number(v.gcs),vol=Number(v.volume);const s=(g>=13?0:g>=5?1:2)+(vol>=30?1:0)+(v.ivh?1:0)+(v.infratentorial?1:0)+(v.age?1:0);return{value:s,unit:'/6',interpretation:`ICH score ${s}`}}
+};export default ich

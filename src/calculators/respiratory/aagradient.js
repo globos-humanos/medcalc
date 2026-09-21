@@ -1,0 +1,4 @@
+const calc={id:'a-a-gradient',name:'A–a Oxygen Gradient',shortName:'A–a Gradient',categoryId:'respiratory',description:'Alveolar–arterial oxygen gradient.',type:'calculation',
+inputs:[{id:'fio2',label:'FiO₂',unit:'fraction',min:0.21,max:1,step:0.01},{id:'pao2',label:'PaO₂',unit:'mmHg',min:20,max:800},{id:'paco2',label:'PaCO₂',unit:'mmHg',min:10,max:150},{id:'patm',label:'Atmospheric pressure',unit:'mmHg',min:500,max:850},{id:'rq',label:'Respiratory quotient',min:0.7,max:1.2,step:0.01}],
+calculate(v){const fio=+v.fio2,p=+v.paco2,patm=+v.patm,rq=+v.rq,pa=+v.pao2;const pb=patm-47;const pao=fio*(pb-p/rq);return{value:pao-pa,unit:'mmHg',note:'Simplified alveolar gas equation assumes sea-level-style water vapor pressure at 37°C.'}}
+};export default calc

@@ -1,0 +1,4 @@
+const hacor={id:'hacor',name:'HACOR Score',shortName:'HACOR',categoryId:'respiratory',description:'Predicts noninvasive ventilation failure.',type:'score',
+inputs:[{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'acidosis',label:'pH',min:6,max:8,step:0.01},{id:'gcs',label:'GCS',min:3,max:15},{id:'oxygen',label:'PaO₂/FiO₂',min:20,max:800},{id:'rr',label:'Respiratory rate',unit:'/min',min:1,max:80}],
+calculate(v){const hr=Number(v.hr),pH=Number(v.acidosis),g=Number(v.gcs),pf=Number(v.oxygen),rr=Number(v.rr);const s=(hr<120?0:2)+(pH>=7.35?0:pH>=7.30?2:pH>=7.25?3:4)+(g>=15?0:g>=13?2:g>=11?5:10)+(pf>=300?0:pf>=200?2:pf>=100?3:5)+(rr<25?0:rr<35?1:rr<45?2:3);return{value:s,unit:'points',note:'HACOR has timing- and population-specific validation; interpret using the appropriate protocol.'}}
+};export default hacor

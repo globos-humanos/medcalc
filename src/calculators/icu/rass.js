@@ -1,0 +1,4 @@
+const calc={id:'rass',name:'Richmond Agitation-Sedation Scale',shortName:'RASS',categoryId:'icu',description:'Level of agitation and sedation.',type:'score',
+inputs:[{id:'score',label:'Observed state',type:'choice',options:[{value:4,label:'+4 Combative'},{value:3,label:'+3 Very agitated'},{value:2,label:'+2 Agitated'},{value:1,label:'+1 Restless'},{value:0,label:'0 Alert and calm'},{value:-1,label:'−1 Drowsy'},{value:-2,label:'−2 Light sedation'},{value:-3,label:'−3 Moderate sedation'},{value:-4,label:'−4 Deep sedation'},{value:-5,label:'−5 Unarousable'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.score),unit:'RASS',interpretation:`RASS ${v.score}`}}
+};export default calc

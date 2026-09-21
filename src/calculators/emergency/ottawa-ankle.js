@@ -1,0 +1,4 @@
+const ankle={id:'ottawa-ankle',name:'Ottawa Ankle Rules',shortName:'Ottawa Ankle',categoryId:'emergency',description:'Assesses need for ankle/foot radiographs after acute injury.',type:'score',
+inputs:[{id:'posteriorMalleolus',label:'Bone tenderness posterior edge/tip of either malleolus?',type:'boolean'},{id:'navicular',label:'Navicular tenderness?',type:'boolean'},{id:'base5',label:'Base of 5th metatarsal tenderness?',type:'boolean'},{id:'walk',label:'Unable to bear weight both immediately and in ED?',type:'boolean'}],
+calculate(v){const positive=v.posteriorMalleolus||v.navicular||v.base5||v.walk;return{value:positive?'Radiography indicated by rule':'No radiography by rule',unit:'result',note:'Apply only to the validated acute ankle/foot injury population.'}}
+};export default ankle

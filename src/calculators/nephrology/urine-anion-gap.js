@@ -1,0 +1,4 @@
+const calc={id:'urine-anion-gap',name:'Urine Anion Gap',shortName:'Urine AG',categoryId:'nephrology',description:'Urine electrolyte-based estimate used in non-anion-gap metabolic acidosis.',type:'calculation',
+inputs:[{id:'na',label:'Urine sodium',unit:'mmol/L',min:0,max:1000},{id:'k',label:'Urine potassium',unit:'mmol/L',min:0,max:1000},{id:'cl',label:'Urine chloride',unit:'mmol/L',min:0,max:1000}],
+calculate(v){return{value:+v.na + +v.k - +v.cl,unit:'mmol/L',note:'Interpret with urine osmolality and clinical context; diarrhea and renal tubular acidosis are common teaching applications.'}}
+};export default calc

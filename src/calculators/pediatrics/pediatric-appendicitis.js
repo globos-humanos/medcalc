@@ -1,0 +1,4 @@
+const pas={id:'pediatric-appendicitis',name:'Pediatric Appendicitis Score',shortName:'PAS',categoryId:'pediatrics',description:'Clinical score for suspected pediatric appendicitis.',type:'score',
+inputs:[{id:'anorexia',label:'Anorexia',type:'boolean'},{id:'nausea',label:'Nausea/vomiting',type:'boolean'},{id:'migration',label:'Pain migration',type:'boolean'},{id:'fever',label:'Fever ≥38°C',type:'boolean'},{id:'cough',label:'Cough/percussion/hopping tenderness',type:'boolean'},{id:'rlq',label:'RLQ tenderness',type:'boolean'},{id:'wbc',label:'WBC ≥10,000/mm³',type:'boolean'},{id:'neut',label:'Neutrophils ≥75%',type:'boolean'}],
+calculate(v){const s=(v.anorexia?1:0)+(v.nausea?1:0)+(v.migration?1:0)+(v.fever?1:0)+(v.cough?2:0)+(v.rlq?2:0)+(v.wbc?1:0)+(v.neut?1:0);return{value:s,unit:'/9',interpretation:s<=2?'Low risk':s<=6?'Intermediate risk':'High risk'}}
+};export default pas

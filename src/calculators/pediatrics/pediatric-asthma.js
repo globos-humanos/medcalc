@@ -1,0 +1,4 @@
+const pas={id:'pediatric-asthma',name:'Pediatric Asthma Score',shortName:'PAS',categoryId:'pediatrics',description:'Clinical severity score for pediatric asthma.',type:'score',
+inputs:['Oxygen saturation','Auscultation','Accessory muscle use','Maximal expiratory flow / speech','Respiratory rate'].map((label,i)=>({id:`a${i}`,label,type:'choice',options:[0,1,2].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'/10',note:'Pediatric asthma scores have multiple versions; use the validated age-specific local version.'}}
+};export default pas

@@ -1,0 +1,4 @@
+const triss={id:'triss',name:'TRISS Framework',shortName:'TRISS',categoryId:'emergency',description:'Trauma outcome framework combining RTS, ISS, age and mechanism.',type:'calculation',
+inputs:[{id:'rts',label:'RTS',min:0,max:7.84,step:0.01},{id:'iss',label:'ISS',min:0,max:75},{id:'age',label:'Age',unit:'years',min:0,max:120},{id:'blunt',label:'Blunt trauma?',type:'boolean'}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'TRISS survival probability requires mechanism-specific published coefficients and model version; this screen does not invent a probability.'}}
+};export default triss

@@ -1,0 +1,4 @@
+const must={id:'must',name:'MUST Malnutrition Universal Screening Tool',shortName:'MUST',categoryId:'surgery',description:'Malnutrition screening tool using BMI, weight loss and acute disease effect.',type:'score',
+inputs:[{id:'bmi',label:'BMI',type:'choice',options:[{value:0,label:'≥20'},{value:1,label:'18.5–19.9'},{value:2,label:'<18.5'}]},{id:'loss',label:'Unplanned weight loss in past 3–6 months',type:'choice',options:[{value:0,label:'<5%'},{value:1,label:'5–10%'},{value:2,label:'>10%'}]},{id:'acute',label:'Acute disease effect / no nutritional intake >5 days?',type:'boolean'}],
+calculate(v){const s=Number(v.bmi)+Number(v.loss)+(v.acute?2:0);return{value:s,unit:'points',interpretation:s===0?'Low risk':s===1?'Medium risk':'High risk'}}
+};export default must

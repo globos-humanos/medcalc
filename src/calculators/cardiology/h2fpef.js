@@ -1,0 +1,4 @@
+const h2fpef={id:'h2fpef',name:'H₂FPEF Score',shortName:'H₂FPEF',categoryId:'cardiology',description:'Estimates likelihood of HFpEF in patients with unexplained dyspnea.',type:'score',
+inputs:[{id:'heavy',label:'BMI >30 kg/m²?',type:'boolean'},{id:'hypertension',label:'≥2 antihypertensive medications?',type:'boolean'},{id:'af',label:'Atrial fibrillation?',type:'boolean'},{id:'pasp',label:'Pulmonary artery systolic pressure >35 mmHg?',type:'boolean'},{id:'age',label:'Age >60 years?',type:'boolean'},{id:'eovere',label:'E/e′ >9?',type:'boolean'}],
+calculate(v){const s=(v.heavy?2:0)+(v.hypertension?1:0)+(v.af?3:0)+(v.pasp?1:0)+(v.age?1:0)+(v.eovere?1:0);return{value:s,unit:'/9',interpretation:s>=6?'High probability':s>=2?'Intermediate probability':'Low probability'}}
+};export default h2fpef

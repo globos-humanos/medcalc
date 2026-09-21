@@ -1,0 +1,4 @@
+const calc={id:'clinical-frailty-scale',name:'Clinical Frailty Scale',shortName:'CFS',categoryId:'surgery',description:'Clinical frailty grading from very fit to terminally ill.',type:'score',
+inputs:[{id:'grade',label:'Frailty category',type:'choice',options:[{value:1,label:'1 — Very fit'},{value:2,label:'2 — Well'},{value:3,label:'3 — Managing well'},{value:4,label:'4 — Vulnerable'},{value:5,label:'5 — Mildly frail'},{value:6,label:'6 — Moderately frail'},{value:7,label:'7 — Severely frail'},{value:8,label:'8 — Very severely frail'},{value:9,label:'9 — Terminally ill'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'CFS',interpretation:`CFS ${v.grade}`}}
+};export default calc

@@ -1,0 +1,4 @@
+const improve={id:'improve-vte',name:'IMPROVE VTE Score',shortName:'IMPROVE VTE',categoryId:'hematology',description:'VTE risk score for hospitalized medical patients.',type:'score',
+inputs:[{id:'priorVte',label:'Previous VTE',type:'boolean'},{id:'thrombophilia',label:'Known thrombophilia',type:'boolean'},{id:'paralysis',label:'Lower-limb paralysis',type:'boolean'},{id:'cancer',label:'Current cancer',type:'boolean'},{id:'icu',label:'ICU / CCU stay',type:'boolean'},{id:'age',label:'Age >60 years',type:'boolean'},{id:'immobility',label:'Immobilization ≥7 days',type:'boolean'}],
+calculate(v){const s=(v.priorVte?3:0)+(v.thrombophilia?2:0)+(v.paralysis?2:0)+(v.cancer?2:0)+(v.icu?1:0)+(v.age?1:0)+(v.immobility?1:0);return{value:s,unit:'points',interpretation:s>=4?'Higher VTE risk':'Lower VTE risk'}}
+};export default improve

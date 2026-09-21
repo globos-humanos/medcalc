@@ -1,0 +1,4 @@
+const calc={id:'reticulocyte-production-index',name:'Reticulocyte Production Index',shortName:'RPI',categoryId:'hematology',description:'Corrected reticulocyte response accounting for anemia and maturation.',type:'calculation',
+inputs:[{id:'retic',label:'Reticulocyte percentage',unit:'%',min:0,max:50,step:0.1},{id:'hct',label:'Patient hematocrit',unit:'%',min:5,max:70,step:0.1},{id:'normal',label:'Normal hematocrit',unit:'%',min:20,max:60,step:0.1}],
+calculate(v){const h=+v.hct,n=+v.normal||45;const corr=+v.retic*(h/n);const factor=h>=36?1:h>=26?1.5:h>=16?2:2.5;return{value:corr/factor,unit:'RPI',note:'RPI interpretation depends on the clinical context and marrow response.'}}
+};export default calc

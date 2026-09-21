@@ -1,0 +1,4 @@
+const air={id:'air',name:'AIR Score for Appendicitis',shortName:'AIR',categoryId:'emergency',description:'Appendicitis Inflammatory Response score.',type:'score',
+inputs:[{id:'vomiting',label:'Vomiting?',type:'boolean'},{id:'rlq',label:'Right lower quadrant pain?',type:'boolean'},{id:'rebound',label:'Rebound / muscular defense',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Mild'},{value:2,label:'Moderate'},{value:3,label:'Strong'}],optionsLayout:'stack'},{id:'temp',label:'Temperature ≥38.5°C?',type:'boolean'},{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'neut',label:'Neutrophils',unit:'%',min:0,max:100}],
+calculate(v){const s=(v.vomiting?1:0)+(v.rlq?1:0)+Number(v.rebound)+(v.temp?1:0)+(Number(v.wbc)>=15?2:Number(v.wbc)>=10?1:0)+(Number(v.neut)>=85?2:Number(v.neut)>=70?1:0);return{value:s,unit:'/12',interpretation:s<=4?'Low risk':s<=8?'Intermediate risk':'High risk'}}
+};export default air

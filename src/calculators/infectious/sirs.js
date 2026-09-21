@@ -1,0 +1,4 @@
+const calc={id:'sirs',name:'SIRS Criteria',shortName:'SIRS',categoryId:'infectious',description:'Systemic inflammatory response syndrome criteria.',type:'score',
+inputs:[{id:'temp',label:'Temperature',unit:'°C',min:25,max:45,step:0.1},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},{id:'paco2',label:'PaCO₂',unit:'mmHg',min:10,max:150},{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'bands',label:'Bands >10%',type:'boolean'}],
+calculate(v){const s=(+v.temp>38||+v.temp<36?1:0)+(+v.hr>90?1:0)+(+v.rr>20||+v.paco2<32?1:0)+(+v.wbc>12||+v.wbc<4||v.bands?1:0);return{value:s,unit:'/4',interpretation:s>=2?'SIRS criteria met':'SIRS criteria not met'}}
+};export default calc

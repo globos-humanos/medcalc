@@ -1,0 +1,4 @@
+const snaq={id:'snaq',name:'SNAQ Malnutrition Screening',shortName:'SNAQ',categoryId:'surgery',description:'Short nutritional assessment questionnaire framework.',type:'score',
+inputs:[{id:'weightLoss',label:'Unintentional weight loss?',type:'choice',options:[{value:0,label:'None'},{value:1,label:'3–6 kg'},{value:2,label:'7–10 kg'},{value:3,label:'>10 kg'}]},{id:'appetite',label:'Decreased appetite?',type:'choice',options:[{value:0,label:'No'},{value:1,label:'Yes'}]},{id:'supplement',label:'Nutritional supplement / tube feeding?',type:'choice',options:[{value:0,label:'No'},{value:1,label:'Yes'}]}],
+calculate(v){const s=Number(v.weightLoss)+Number(v.appetite)+Number(v.supplement);return{value:s,unit:'points',note:'SNAQ versions differ; use the validated institutional questionnaire for formal screening.'}}
+};export default snaq

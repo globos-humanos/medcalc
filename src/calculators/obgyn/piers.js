@@ -1,0 +1,4 @@
+const piers={id:'piers',name:'PIERS Model Inputs',shortName:'PIERS',categoryId:'obgyn',description:'Pre-eclampsia adverse outcome risk model input screen.',type:'score',
+inputs:[{id:'gestation',label:'Gestational age',unit:'weeks',min:20,max:45},{id:'chestPain',label:'Chest pain / dyspnea?',type:'boolean'},{id:'oxygen',label:'Oxygen saturation',unit:'%',min:50,max:100},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000},{id:'creatinine',label:'Creatinine',unit:'µmol/L',min:1,max:2000},{id:'ast',label:'AST',unit:'U/L',min:1,max:10000}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'PIERS/FullPIERS are published multivariable models with specific coefficients and time horizons; this interface does not invent an outcome probability.'}}
+};export default piers

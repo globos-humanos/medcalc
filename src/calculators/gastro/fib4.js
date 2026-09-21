@@ -1,0 +1,4 @@
+const calc={id:'fib4',name:'FIB-4 Index',shortName:'FIB-4',categoryId:'gastro',description:'Non-invasive fibrosis index.',type:'calculation',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'ast',label:'AST',unit:'U/L',min:1,max:10000,step:0.1},{id:'alt',label:'ALT',unit:'U/L',min:1,max:10000,step:0.1},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000}],
+calculate(v){const value=(Number(v.age)*Number(v.ast))/(Number(v.platelets)*Math.sqrt(Number(v.alt)));return{value,unit:'FIB-4',interpretation:value<1.3?'Lower-risk range':value<=2.67?'Intermediate range':'Higher-risk range'}}
+};export default calc

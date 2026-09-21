@@ -1,0 +1,4 @@
+const mrs={id:'mrs',name:'Modified Rankin Scale',shortName:'mRS',categoryId:'neurology',description:'Global disability after stroke or neurologic disease.',type:'score',
+inputs:[{id:'grade',label:'Current functional status',type:'choice',options:[{value:0,label:'0 — No symptoms'},{value:1,label:'1 — No significant disability'},{value:2,label:'2 — Slight disability'},{value:3,label:'3 — Moderate disability'},{value:4,label:'4 — Moderately severe disability'},{value:5,label:'5 — Severe disability'},{value:6,label:'6 — Death'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'mRS',interpretation:`mRS ${v.grade}`}}
+};export default mrs

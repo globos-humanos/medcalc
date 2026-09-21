@@ -1,0 +1,4 @@
+const anc={id:'anc',name:'Absolute Neutrophil Count',shortName:'ANC',categoryId:'hematology',description:'Absolute neutrophil count from WBC and neutrophil percentage.',type:'calculation',
+inputs:[{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'neut',label:'Neutrophils',unit:'%',min:0,max:100},{id:'bands',label:'Bands',unit:'%',min:0,max:100}],
+calculate(v){const value=Number(v.wbc)*(Number(v.neut)+Number(v.bands))/100;return{value,unit:'×10⁹/L',interpretation:value<0.5?'Severe neutropenia':value<1?'Moderate neutropenia':value<1.5?'Mild neutropenia':'Not neutropenic by common threshold'}}
+};export default anc

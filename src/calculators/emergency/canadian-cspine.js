@@ -1,0 +1,4 @@
+const cspine={id:'canadian-cspine',name:'Canadian C-Spine Rule',shortName:'Canadian C-Spine',categoryId:'emergency',description:'Cervical-spine imaging decision rule for alert, stable trauma patients.',type:'score',
+inputs:[{id:'highRisk',label:'Any high-risk factor?',type:'boolean'},{id:'lowRisk',label:'At least one low-risk factor allowing safe ROM assessment?',type:'boolean'},{id:'rom',label:'Able to actively rotate neck 45° left and right?',type:'boolean'}],
+calculate(v){const positive=v.highRisk||(!v.lowRisk)||!v.rom;return{value:positive?'Imaging indicated':'No imaging by rule',unit:'result',note:'The Canadian C-Spine Rule applies only to its validated patient population.'}}
+};export default cspine

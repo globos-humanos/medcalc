@@ -1,0 +1,4 @@
+const calc={id:'mrc-sum',name:'MRC Sum Score',shortName:'MRC Sum',categoryId:'icu',description:'Manual muscle strength sum score.',type:'score',
+inputs:['Shoulder abduction L','Elbow flexion L','Wrist extension L','Hip flexion L','Knee extension L','Ankle dorsiflexion L','Shoulder abduction R','Elbow flexion R','Wrist extension R','Hip flexion R','Knee extension R','Ankle dorsiflexion R'].map((label,i)=>({id:`m${i}`,label,type:'choice',options:[0,1,2,3,4,5].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'/60',interpretation:s<48?'ICU-acquired weakness threshold may be met':'Above common ICU-acquired weakness threshold'}}
+};export default calc

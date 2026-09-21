@@ -1,0 +1,4 @@
+const khorana={id:'khorana',name:'Khorana Score',shortName:'Khorana',categoryId:'hematology',description:'Cancer-associated venous thromboembolism risk score.',type:'score',
+inputs:[{id:'site',label:'Cancer site',type:'choice',options:[{value:0,label:'Other / no listed high-risk site'},{value:1,label:'Lung, lymphoma, gynecologic, bladder'},{value:2,label:'Stomach or pancreas'}],optionsLayout:'stack'},{id:'platelets',label:'Platelets ≥350 ×10⁹/L?',type:'boolean'},{id:'hb',label:'Hemoglobin <10 g/dL or ESA use?',type:'boolean'},{id:'wbc',label:'WBC >11 ×10⁹/L?',type:'boolean'},{id:'bmi',label:'BMI ≥35 kg/m²?',type:'boolean'}],
+calculate(v){const s=Number(v.site)+(v.platelets?1:0)+(v.hb?1:0)+(v.wbc?1:0)+(v.bmi?1:0);return{value:s,unit:'/6',interpretation:s>=3?'High score':s===2?'Intermediate score':'Low score'}}
+};export default khorana

@@ -1,0 +1,4 @@
+const hh={id:'hunt-hess',name:'Hunt and Hess Grade',shortName:'Hunt-Hess',categoryId:'neurology',description:'Clinical grading of subarachnoid hemorrhage severity.',type:'score',
+inputs:[{id:'grade',label:'Clinical grade',type:'choice',options:[{value:1,label:'I — Asymptomatic / mild headache'},{value:2,label:'II — Moderate–severe headache, nuchal rigidity'},{value:3,label:'III — Drowsiness / confusion / mild focal deficit'},{value:4,label:'IV — Stupor / moderate–severe deficit'},{value:5,label:'V — Coma / moribund'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'grade',interpretation:`Hunt-Hess grade ${v.grade}`}}
+};export default hh

@@ -1,0 +1,4 @@
+const rcri={id:'rcri',name:'Revised Cardiac Risk Index',shortName:'RCRI',categoryId:'surgery',description:'Perioperative cardiac risk index.',type:'score',
+inputs:[{id:'highRisk',label:'High-risk surgery',type:'boolean'},{id:'ischemia',label:'History of ischemic heart disease',type:'boolean'},{id:'chf',label:'History of heart failure',type:'boolean'},{id:'cva',label:'History of cerebrovascular disease',type:'boolean'},{id:'diabetes',label:'Diabetes requiring insulin',type:'boolean'},{id:'creatinine',label:'Preoperative creatinine >2 mg/dL',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/6',interpretation:`RCRI class ${s}`}}
+};export default rcri

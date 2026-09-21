@@ -1,0 +1,4 @@
+const surgApgar={id:'surgical-apgar',name:'Surgical Apgar Score',shortName:'Surgical Apgar',categoryId:'surgery',description:'Postoperative complication risk score from estimated blood loss, lowest mean arterial pressure and heart rate.',type:'score',
+inputs:[{id:'ebl',label:'Estimated blood loss',unit:'mL',min:0,max:20000},{id:'map',label:'Lowest mean arterial pressure',unit:'mmHg',min:20,max:200},{id:'hr',label:'Lowest heart rate',unit:'/min',min:20,max:250}],
+calculate(v){const e=Number(v.ebl),m=Number(v.map),h=Number(v.hr);const ep=e===0?3:e<=100?2:e<=600?1:0;const mp=m>=70?3:m>=55?2:m>=40?1:0;const hp=h<=55?2:h<=70?1:h<=85?0:h<=100?1:0;const s=ep+mp+hp;return{value:s,unit:'/10',interpretation:s>=7?'Lower risk category':s>=5?'Intermediate category':'Higher risk category'}}
+};export default surgApgar

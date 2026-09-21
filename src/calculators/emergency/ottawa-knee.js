@@ -1,0 +1,4 @@
+const knee={id:'ottawa-knee',name:'Ottawa Knee Rules',shortName:'Ottawa Knee',categoryId:'emergency',description:'Assesses need for knee radiographs after acute injury.',type:'score',
+inputs:[{id:'age55',label:'Age ≥55?',type:'boolean'},{id:'fibula',label:'Isolated fibular head tenderness?',type:'boolean'},{id:'patella',label:'Patellar tenderness with no other bone tenderness?',type:'boolean'},{id:'flexion',label:'Unable to flex knee to 90°?',type:'boolean'},{id:'weight',label:'Unable to bear weight for four steps both immediately and in ED?',type:'boolean'}],
+calculate(v){const positive=Object.values(v).some(Boolean);return{value:positive?'Radiography indicated by rule':'No radiography by rule',unit:'result'}}
+};export default knee

@@ -1,0 +1,4 @@
+const calc={id:'osmolar-gap',name:'Osmolar Gap',shortName:'Osmolar Gap',categoryId:'nephrology',description:'Measured minus calculated serum osmolality.',type:'calculation',
+inputs:[{id:'measured',label:'Measured serum osmolality',unit:'mOsm/kg',min:200,max:500},{id:'na',label:'Sodium',unit:'mmol/L',min:50,max:250},{id:'glucose',label:'Glucose',unit:'mg/dL',min:0,max:2000},{id:'bun',label:'BUN',unit:'mg/dL',min:0,max:300}],
+calculate(v){const calc=2*Number(v.na)+Number(v.glucose)/18+Number(v.bun)/2.8;return{value:Number(v.measured)-calc,unit:'mOsm/kg',note:'An elevated osmolar gap has a broad differential and is not specific for toxic alcohols.'}}
+};export default calc

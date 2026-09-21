@@ -1,0 +1,4 @@
+const murray={id:'murray',name:'Murray Lung Injury Score',shortName:'Murray LIS',categoryId:'respiratory',description:'Four-component lung injury severity score.',type:'score',
+inputs:[{id:'pao2fio2',label:'PaO₂/FiO₂',min:20,max:800},{id:'peep',label:'PEEP',unit:'cmH₂O',min:0,max:40},{id:'compliance',label:'Static compliance',unit:'mL/cmH₂O',min:1,max:200},{id:'quadrants',label:'Quadrants with infiltrates',min:0,max:4,step:1}],
+calculate(v){const p=Number(v.pao2fio2),peep=Number(v.peep),c=Number(v.compliance),q=Number(v.quadrants);const a=p>300?0:p>=226?1:p>=176?2:p>=100?3:4;const b=peep<6?0:peep<8?1:peep<11?2:peep<14?3:4;const d=c>80?0:c>=60?1:c>=40?2:c>=20?3:4;const s=(a+b+d+q)/4;return{value:s,unit:'LIS',interpretation:s<0.5?'No/mild lung injury':s<1?'Mild–moderate lung injury':'Severe lung injury'}}
+};export default murray

@@ -1,0 +1,4 @@
+const nexus={id:'nexus',name:'NEXUS C-Spine Criteria',shortName:'NEXUS',categoryId:'emergency',description:'Clinical criteria for cervical-spine imaging after trauma.',type:'score',
+inputs:[{id:'midline',label:'Posterior midline cervical tenderness?',type:'boolean'},{id:'intox',label:'Intoxication?',type:'boolean'},{id:'neuro',label:'Focal neurologic deficit?',type:'boolean'},{id:'distracting',label:'Painful distracting injury?',type:'boolean'},{id:'alert',label:'Normal alertness?',type:'boolean'}],
+calculate(v){const positive=v.midline||v.intox||v.neuro||v.distracting||!v.alert;return{value:positive?'NEXUS positive':'NEXUS negative',unit:'result'}}
+};export default nexus

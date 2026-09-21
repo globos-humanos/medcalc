@@ -1,0 +1,4 @@
+const calc={id:'nafld-fibrosis',name:'NAFLD Fibrosis Score',shortName:'NFS',categoryId:'gastro',description:'Non-invasive fibrosis score for NAFLD/MASLD.',type:'calculation',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'bmi',label:'BMI',unit:'kg/m²',min:10,max:80,step:0.1},{id:'impaired',label:'Impaired fasting glucose / diabetes?',type:'boolean'},{id:'ast',label:'AST',unit:'U/L',min:1,max:10000,step:0.1},{id:'alt',label:'ALT',unit:'U/L',min:1,max:10000,step:0.1},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000},{id:'albumin',label:'Albumin',unit:'g/dL',min:1,max:8,step:0.1}],
+calculate(v){const age=+v.age,bmi=+v.bmi,ast=+v.ast,alt=+v.alt,pl=+v.platelets,alb=+v.albumin;const value=-1.675+0.037*age+0.094*bmi+1.13*(v.impaired?1:0)+0.99*(ast/alt)-0.013*pl-0.66*alb;return{value,unit:'NFS',note:'NFS performance and cutoffs depend on the population and disease context.'}}
+};export default calc

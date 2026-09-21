@@ -1,0 +1,4 @@
+const decaf={id:'decaf',name:'DECAF Score',shortName:'DECAF',categoryId:'respiratory',description:'Predicts mortality in acute exacerbation of COPD.',type:'score',
+inputs:[{id:'dyspnea',label:'Extended MRC dyspnea grade',type:'choice',options:[{value:0,label:'1–4'},{value:1,label:'5'}]},{id:'eosinopenia',label:'Eosinopenia <0.05×10⁹/L?',type:'boolean'},{id:'consolidation',label:'Consolidation on imaging?',type:'boolean'},{id:'acidemia',label:'Acidemia pH <7.30?',type:'boolean'},{id:'af',label:'Atrial fibrillation?',type:'boolean'}],
+calculate(v){const s=Number(v.dyspnea)+(v.eosinopenia?1:0)+(v.consolidation?1:0)+(v.acidemia?1:0)+(v.af?1:0);return{value:s,unit:'/6',interpretation:s<=1?'Low risk':s<=3?'Intermediate risk':'High risk'}}
+};export default decaf

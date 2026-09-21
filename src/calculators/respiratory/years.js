@@ -1,0 +1,4 @@
+const years={id:'years',name:'YEARS Algorithm',shortName:'YEARS',categoryId:'respiratory',description:'Clinical-probability and D-dimer strategy for suspected pulmonary embolism.',type:'score',
+inputs:[{id:'dvt',label:'Clinical signs of DVT?',type:'boolean'},{id:'hemoptysis',label:'Hemoptysis?',type:'boolean'},{id:'peMostLikely',label:'PE most likely diagnosis?',type:'boolean'},{id:'ddimer',label:'D-dimer',unit:'ng/mL FEU',min:0,max:10000}],
+calculate(v){const items=(v.dvt?1:0)+(v.hemoptysis?1:0)+(v.peMostLikely?1:0);const threshold=items===0?1000:500;return{value:items,unit:'YEARS items',note:`D-dimer threshold in this implementation: ${threshold} ng/mL FEU. Apply only within the validated YEARS diagnostic pathway.`}}
+};export default years

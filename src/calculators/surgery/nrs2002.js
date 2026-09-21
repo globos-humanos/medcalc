@@ -1,0 +1,4 @@
+const nrs={id:'nrs2002',name:'NRS-2002',shortName:'NRS-2002',categoryId:'surgery',description:'Nutritional risk screening in hospitalized adults.',type:'score',
+inputs:[{id:'nutrition',label:'Impaired nutritional status',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Mild'},{value:2,label:'Moderate'},{value:3,label:'Severe'}],optionsLayout:'stack'},{id:'severity',label:'Disease severity / increased nutritional requirements',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Mild'},{value:2,label:'Moderate'},{value:3,label:'Severe'}],optionsLayout:'stack'},{id:'age',label:'Age ≥70?',type:'boolean'}],
+calculate(v){const s=Number(v.nutrition)+Number(v.severity)+(v.age?1:0);return{value:s,unit:'points',interpretation:s>=3?'Nutritional risk':'Not at risk by NRS-2002 threshold'}}
+};export default nrs

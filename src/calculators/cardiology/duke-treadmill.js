@@ -1,0 +1,4 @@
+const duke={id:'duke-treadmill',name:'Duke Treadmill Score',shortName:'Duke Treadmill',categoryId:'cardiology',description:'Prognostic index from exercise duration, ST deviation and angina.',type:'calculation',
+inputs:[{id:'duration',label:'Exercise duration',unit:'minutes',min:0,max:30,step:0.1},{id:'st',label:'Maximum ST-segment deviation',unit:'mm',min:0,max:10,step:0.1},{id:'angina',label:'Exercise-limiting angina?',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Non-limiting'},{value:2,label:'Exercise-limiting'}]}],
+calculate(v){const value=Number(v.duration)-5*Number(v.st)-4.6*Number(v.angina);return{value,unit:'points',interpretation:value>=5?'Low-risk range':value>=-10?'Moderate-risk range':'High-risk range'}}
+};export default duke

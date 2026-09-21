@@ -1,0 +1,4 @@
+const wood={id:'wood-downes',name:'Wood-Downes-Ferrés Score',shortName:'Wood-Downes',categoryId:'pediatrics',description:'Pediatric respiratory distress severity score.',type:'score',
+inputs:['Wheeze','Retractions','Air entry','Respiratory rate','Cyanosis','Oxygen saturation'].map((label,i)=>({id:`x${i}`,label,type:'choice',options:[0,1,2].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'points',note:'Exact Wood-Downes variants differ in item definitions; validate the local pediatric version.'}}
+};export default wood

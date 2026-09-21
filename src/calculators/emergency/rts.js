@@ -1,0 +1,4 @@
+const rts={id:'rts',name:'Revised Trauma Score',shortName:'RTS',categoryId:'emergency',description:'Physiologic trauma score from GCS, systolic BP and respiratory rate.',type:'score',
+inputs:[{id:'gcs',label:'GCS',min:3,max:15},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:0,max:300},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80}],
+calculate(v){const g=Number(v.gcs),s=Number(v.sbp),r=Number(v.rr);const gc=g===15?4:g>=13?3:g>=9?2:g>=6?1:0;const sc=s>=90?4:s>=76?3:s>=50?2:s>=1?1:0;const rc=r>=10&&r<=29?4:r>=30?3:r>=6?2:r>=1?1:0;const value=0.9368*gc+0.7326*sc+0.2908*rc;return{value,unit:'RTS',note:'This is the weighted RTS physiologic score; TRISS uses RTS with age and injury severity.'}}
+};export default rts

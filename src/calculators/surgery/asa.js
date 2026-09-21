@@ -1,0 +1,4 @@
+const asa={id:'asa',name:'ASA Physical Status',shortName:'ASA',categoryId:'surgery',description:'Preoperative physical-status classification.',type:'score',
+inputs:[{id:'class',label:'Physical status',type:'choice',options:[{value:1,label:'I — Healthy patient'},{value:2,label:'II — Mild systemic disease'},{value:3,label:'III — Severe systemic disease'},{value:4,label:'IV — Severe disease that is a constant threat to life'},{value:5,label:'V — Moribund, not expected to survive without operation'},{value:6,label:'VI — Brain-dead organ donor'}],optionsLayout:'stack'},{id:'emergency',label:'Emergency procedure?',type:'boolean'}],
+calculate(v){return{value:Number(v.class),unit:`${v.emergency?'E ':''}ASA`,interpretation:`ASA ${v.class}${v.emergency?'E':''}`}}
+};export default asa

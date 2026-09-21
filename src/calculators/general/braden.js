@@ -1,0 +1,4 @@
+const calc={id:'braden',name:'Braden Scale',shortName:'Braden',categoryId:'general',description:'Pressure-injury risk assessment.',type:'score',
+inputs:['Sensory perception','Moisture','Activity','Mobility','Nutrition','Friction / shear'].map((label,i)=>({id:`b${i}`,label,type:'choice',options:(i===5?[1,2,3]:[1,2,3,4]).map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'points',interpretation:s<=9?'Very high risk':s<=12?'High risk':s<=14?'Moderate risk':'Lower risk',note:'Braden category cutoffs vary slightly by institutional policy.'}}
+};export default calc

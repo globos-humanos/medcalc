@@ -1,0 +1,4 @@
+const mpm={id:'mpm',name:'MPM Framework',shortName:'MPM',categoryId:'icu',description:'Mortality Probability Model framework input screen.',type:'score',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'coma',label:'Coma on admission?',type:'boolean'},{id:'chronic',label:'Chronic organ failure / malignancy?',type:'boolean'},{id:'shock',label:'Acute hypotension / shock?',type:'boolean'},{id:'mechanical',label:'Mechanical ventilation on admission?',type:'boolean'},{id:'urine',label:'Low urine output?',type:'boolean'}],
+calculate(v){const s=(Number(v.age)>=65?1:0)+(v.coma?1:0)+(v.chronic?1:0)+(v.shock?1:0)+(v.mechanical?1:0)+(v.urine?1:0);return{value:s,unit:'risk features',note:'MPM is a family of validated logistic models with version- and time-point-specific coefficients. This screen does not invent a mortality probability.'}}
+};export default mpm

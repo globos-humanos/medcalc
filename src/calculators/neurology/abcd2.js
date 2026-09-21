@@ -1,0 +1,4 @@
+const abcd2={id:'abcd2',name:'ABCD² Score',shortName:'ABCD²',categoryId:'neurology',description:'Early stroke risk after transient ischemic attack.',type:'score',
+inputs:[{id:'age',label:'Age ≥60?',type:'boolean'},{id:'bp',label:'BP ≥140/90?',type:'boolean'},{id:'clinical',label:'Clinical features',type:'choice',options:[{value:2,label:'Unilateral weakness'},{value:1,label:'Speech impairment without weakness'},{value:0,label:'Other'}],optionsLayout:'stack'},{id:'duration',label:'TIA symptom duration',type:'choice',options:[{value:2,label:'≥60 min'},{value:1,label:'10–59 min'},{value:0,label:'<10 min'}],optionsLayout:'stack'},{id:'diabetes',label:'Diabetes?',type:'boolean'}],
+calculate(v){const s=(v.age?1:0)+(v.bp?1:0)+Number(v.clinical)+Number(v.duration)+(v.diabetes?1:0);return{value:s,unit:'/7',interpretation:s>=6?'High score':s>=4?'Moderate score':'Lower score'}}
+};export default abcd2

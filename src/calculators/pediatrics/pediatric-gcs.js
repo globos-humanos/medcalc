@@ -1,0 +1,4 @@
+const calc={id:'pediatric-gcs',name:'Pediatric Glasgow Coma Scale',shortName:'Pediatric GCS',categoryId:'pediatrics',description:'Age-adapted Glasgow Coma Scale framework.',type:'score',
+inputs:[{id:'eye',label:'Eye response',type:'choice',options:[1,2,3,4].map(v=>({value:v,label:String(v)}))},{id:'verbal',label:'Verbal response',type:'choice',options:[1,2,3,4,5].map(v=>({value:v,label:String(v)}))},{id:'motor',label:'Motor response',type:'choice',options:[1,2,3,4,5,6].map(v=>({value:v,label:String(v)}))}],
+calculate(v){const s=Number(v.eye)+Number(v.verbal)+Number(v.motor);return{value:s,unit:'/15',interpretation:s<=8?'Severe impairment':s<=12?'Moderate impairment':'Milder impairment'}}
+};export default calc
