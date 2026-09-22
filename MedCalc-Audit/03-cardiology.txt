@@ -1,0 +1,619 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: CARDIOLOGY
+============================================================
+
+
+============================================================
+FILE: src\calculators\cardiology\cha2ds2-vasc.js
+============================================================
+
+const cha2ds2Vasc = {
+  id: 'cha2ds2-vasc',
+  name: 'CHA2DS2-VASc Score',
+  shortName: 'CHA2DS2-VASc',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Estimates thromboembolic stroke risk in patients with atrial fibrillation.',
+  keywords: [
+    'CHA2DS2-VASc',
+    'CHA2DS2-VASc',
+    'atrial fibrillation',
+    'AF',
+    'stroke risk',
+    'thromboembolism',
+    'heart failure',
+    'hypertension',
+    'diabetes',
+    'vascular disease'
+  ],
+  aliases: [
+    'CHA2DS2VASc',
+    'CHA2DS2-VASc',
+    'CHA2DS2-VASc',
+    'AF stroke score'
+  ],
+  inputs: [
+    {
+      id: 'age',
+      label: 'Age',
+      type: 'choice',
+      options: [
+        { value: 0, label: '<65 years � 0' },
+        { value: 1, label: '65�74 years � 1' },
+        { value: 2, label: '=75 years � 2' }
+      ]
+    },
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 0, label: 'Male � 0' },
+        { value: 1, label: 'Female � 1' }
+      ]
+    },
+    {
+      id: 'chf',
+      label: 'Congestive heart failure / LV dysfunction',
+      type: 'boolean'
+    },
+    {
+      id: 'hypertension',
+      label: 'Hypertension',
+      type: 'boolean'
+    },
+    {
+      id: 'stroke',
+      label: 'Prior stroke, TIA, or thromboembolism',
+      type: 'boolean'
+    },
+    {
+      id: 'vascular',
+      label: 'Vascular disease (prior MI, PAD, or aortic plaque)',
+      type: 'boolean'
+    },
+    {
+      id: 'diabetes',
+      label: 'Diabetes mellitus',
+      type: 'boolean'
+    }
+  ],
+  calculate(values) {
+    const required = [
+      'age',
+      'sex',
+      'chf',
+      'hypertension',
+      'stroke',
+      'vascular',
+      'diabetes'
+    ]
+
+    if (
+      required.some(field =>
+        values[field] === undefined
+      )
+    ) {
+      return { error: 'Please complete every CHA2DS2-VASc criterion.' }
+    }
+
+    const score =
+      Number(values.age) +
+      Number(values.sex) +
+      (values.chf ? 1 : 0) +
+      (values.hypertension ? 1 : 0) +
+      (values.stroke ? 2 : 0) +
+      (values.vascular ? 1 : 0) +
+      (values.diabetes ? 1 : 0)
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: 'points',
+      category: `CHA2DS2-VASc score ${score}`
+    }
+  },
+  references: [
+    'Lip GYH, et al. Refining clinical risk stratification for predicting stroke and thromboembolism in atrial fibrillation using a novel risk factor-based approach. Chest. 2010.',
+    'MDCalc. CHA2DS2-VASc Score for Atrial Fibrillation Stroke Risk.'
+  ]
+}
+
+export default cha2ds2Vasc
+
+============================================================
+FILE: src\calculators\cardiology\crusade.js
+============================================================
+
+const calc={
+ id:'crusade',name:'CRUSADE Bleeding Score',shortName:'CRUSADE',categoryId:'cardiology',
+ description:'Published CRUSADE in-hospital major bleeding score for NSTE-ACS.',type:'score',
+ inputs:[
+  {id:'hematocrit',label:'Baseline hematocrit',unit:'%',min:5,max:70,step:0.1},
+  {id:'crcl',label:'Creatinine clearance',unit:'mL/min',min:0,max:250,step:0.1},
+  {id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:30,max:300},
+  {id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},
+  {id:'chf',label:'Signs of CHF at presentation',type:'boolean'},{id:'vascular',label:'Prior vascular disease',type:'boolean'},{id:'diabetes',label:'Diabetes mellitus',type:'boolean'}
+ ],
+ calculate(v){
+  const h=+v.hematocrit,c=+v.crcl,hr=+v.hr,sbp=+v.sbp;
+  const hp=h<31?9:h<34?7:h<37?3:h<40?2:0;
+  const cp=c<=15?39:c<=30?35:c<=60?28:c<=90?17:c<=120?7:0;
+  const hrp=hr<=70?0:hr<=80?1:hr<=90?3:hr<=100?6:hr<=110?8:hr<=120?10:11;
+  const bp=sbp<=90?10:sbp<=100?8:sbp<=120?5:sbp<=180?1:sbp<=200?3:5;
+  const value=hp+cp+hrp+bp+(v.sex==='female'?8:0)+(v.chf?7:0)+(v.vascular?6:0)+(v.diabetes?6:0);
+  return{value,unit:'points',interpretation:value<=20?'Low risk range':value<=40?'Moderate risk range':value<=60?'High risk range':'Very high risk range',note:'CRUSADE was developed for NSTE-ACS in-hospital major bleeding risk.'};
+ }
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\cardiology\dapt.js
+============================================================
+
+const calc={id:'dapt',name:'DAPT Score',shortName:'DAPT',categoryId:'cardiology',description:'Assists decisions about prolonged dual antiplatelet therapy after PCI.',type:'score',
+inputs:[{id:'age',label:'Age',type:'choice',options:[{value:-2,label:'≥75'},{value:-1,label:'65–74'},{value:0,label:'<65'}]},{id:'smoker',label:'Current smoker',type:'boolean'},{id:'diabetes',label:'Diabetes',type:'boolean'},{id:'mi',label:'MI at presentation',type:'boolean'},{id:'priorMi',label:'Prior MI or PCI',type:'boolean'},{id:'stent',label:'Stent diameter <3 mm',type:'boolean'},{id:'paclitaxel',label:'Paclitaxel-eluting stent',type:'boolean'},{id:'chf',label:'CHF/LVEF <30%',type:'boolean'},{id:'vein',label:'Vein-graft PCI',type:'boolean'}],
+calculate(v){const s=Number(v.age)+(v.smoker?1:0)+(v.diabetes?1:0)+(v.mi?1:0)+(v.priorMi?1:0)+(v.stent?1:0)+(v.paclitaxel?1:0)+(v.chf?2:0)+(v.vein?2:0);return{value:s,unit:'points',interpretation:s>=2?'Score ≥2':'Score <2',note:'The DAPT score is intended for patients who completed an initial period of DAPT without major bleeding/ischemic events.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\cardiology\duke-treadmill.js
+============================================================
+
+const duke={id:'duke-treadmill',name:'Duke Treadmill Score',shortName:'Duke Treadmill',categoryId:'cardiology',description:'Prognostic index from exercise duration, ST deviation and angina.',type:'calculation',
+inputs:[{id:'duration',label:'Exercise duration',unit:'minutes',min:0,max:30,step:0.1},{id:'st',label:'Maximum ST-segment deviation',unit:'mm',min:0,max:10,step:0.1},{id:'angina',label:'Exercise-limiting angina?',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Non-limiting'},{value:2,label:'Exercise-limiting'}]}],
+calculate(v){const value=Number(v.duration)-5*Number(v.st)-4.6*Number(v.angina);return{value,unit:'points',interpretation:value>=5?'Low-risk range':value>=-10?'Moderate-risk range':'High-risk range'}}
+};export default duke
+
+============================================================
+FILE: src\calculators\cardiology\framingham.js
+============================================================
+
+const framingham = {
+  id: 'framingham',
+  name: 'Framingham Risk Score',
+  shortName: 'Framingham Risk Score',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Framingham Risk Score from the MedCalc master calculator catalogue.',
+  keywords: ['Framingham Risk Score', 'Cardiology'],
+  aliases: ['Framingham Risk Score'],
+  inputs: [
+ {id:'age',label:'Age',type:'number',unit:'years',min:20,step:1},
+ {id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},
+ {id:'totalCholesterol',label:'Total cholesterol',type:'number',unit:'mg/dL',min:0,step:1},
+ {id:'hdl',label:'HDL cholesterol',type:'number',unit:'mg/dL',min:0,step:1},
+ {id:'sbp',label:'Systolic BP',type:'number',unit:'mmHg',min:0,step:1},
+ {id:'smoker',label:'Current smoker',type:'boolean'},
+ {id:'treated',label:'Treated hypertension',type:'boolean'}
+],
+  calculate(values) {
+    return {error:'Framingham has multiple published endpoints/models. Select the validated endpoint-specific model before clinical deployment.'}
+  },
+  references: ['Original validated cardiovascular risk model publication.']
+}
+
+export default framingham
+
+============================================================
+FILE: src\calculators\cardiology\grace.js
+============================================================
+
+const grace={id:'grace',name:'GRACE Score for ACS',shortName:'GRACE',categoryId:'cardiology',description:'Risk score for acute coronary syndrome.',type:'score',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:40,max:300},{id:'creatinine',label:'Creatinine',unit:'mg/dL',min:0.1,max:15,step:0.1},{id:'killip',label:'Killip class',type:'choice',options:[{value:1,label:'I'},{value:2,label:'II'},{value:3,label:'III'},{value:4,label:'IV'}]},{id:'arrest',label:'Cardiac arrest at admission?',type:'boolean'},{id:'st',label:'ST-segment deviation?',type:'boolean'},{id:'enzymes',label:'Elevated cardiac enzymes?',type:'boolean'}],
+calculate(v){const age=Number(v.age),hr=Number(v.hr),sbp=Number(v.sbp),cr=Number(v.creatinine);const agePts=age<40?0:age<50?18:age<60?36:age<70?55:age<80?73:91;const hrPts=hr<70?0:hr<80?3:hr<90?6:hr<100?9:hr<110?12:hr<150?15:24;const sbpPts=sbp>=200?0:sbp>=180?4:sbp>=160?8:sbp>=140?13:sbp>=120?18:sbp>=100?23:sbp>=80?28:63;const crPts=cr<0.4?1:cr<0.8?4:cr<1.2?7:cr<1.6?10:cr<2?13:cr<4?21:28;const s=agePts+hrPts+sbpPts+crPts+Number(v.killip)*10+(v.arrest?43:0)+(v.st?28:0)+(v.enzymes?14:0);return{value:s,unit:'points',note:'GRACE has version-specific point tables and outcome mappings; verify exact coefficients before clinical deployment.'}}
+};export default grace
+
+============================================================
+FILE: src\calculators\cardiology\h2fpef.js
+============================================================
+
+const h2fpef={id:'h2fpef',name:'H₂FPEF Score',shortName:'H₂FPEF',categoryId:'cardiology',description:'Estimates likelihood of HFpEF in patients with unexplained dyspnea.',type:'score',
+inputs:[{id:'heavy',label:'BMI >30 kg/m²?',type:'boolean'},{id:'hypertension',label:'≥2 antihypertensive medications?',type:'boolean'},{id:'af',label:'Atrial fibrillation?',type:'boolean'},{id:'pasp',label:'Pulmonary artery systolic pressure >35 mmHg?',type:'boolean'},{id:'age',label:'Age >60 years?',type:'boolean'},{id:'eovere',label:'E/e′ >9?',type:'boolean'}],
+calculate(v){const s=(v.heavy?2:0)+(v.hypertension?1:0)+(v.af?3:0)+(v.pasp?1:0)+(v.age?1:0)+(v.eovere?1:0);return{value:s,unit:'/9',interpretation:s>=6?'High probability':s>=2?'Intermediate probability':'Low probability'}}
+};export default h2fpef
+
+============================================================
+FILE: src\calculators\cardiology\has-bled.js
+============================================================
+
+const hasBled = {
+  id: 'has-bled',
+  name: 'HAS-BLED Score for Major Bleeding',
+  shortName: 'HAS-BLED',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Estimates bleeding risk in patients with atrial fibrillation receiving anticoagulation.',
+  keywords: ['HAS-BLED', 'bleeding', 'atrial fibrillation', 'anticoagulation'],
+  aliases: ['HASBLED', 'HAS BLED'],
+  inputs: [
+    { id: 'hypertension', label: 'Uncontrolled hypertension — systolic BP >160 mmHg', type: 'boolean' },
+    { id: 'renal', label: 'Renal disease — dialysis, transplant, or creatinine >2.26 mg/dL', type: 'boolean' },
+    { id: 'liver', label: 'Liver disease', type: 'boolean' },
+    { id: 'stroke', label: 'Previous stroke', type: 'boolean' },
+    { id: 'bleeding', label: 'Prior major bleeding or bleeding predisposition', type: 'boolean' },
+    { id: 'labileInr', label: 'Labile INR — unstable/high INR or TTR <60%', type: 'boolean' },
+    { id: 'age65', label: 'Age >65 years', type: 'boolean' },
+    { id: 'medications', label: 'Bleeding-predisposing medications — antiplatelet/NSAID', type: 'boolean' },
+    { id: 'alcohol', label: 'Alcohol use — ≥8 drinks/week', type: 'boolean' }
+  ],
+  calculate(values) {
+    const ids = ['hypertension', 'renal', 'liver', 'stroke', 'bleeding', 'labileInr', 'age65', 'medications', 'alcohol']
+    if (ids.some(id => typeof values[id] !== 'boolean')) return { error: 'Please answer all HAS-BLED criteria.' }
+    const score = ids.reduce((sum, id) => sum + (values[id] ? 1 : 0), 0)
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 9 points',
+      category: score >= 3 ? 'High bleeding-risk score' : 'Lower score; risk factors still require review'
+    }
+  },
+  references: [
+    'Pisters R, et al. A novel user-friendly score to assess one-year risk of major bleeding in AF patients. Chest. 2010;138:1093–1100.',
+    'MDCalc — HAS-BLED Score for Major Bleeding Risk.'
+  ]
+}
+
+export default hasBled
+
+============================================================
+FILE: src\calculators\cardiology\heart.js
+============================================================
+
+const heart = {
+  id: 'heart',
+  name: 'HEART Score for Major Cardiac Events',
+  shortName: 'HEART',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Calculates the HEART score for patients presenting with symptoms suggestive of acute coronary syndrome.',
+  keywords: ['HEART', 'chest pain', 'ACS', 'acute coronary syndrome', 'MACE', 'troponin'],
+  aliases: ['HEART score', 'history ECG age risk factors troponin'],
+  inputs: [
+    {
+      id: 'history',
+      label: 'History',
+      type: 'choice',
+      options: [
+        { value: '0', label: 'Slightly suspicious' },
+        { value: '1', label: 'Moderately suspicious' },
+        { value: '2', label: 'Highly suspicious' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'ecg',
+      label: 'ECG',
+      type: 'choice',
+      options: [
+        { value: '0', label: 'Normal' },
+        { value: '1', label: 'Non-specific repolarization disturbance' },
+        { value: '2', label: 'Significant ST deviation' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'age',
+      label: 'Age',
+      type: 'number',
+      unit: 'years',
+      min: 0,
+      step: 1
+    },
+    {
+      id: 'riskFactors',
+      label: 'Risk factors / known atherosclerotic disease',
+      type: 'choice',
+      options: [
+        { value: '0', label: 'No known risk factors' },
+        { value: '1', label: '1–2 risk factors' },
+        { value: '2', label: '≥3 risk factors or known atherosclerotic disease' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'troponin',
+      label: 'Initial troponin',
+      type: 'choice',
+      options: [
+        { value: '0', label: '≤ normal limit' },
+        { value: '1', label: '1–3× normal limit' },
+        { value: '2', label: '>3× normal limit' }
+      ],
+      optionsLayout: 'stack'
+    }
+  ],
+  calculate(values) {
+    const age = Number(values.age)
+    if (!values.history || !values.ecg || !values.riskFactors || !values.troponin || !Number.isFinite(age)) {
+      return { error: 'Please complete all HEART inputs.' }
+    }
+
+    const agePoints = age >= 65 ? 2 : age >= 45 ? 1 : 0
+    const score =
+      Number(values.history) +
+      Number(values.ecg) +
+      agePoints +
+      Number(values.riskFactors) +
+      Number(values.troponin)
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 10 points',
+      category:
+        score <= 3 ? 'Low-risk range' :
+        score <= 6 ? 'Intermediate-risk range' :
+        'High-risk range'
+    }
+  },
+  references: [
+    'Six AJ, et al. A clinical score for assessing the risk of major adverse cardiac events in patients with chest pain. Neth Heart J. 2008;16:191–196.',
+    'MDCalc — HEART Score for Major Cardiac Events.'
+  ]
+}
+
+export default heart
+
+============================================================
+FILE: src\calculators\cardiology\killip.js
+============================================================
+
+const calc={id:'killip',name:'Killip Class',shortName:'Killip',categoryId:'cardiology',description:'Clinical classification of heart failure in acute myocardial infarction.',type:'score',
+inputs:[{id:'class',label:'Clinical findings',type:'choice',options:[{value:1,label:'I — No heart failure'},{value:2,label:'II — S3, rales, or JVP elevation'},{value:3,label:'III — Pulmonary edema'},{value:4,label:'IV — Cardiogenic shock'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.class),unit:'class',interpretation:`Killip class ${v.class}`}}
+};export default calc
+
+============================================================
+FILE: src\calculators\cardiology\maggic.js
+============================================================
+
+const maggic={id:'maggic',name:'MAGGIC Risk Score',shortName:'MAGGIC',categoryId:'cardiology',description:'Heart failure mortality risk score.',type:'score',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'ef',label:'LVEF',unit:'%',min:5,max:90},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:50,max:250},{id:'bmi',label:'BMI',unit:'kg/m²',min:10,max:80,step:0.1},{id:'creatinine',label:'Creatinine',unit:'mg/dL',min:0.1,max:15,step:0.1},{id:'diabetes',label:'Diabetes?',type:'boolean'},{id:'smoker',label:'Current smoker?',type:'boolean'},{id:'copd',label:'COPD?',type:'boolean'},{id:'hfDuration',label:'Heart failure duration >18 months?',type:'boolean'},{id:'nyha',label:'NYHA class III/IV?',type:'boolean'},{id:'beta',label:'Beta-blocker use?',type:'boolean'},{id:'ace',label:'ACE inhibitor / ARB use?',type:'boolean'}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'MAGGIC uses a published multivariable model. A validated coefficient implementation is required to output the mortality percentage; this batch records the required inputs without inventing a probability.'}}
+};export default maggic
+
+============================================================
+FILE: src\calculators\cardiology\precise-dapt.js
+============================================================
+
+const preciseDapt = {
+  id: 'preciseDapt',
+  name: 'PRECISE-DAPT',
+  shortName: 'PRECISE-DAPT',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'PRECISE-DAPT from the MedCalc master calculator catalogue.',
+  keywords: ['PRECISE-DAPT', 'Cardiology'],
+  aliases: ['PRECISE-DAPT'],
+  inputs: [{id:'score',label:'PRECISE-DAPT score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter PRECISE-DAPT score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:s>=25?'High bleeding-risk score':'Lower bleeding-risk score'}
+  },
+  references: ['Original validated cardiovascular risk model publication.']
+}
+
+export default preciseDapt
+
+============================================================
+FILE: src\calculators\cardiology\qrisk3.js
+============================================================
+
+const qrisk3 = {
+  id: 'qrisk3',
+  name: 'QRISK3',
+  shortName: 'QRISK3',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'QRISK3 from the MedCalc master calculator catalogue.',
+  keywords: ['QRISK3', 'Cardiology'],
+  aliases: ['QRISK3'],
+  inputs: [{id:'risk',label:'QRISK3 10-year risk',type:'number',min:0,max:100,step:0.1,unit:'%'}],
+  calculate(values) {
+    const risk=Number(values.risk); if(!Number.isFinite(risk)) return {error:'Enter QRISK3 model output.'}
+    return {value:risk,displayValue:risk.toFixed(1),unit:'% 10-year risk',category:'QRISK3'}
+  },
+  references: ['Original validated cardiovascular risk model publication.']
+}
+
+export default qrisk3
+
+============================================================
+FILE: src\calculators\cardiology\seattle-hf.js
+============================================================
+
+const seattleHf = {
+  id: 'seattleHf',
+  name: 'Seattle Heart Failure Model',
+  shortName: 'Seattle Heart Failure Model',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Seattle Heart Failure Model from the MedCalc master calculator catalogue.',
+  keywords: ['Seattle Heart Failure Model', 'Cardiology'],
+  aliases: ['Seattle Heart Failure Model'],
+  inputs: [{id:'survival',label:'Validated model output',type:'number',min:0,step:0.1}],
+  calculate(values) {
+    const v=Number(values.survival); if(!Number.isFinite(v)) return {error:'Enter validated Seattle HF Model output.'}
+    return {value:v,displayValue:String(v),unit:'model output',category:'Seattle HF Model'}
+  },
+  references: ['Original validated cardiovascular risk model publication.']
+}
+
+export default seattleHf
+
+============================================================
+FILE: src\calculators\cardiology\sgarbossa.js
+============================================================
+
+const calc={
+ id:'sgarbossa',name:'Sgarbossa Criteria',shortName:'Sgarbossa',categoryId:'cardiology',
+ description:'Original Sgarbossa criteria for suspected MI with LBBB or ventricular pacing.',type:'score',
+ inputs:[
+  {id:'concordantSt',label:'Concordant ST elevation ≥1 mm?',type:'boolean'},
+  {id:'concordantDep',label:'Concordant ST depression ≥1 mm in V1–V3?',type:'boolean'},
+  {id:'discordantSt',label:'Discordant ST elevation ≥5 mm?',type:'boolean'}
+ ],
+ calculate(v){const value=(v.concordantSt?5:0)+(v.concordantDep?3:0)+(v.discordantSt?2:0);return{value,unit:'points',interpretation:value>=3?'Original Sgarbossa positive':'Original Sgarbossa not positive',note:'Smith-modified Sgarbossa uses proportional discordance and is not calculated by this original-criteria version.'}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\cardiology\timi.js
+============================================================
+
+const timi = {
+  id: 'timi',
+  name: 'TIMI Risk Score for UA/NSTEMI',
+  shortName: 'TIMI',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Estimates the risk of adverse cardiac outcomes in patients presenting with unstable angina or non-ST-elevation myocardial infarction.',
+  keywords: [
+    'TIMI',
+    'TIMI score',
+    'UA',
+    'NSTEMI',
+    'ACS',
+    'acute coronary syndrome',
+    'myocardial infarction',
+    'cardiac risk'
+  ],
+  aliases: [
+    'TIMI Risk Score',
+    'TIMI UA NSTEMI',
+    'TIMI score for unstable angina'
+  ],
+  inputs: [
+    {
+      id: 'age65',
+      label: 'Age =65 years',
+      type: 'boolean'
+    },
+    {
+      id: 'riskFactors',
+      label: '=3 risk factors for coronary artery disease',
+      type: 'boolean'
+    },
+    {
+      id: 'knownCad',
+      label: 'Known coronary stenosis =50%',
+      type: 'boolean'
+    },
+    {
+      id: 'stDeviation',
+      label: 'ST-segment deviation on presentation ECG',
+      type: 'boolean'
+    },
+    {
+      id: 'anginalEvents',
+      label: '=2 anginal episodes in the preceding 24 hours',
+      type: 'boolean'
+    },
+    {
+      id: 'aspirin',
+      label: 'Aspirin use within the preceding 7 days',
+      type: 'boolean'
+    },
+    {
+      id: 'biomarkers',
+      label: 'Elevated cardiac biomarkers',
+      type: 'boolean'
+    }
+  ],
+  calculate(values) {
+    const required = [
+      'age65',
+      'riskFactors',
+      'knownCad',
+      'stDeviation',
+      'anginalEvents',
+      'aspirin',
+      'biomarkers'
+    ]
+
+    if (required.some(key => typeof values[key] !== 'boolean')) {
+      return { error: 'Please complete all TIMI inputs.' }
+    }
+
+    const score = required.reduce(
+      (total, key) => total + (values[key] ? 1 : 0),
+      0
+    )
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 7 points',
+      category:
+        score <= 1 ? '0�1 points' :
+        score === 2 ? '2 points' :
+        score === 3 ? '3 points' :
+        score === 4 ? '4 points' :
+        score === 5 ? '5 points' :
+        '6�7 points',
+      interpretation:
+        score <= 1
+          ? 'Lower TIMI score range'
+          : score <= 4
+            ? 'Intermediate TIMI score range'
+            : 'Higher TIMI score range'
+    }
+  },
+  references: [
+    'Antman EM, et al. The TIMI risk score for unstable angina/non-ST elevation MI. JAMA. 2000;284:835�842.',
+    'ACCF/AHA Focused Update � TIMI Risk Score for Unstable Angina/Non-ST-Elevation MI.'
+  ]
+}
+
+export default timi
+
+============================================================
+FILE: src\calculators\cardiology\timi-ua-nstemi.js
+============================================================
+
+const timiUaNstemi = {
+  id: 'timi-ua-nstemi',
+  name: 'TIMI Risk Score for UA/NSTEMI',
+  shortName: 'TIMI',
+  type: 'score',
+  categoryId: 'cardiology',
+  category: 'Cardiology',
+  description: 'Estimates risk of adverse outcomes in unstable angina or NSTEMI using seven clinical criteria.',
+  keywords: ['TIMI', 'UA', 'NSTEMI', 'acute coronary syndrome', 'ACS'],
+  aliases: ['TIMI risk score', 'TIMI UA NSTEMI'],
+  inputs: [
+    { id: 'age65', label: 'Age ≥65 years', type: 'boolean' },
+    { id: 'cadRiskFactors', label: '≥3 CAD risk factors', type: 'boolean' },
+    { id: 'knownCad', label: 'Known CAD with stenosis ≥50%', type: 'boolean' },
+    { id: 'asa', label: 'Aspirin use in past 7 days', type: 'boolean' },
+    { id: 'severeAngina', label: 'Severe angina — ≥2 episodes in 24 hours', type: 'boolean' },
+    { id: 'stChanges', label: 'ST-segment deviation ≥0.5 mm', type: 'boolean' },
+    { id: 'positiveMarker', label: 'Positive cardiac marker', type: 'boolean' }
+  ],
+  calculate(values) {
+    const ids = ['age65', 'cadRiskFactors', 'knownCad', 'asa', 'severeAngina', 'stChanges', 'positiveMarker']
+    if (ids.some(id => typeof values[id] !== 'boolean')) return { error: 'Please answer all seven TIMI criteria.' }
+    const score = ids.reduce((sum, id) => sum + (values[id] ? 1 : 0), 0)
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 7 points',
+      category: score <= 1 ? 'Lower-risk group; risk is not zero.' : 'Higher TIMI score'
+    }
+  },
+  references: [
+    'Antman EM, et al. The TIMI risk score for unstable angina/non-ST elevation MI. JAMA. 2000;284:835–842.',
+    'MDCalc — TIMI Risk Score for UA/NSTEMI.'
+  ]
+}
+
+export default timiUaNstemi

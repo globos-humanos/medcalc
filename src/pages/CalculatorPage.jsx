@@ -22,11 +22,39 @@ function CalculatorPage() {
   return (
     <main className="page">
 
-      <div className="breadcrumb">
-        <Link to="/">Home</Link>
-        <span> / </span>
-        {calculator.name}
-      </div>
+      <nav
+        className="breadcrumb"
+        aria-label="Breadcrumb"
+      >
+        <Link
+          to="/"
+          className="breadcrumb-link"
+        >
+          Home
+        </Link>
+
+        <span
+          className="breadcrumb-separator"
+          aria-hidden="true"
+        >
+          ›
+        </span>
+
+        <span className="breadcrumb-category">
+          {calculator.category}
+        </span>
+
+        <span
+          className="breadcrumb-separator"
+          aria-hidden="true"
+        >
+          ›
+        </span>
+
+        <span className="breadcrumb-current">
+          {calculator.name}
+        </span>
+      </nav>
 
       <CalculatorCard
         calculator={calculator}

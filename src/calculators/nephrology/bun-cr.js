@@ -1,19 +1,32 @@
 ﻿const bunCr = {
-  id: 'bunCr',
-  name: 'BUN / Creatinine Ratio',
-  shortName: 'BUN / Creatinine Ratio',
-  type: 'score',
-  categoryId: 'nephrology',
-  category: 'Nephrology',
-  description: 'BUN / Creatinine Ratio from the MedCalc master calculator catalogue.',
-  keywords: ['BUN / Creatinine Ratio', 'Nephrology'],
-  aliases: ['BUN / Creatinine Ratio'],
-  inputs: [{id:'bun',label:'BUN',type:'number',unit:'mg/dL',min:0,step:0.1},{id:'creatinine',label:'Creatinine',type:'number',unit:'mg/dL',min:0,step:0.01}],
-  calculate(values) {
-    const b=Number(values.bun),c=Number(values.creatinine); if(![b,c].every(Number.isFinite)||c<=0) return {error:'Complete BUN/creatinine inputs.'}
-    const r=b/c; return {value:r,displayValue:r.toFixed(1),unit:'ratio',category:'BUN/Cr ratio'}
+  id:'bun-cr',
+  name:'BUN / Creatinine Ratio',
+  shortName:'BUN/Cr Ratio',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Ratio of blood urea nitrogen to serum creatinine.',
+  keywords:['BUN creatinine ratio','BUN/Cr'],
+
+  inputs:[
+    {id:'bun',label:'BUN',type:'number',unit:'mg/dL',min:0,max:300,step:0.1},
+    {id:'creatinine',label:'Serum creatinine',type:'number',unit:'mg/dL',min:0.1,max:20,step:0.01}
+  ],
+
+  calculate(v){
+    const value=Number(v.bun)/Number(v.creatinine)
+
+    return {
+      value,
+      displayValue:value.toFixed(1),
+      unit:'ratio',
+      category:'BUN / creatinine ratio',
+      interpretation:`BUN/Cr ratio = ${value.toFixed(1)}.`,
+      note:'The ratio is nonspecific and must be interpreted with volume status, gastrointestinal bleeding, protein intake, catabolic state, medications and renal function.'
+    }
   },
-  references: ['Standard renal/electrolyte equation reference.']
+
+  references:['BUN/creatinine ratio']
 }
 
 export default bunCr

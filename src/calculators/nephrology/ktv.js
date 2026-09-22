@@ -1,21 +1,47 @@
 ﻿const ktv = {
-  id: 'ktv',
-  name: 'Kt/V Dialysis Adequacy',
-  shortName: 'Kt/V Dialysis Adequacy',
-  type: 'score',
-  categoryId: 'nephrology',
-  category: 'Nephrology',
-  description: 'Kt/V Dialysis Adequacy from the MedCalc master calculator catalogue.',
-  keywords: ['Kt/V Dialysis Adequacy', 'Nephrology'],
-  aliases: ['Kt/V Dialysis Adequacy'],
-  inputs: [{id:'preBun',label:'Pre-dialysis BUN',type:'number',unit:'mg/dL',step:0.1},{id:'postBun',label:'Post-dialysis BUN',type:'number',unit:'mg/dL',step:0.1},{id:'weight',label:'Post-dialysis weight',type:'number',unit:'kg',min:0,step:0.1},{id:'ultrafiltration',label:'Ultrafiltration volume',type:'number',unit:'L',min:0,step:0.01},{id:'v',label:'Post-dialysis urea distribution volume',type:'number',unit:'L',min:0,step:0.1},{id:'t',label:'Dialysis duration',type:'hours',min:0,step:0.1}],
-  calculate(values) {
-    const pre=Number(values.preBun),post=Number(values.postBun),uf=Number(values.ultrafiltration),v=Number(values.v),t=Number(values.t)
-    if(![pre,post,uf,v,t].every(Number.isFinite)||pre<=0||post<=0||v<=0||t<=0) return {error:'Complete Kt/V inputs.'}
-    const r=post/pre, ktv=-Math.log(r-0.008*t)+(4-3.5*r)*uf/v
-    return {value:ktv,displayValue:ktv.toFixed(2),unit:'Kt/V',category:'Dialysis adequacy'}
+  id:'ktv',
+  name:'Single-Pool Kt/V',
+  shortName:'Kt/V',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Daugirdas II single-pool Kt/V estimate for hemodialysis.',
+  keywords:['Kt/V','dialysis','hemodialysis'],
+
+  inputs:[
+    {id:'pre',label:'Pre-dialysis BUN',type:'number',unit:'mg/dL',min:1,max:300,step:0.1},
+    {id:'post',label:'Post-dialysis BUN',type:'number',unit:'mg/dL',min:0.1,max:300,step:0.1},
+    {id:'time',label:'Dialysis time',type:'number',unit:'hours',min:1,max:12,step:0.1},
+    {id:'uf',label:'Ultrafiltration volume',type:'number',unit:'L',min:0,max:20,step:0.1},
+    {id:'v',label:'Post-dialysis urea distribution volume (V)',type:'number',unit:'L',min:1,max:100,step:0.1}
+  ],
+
+  calculate(v){
+    const pre=Number(v.pre)
+    const post=Number(v.post)
+    const t=Number(v.time)
+    const uf=Number(v.uf)
+    const volume=Number(v.v)
+
+    if(post<=0||pre<=0||post>=pre||volume<=0)
+      return {error:'Check pre/post BUN and volume inputs.'}
+
+    const ratio=post/pre
+    const ktv=
+      -Math.log(ratio-0.008*t)+
+      (4-3.5*ratio)*(uf/volume)
+
+    return {
+      value:ktv,
+      displayValue:ktv.toFixed(2),
+      unit:'Kt/V',
+      category:'Dialysis adequacy',
+      interpretation:`Single-pool Kt/V ≈ ${ktv.toFixed(2)}.`,
+      note:'For conventional thrice-weekly hemodialysis, KDOQI/NKF commonly uses a delivered spKt/V target around 1.2 or higher; adequacy assessment should follow the applicable dialysis prescription and guideline framework.'
+    }
   },
-  references: ['Standard renal/electrolyte equation reference.']
+
+  references:['Daugirdas II Kt/V equation','National Kidney Foundation dialysis adequacy guidance']
 }
 
 export default ktv

@@ -1,0 +1,473 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: ICU
+============================================================
+
+
+============================================================
+FILE: src\calculators\icu\apache-ii.js
+============================================================
+
+const calc={
+ id:'apache-ii',name:'APACHE II',shortName:'APACHE II',categoryId:'icu',
+ description:'Acute Physiology and Chronic Health Evaluation II.',type:'score',
+ inputs:[
+  {id:'temp',label:'Temperature',unit:'°C',min:25,max:45,step:0.1},{id:'map',label:'Mean arterial pressure',unit:'mmHg',min:20,max:300},
+  {id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},
+  {id:'oxygenMode',label:'Oxygenation assessment',type:'choice',options:[{value:'low',label:'FiO₂ <0.50'},{value:'high',label:'FiO₂ ≥0.50'}],optionsLayout:'stack'},
+  {id:'pao2',label:'PaO₂',unit:'mmHg',min:20,max:800},{id:'aado2',label:'A–aDO₂',unit:'mmHg',min:0,max:700},
+  {id:'arterialPh',label:'Arterial pH',min:6.5,max:8,step:0.01},{id:'na',label:'Sodium',unit:'mmol/L',min:80,max:220},
+  {id:'k',label:'Potassium',unit:'mmol/L',min:1,max:15,step:0.1},{id:'creatinine',label:'Creatinine',unit:'mg/dL',min:0.1,max:20,step:0.1},
+  {id:'acuteRenal',label:'Acute renal failure?',type:'boolean'},{id:'hct',label:'Hematocrit',unit:'%',min:5,max:70,step:0.1},
+  {id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100,step:0.1},{id:'gcs',label:'GCS',min:3,max:15},{id:'age',label:'Age',unit:'years',min:18,max:120}
+ ],
+ calculate(v){
+  const temp=+v.temp,map=+v.map,hr=+v.hr,rr=+v.rr,pao2=+v.pao2,aado2=+v.aado2,ph=+v.arterialPh,na=+v.na,k=+v.k,cr=+v.creatinine,hct=+v.hct,wbc=+v.wbc,gcs=+v.gcs,age=+v.age;
+  const t=temp>=41?4:temp>=39?3:temp>=38.5?1:temp>=36?0:temp>=34?1:temp>=32?2:temp>=30?3:4;
+  const m=map>=160?4:map>=130?3:map>=110?2:map>=70?0:map>=50?2:3;
+  const h=hr>=180?4:hr>=140?3:hr>=110?2:hr>=70?0:hr>=55?2:hr>=40?3:4;
+  const r=rr>=50?3:rr>=35?1:rr>=25?0:rr>=12?0:rr>=10?1:4;
+  const oxy=v.oxygenMode==='high'?(aado2>=500?3:aado2>=350?2:aado2>=200?1:0):(pao2>=70?0:pao2>=61?1:pao2>=55?3:4);
+  const p=ph>=7.7?4:ph>=7.6?3:ph>=7.5?1:ph>=7.33?0:ph>=7.25?2:ph>=7.15?3:4;
+  const n=na>=180?4:na>=160?1:na>=155?1:na>=130?0:na>=120?2:3;
+  const kk=k>=7?4:k>=6?3:k>=5.5?1:k>=3.5?0:k>=3?1:2;
+  let c=cr>=3.5?4:cr>=2?3:cr>=1.5?2:0;if(v.acuteRenal)c*=2;
+  const hh=hct>=60?4:hct>=50?2:hct>=46?1:hct>=30?0:hct>=20?2:4;
+  const ww=wbc>=40?4:wbc>=20?1:wbc>=15?1:wbc>=3?0:wbc>=1?2:4;
+  const total=t+m+h+r+oxy+p+n+kk+c+hh+ww+(15-gcs)+(age>=75?6:age>=65?5:age>=55?3:age>=45?2:0);
+  return{value:total,unit:'points',interpretation:`APACHE II ${total}/71`,note:'When FiO₂ ≥0.50, APACHE II oxygenation scoring uses A–aDO₂: ≥500=3, 350–499=2, 200–349=1, <200=0.'};
+ }
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\icu\apache-iii.js
+============================================================
+
+const apacheIII = {
+  id: 'apacheIII',
+  name: 'APACHE III',
+  shortName: 'APACHE III',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'APACHE III from the MedCalc master calculator catalogue.',
+  keywords: ['APACHE III', 'ICU'],
+  aliases: ['APACHE III'],
+  inputs: [{id:'score',label:'APACHE III score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const score=Number(values.score); if(!Number.isFinite(score)) return {error:'Enter APACHE III score.'}
+    return {value:score,displayValue:String(score),unit:'points',category:'APACHE III'}
+  },
+  references: ['Original validated ICU score publication.']
+}
+
+export default apacheIII
+
+============================================================
+FILE: src\calculators\icu\apache-iv.js
+============================================================
+
+const apacheIV = {
+  id: 'apacheIV',
+  name: 'APACHE IV',
+  shortName: 'APACHE IV',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'APACHE IV from the MedCalc master calculator catalogue.',
+  keywords: ['APACHE IV', 'ICU'],
+  aliases: ['APACHE IV'],
+  inputs: [{id:'score',label:'APACHE IV model score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const score=Number(values.score); if(!Number.isFinite(score)) return {error:'Enter APACHE IV model score.'}
+    return {value:score,displayValue:String(score),unit:'points',category:'APACHE IV'}
+  },
+  references: ['Original validated ICU score publication.']
+}
+
+export default apacheIV
+
+============================================================
+FILE: src\calculators\icu\cam-icu.js
+============================================================
+
+const cam={id:'cam-icu',name:'CAM-ICU',shortName:'CAM-ICU',categoryId:'icu',description:'Confusion Assessment Method for ICU delirium screening.',type:'score',
+inputs:[{id:'acute',label:'Acute onset or fluctuating course?',type:'boolean'},{id:'inattention',label:'Inattention?',type:'boolean'},{id:'disorganized',label:'Disorganized thinking?',type:'boolean'},{id:'consciousness',label:'Altered level of consciousness?',type:'boolean'}],
+calculate(v){const positive=v.acute&&v.inattention&&(v.disorganized||v.consciousness);return{value:positive?'Positive':'Negative',unit:'CAM-ICU',interpretation:positive?'Delirium screen positive':'Delirium screen negative',note:'A positive CAM-ICU screen supports delirium when the assessment is performed correctly; it is not a substitute for clinical evaluation.'}}
+};export default cam
+
+============================================================
+FILE: src\calculators\icu\cpot.js
+============================================================
+
+const calc={id:'cpot',name:'Critical-Care Pain Observation Tool',shortName:'CPOT',categoryId:'icu',description:'Behavioral pain assessment for critically ill adults unable to self-report.',type:'score',
+inputs:['Facial expression','Body movements','Muscle tension','Compliance with ventilator / vocalization'].map((label,i)=>({id:`c${i}`,label,type:'choice',options:[0,1,2].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'/8',interpretation:s>=3?'Pain likely / clinically significant score':'Lower CPOT score'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\icu\lods.js
+============================================================
+
+const lods={id:'lods',name:'Logistic Organ Dysfunction System',shortName:'LODS',categoryId:'icu',description:'Multisystem organ dysfunction assessment.',type:'score',
+inputs:[{id:'gcs',label:'GCS',min:3,max:15},{id:'pao2fio2',label:'PaO₂/FiO₂',min:20,max:800},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:30,max:300},{id:'bilirubin',label:'Bilirubin',unit:'mg/dL',min:0,max:50,step:0.1},{id:'creatinine',label:'Creatinine',unit:'mg/dL',min:0,max:20,step:0.1},{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100}],
+calculate(v){const g=Number(v.gcs),p=Number(v.pao2fio2),hr=Number(v.hr),sbp=Number(v.sbp),b=Number(v.bilirubin),c=Number(v.creatinine),w=Number(v.wbc);const s=(g>=15?0:g>=13?1:g>=10?2:g>=6?3:5)+(p>=300?0:p>=150?1:p>=75?3:5)+(hr>=70&&hr<=109?0:hr<70?1:hr<140?2:4)+(sbp>=90?0:sbp>=60?1:sbp>=40?3:5)+(b<1.2?0:b<3?1:b<6?3:5)+(c<1.2?0:c<2?1:c<5?3:5)+(w>=3&&w<=15?0:w<3?1:w<=40?3:5);return{value:s,unit:'points',note:'LODS is a complex published organ-dysfunction model; this implementation should be validated against the original scoring table.'}}
+};export default lods
+
+============================================================
+FILE: src\calculators\icu\mods.js
+============================================================
+
+const mods={id:'mods',name:'Multiple Organ Dysfunction Score',shortName:'MODS',categoryId:'icu',description:'Organ dysfunction score across six systems.',type:'score',
+inputs:[
+{id:'pao2fio2',label:'PaO₂/FiO₂',min:20,max:800},{id:'creatinine',label:'Creatinine',unit:'mg/dL',min:0,max:20,step:0.1},{id:'bilirubin',label:'Bilirubin',unit:'mg/dL',min:0,max:50,step:0.1},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000},{id:'map',label:'Mean arterial pressure',unit:'mmHg',min:20,max:250},{id:'vasopressor',label:'Vasopressor support?',type:'boolean'},{id:'gcs',label:'GCS',min:3,max:15}],
+calculate(v){const p=Number(v.pao2fio2),c=Number(v.creatinine),b=Number(v.bilirubin),pl=Number(v.platelets),map=Number(v.map),g=Number(v.gcs);const s=(p>=300?0:p>=226?1:p>=151?2:p>=76?3:4)+(c<1.2?0:c<2?1:c<3.5?2:c<5.7?3:4)+(b<1.2?0:b<3.5?1:b<7?2:b<14?3:4)+(pl>=150?0:pl>=100?1:pl>=50?2:pl>=20?3:4)+((map>=70&&!v.vasopressor)?0:(v.vasopressor?3:1))+(g>=15?0:g>=13?1:g>=10?2:g>=6?3:4);return{value:s,unit:'points',note:'MODS implementations differ in exact cardiovascular and laboratory thresholds; verify against your institutional reference before clinical deployment.'}}
+};export default mods
+
+============================================================
+FILE: src\calculators\icu\mpm.js
+============================================================
+
+const mpm={id:'mpm',name:'MPM Framework',shortName:'MPM',categoryId:'icu',description:'Mortality Probability Model framework input screen.',type:'score',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'coma',label:'Coma on admission?',type:'boolean'},{id:'chronic',label:'Chronic organ failure / malignancy?',type:'boolean'},{id:'shock',label:'Acute hypotension / shock?',type:'boolean'},{id:'mechanical',label:'Mechanical ventilation on admission?',type:'boolean'},{id:'urine',label:'Low urine output?',type:'boolean'}],
+calculate(v){const s=(Number(v.age)>=65?1:0)+(v.coma?1:0)+(v.chronic?1:0)+(v.shock?1:0)+(v.mechanical?1:0)+(v.urine?1:0);return{value:s,unit:'risk features',note:'MPM is a family of validated logistic models with version- and time-point-specific coefficients. This screen does not invent a mortality probability.'}}
+};export default mpm
+
+============================================================
+FILE: src\calculators\icu\mrc-sum.js
+============================================================
+
+const calc={id:'mrc-sum',name:'MRC Sum Score',shortName:'MRC Sum',categoryId:'icu',description:'Manual muscle strength sum score.',type:'score',
+inputs:['Shoulder abduction L','Elbow flexion L','Wrist extension L','Hip flexion L','Knee extension L','Ankle dorsiflexion L','Shoulder abduction R','Elbow flexion R','Wrist extension R','Hip flexion R','Knee extension R','Ankle dorsiflexion R'].map((label,i)=>({id:`m${i}`,label,type:'choice',options:[0,1,2,3,4,5].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'/60',interpretation:s<48?'ICU-acquired weakness threshold may be met':'Above common ICU-acquired weakness threshold'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\icu\nutric.js
+============================================================
+
+const calc={
+ id:'nutric',name:'NUTRIC Score',shortName:'NUTRIC',categoryId:'icu',
+ description:'Original NUTRIC / modified NUTRIC scoring with optional IL-6.',type:'score',
+ inputs:[
+  {id:'age',label:'Age',unit:'years',min:18,max:120},{id:'apache',label:'APACHE II score',min:0,max:71},
+  {id:'sofa',label:'SOFA score',min:0,max:24},{id:'comorbidity',label:'Number of comorbidities',min:0,max:20},
+  {id:'days',label:'Days from hospital admission to ICU admission',unit:'days',min:0,max:100,step:0.1},
+  {id:'il6',label:'IL-6 available?',type:'boolean'},{id:'il6value',label:'IL-6',unit:'pg/mL',min:0,max:100000}
+ ],
+ calculate(v){
+  const age=+v.age,ap=+v.apache,sofa=+v.sofa,com=+v.comorbidity,days=+v.days,il6=+v.il6value;
+  const value=(age<50?0:age<75?1:2)+(ap<15?0:ap<20?1:ap<28?2:3)+(sofa<6?0:sofa<10?1:2)+(com>=2?1:0)+(days>=1?1:0)+(v.il6?(il6<400?0:1):0);
+  const max=v.il6?10:9, high=v.il6?value>=6:value>=5;
+  return{value,unit:`/${max}`,interpretation:high?'High nutritional risk':'Low nutritional risk',note:v.il6?'Original NUTRIC with IL-6':'Modified NUTRIC without IL-6'};
+ }
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\icu\pelod-2.js
+============================================================
+
+const pelod2 = {
+  id: 'pelod2',
+  name: 'PELOD-2',
+  shortName: 'PELOD-2',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'PELOD-2 from the MedCalc master calculator catalogue.',
+  keywords: ['PELOD-2', 'ICU'],
+  aliases: ['PELOD-2'],
+  inputs: [{id:'score',label:'PELOD-2 score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const score=Number(values.score); if(!Number.isFinite(score)) return {error:'Enter PELOD-2 score.'}
+    return {value:score,displayValue:String(score),unit:'points',category:'PELOD-2'}
+  },
+  references: ['Original validated ICU score publication.']
+}
+
+export default pelod2
+
+============================================================
+FILE: src\calculators\icu\pim.js
+============================================================
+
+const pim = {
+  id: 'pim',
+  name: 'Pediatric Index of Mortality',
+  shortName: 'Pediatric Index of Mortality',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'Pediatric Index of Mortality from the MedCalc master calculator catalogue.',
+  keywords: ['Pediatric Index of Mortality', 'ICU'],
+  aliases: ['Pediatric Index of Mortality'],
+  inputs: [{id:'score',label:'PIM score / model output',type:'number',step:0.01}],
+  calculate(values) {
+    const score=Number(values.score); if(!Number.isFinite(score)) return {error:'Enter PIM model output.'}
+    return {value:score,displayValue:String(score),unit:'model output',category:'PIM'}
+  },
+  references: ['Original validated ICU score publication.']
+}
+
+export default pim
+
+============================================================
+FILE: src\calculators\icu\prism.js
+============================================================
+
+const prism = {
+  id: 'prism',
+  name: 'PRISM',
+  shortName: 'PRISM',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'PRISM from the MedCalc master calculator catalogue.',
+  keywords: ['PRISM', 'ICU'],
+  aliases: ['PRISM'],
+  inputs: [{id:'score',label:'PRISM score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const score=Number(values.score); if(!Number.isFinite(score)) return {error:'Enter PRISM score.'}
+    return {value:score,displayValue:String(score),unit:'points',category:'PRISM'}
+  },
+  references: ['Original validated ICU score publication.']
+}
+
+export default prism
+
+============================================================
+FILE: src\calculators\icu\rass.js
+============================================================
+
+const calc={id:'rass',name:'Richmond Agitation-Sedation Scale',shortName:'RASS',categoryId:'icu',description:'Level of agitation and sedation.',type:'score',
+inputs:[{id:'score',label:'Observed state',type:'choice',options:[{value:4,label:'+4 Combative'},{value:3,label:'+3 Very agitated'},{value:2,label:'+2 Agitated'},{value:1,label:'+1 Restless'},{value:0,label:'0 Alert and calm'},{value:-1,label:'−1 Drowsy'},{value:-2,label:'−2 Light sedation'},{value:-3,label:'−3 Moderate sedation'},{value:-4,label:'−4 Deep sedation'},{value:-5,label:'−5 Unarousable'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.score),unit:'RASS',interpretation:`RASS ${v.score}`}}
+};export default calc
+
+============================================================
+FILE: src\calculators\icu\saps-ii.js
+============================================================
+
+const calc = {
+  id: 'saps-ii', name: 'SAPS II', shortName: 'SAPS II', categoryId: 'icu',
+  description: 'Simplified Acute Physiology Score II with published point table and mortality equation.', type: 'score',
+  inputs: [
+    {id:'age',label:'Age',unit:'years',min:18,max:120},
+    {id:'hr',label:'Heart rate',unit:'/min',min:1,max:250},
+    {id:'sbp',label:'Systolic blood pressure',unit:'mmHg',min:20,max:300},
+    {id:'temp',label:'Temperature',unit:'°C',min:25,max:45,step:0.1},
+    {id:'vent',label:'Mechanical ventilation or CPAP within scoring period?',type:'boolean'},
+    {id:'pf',label:'PaO₂ / FiO₂',min:0,max:1000},
+    {id:'urine',label:'Urine output',unit:'L/day',min:0,max:20,step:0.01},
+    {id:'bun',label:'BUN',unit:'mg/dL',min:0,max:300,step:0.1},
+    {id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100,step:0.1},
+    {id:'k',label:'Potassium',unit:'mmol/L',min:0.5,max:15,step:0.1},
+    {id:'na',label:'Sodium',unit:'mmol/L',min:80,max:220},
+    {id:'hco3',label:'Bicarbonate',unit:'mmol/L',min:1,max:60,step:0.1},
+    {id:'bilirubin',label:'Bilirubin',unit:'mg/dL',min:0,max:100,step:0.1},
+    {id:'gcs',label:'GCS',min:3,max:15},
+    {id:'chronic',label:'Chronic disease',type:'choice',options:[{value:0,label:'None'},{value:9,label:'Metastatic cancer'},{value:10,label:'Hematologic malignancy'},{value:17,label:'AIDS'}],optionsLayout:'stack'},
+    {id:'admission',label:'Admission type',type:'choice',options:[{value:0,label:'Scheduled surgery'},{value:6,label:'Medical'},{value:8,label:'Unscheduled surgery'}],optionsLayout:'stack'}
+  ],
+  calculate(v) {
+    const age=+v.age,hr=+v.hr,sbp=+v.sbp,temp=+v.temp,pf=+v.pf,urine=+v.urine,bun=+v.bun,wbc=+v.wbc,k=+v.k,na=+v.na,hco3=+v.hco3,bili=+v.bilirubin,gcs=+v.gcs;
+    const agePts=age<40?0:age<60?7:age<70?12:age<75?15:age<80?16:18;
+    const hrPts=hr<40?11:hr<70?2:hr<120?0:hr<160?4:7;
+    const sbpPts=sbp<70?13:sbp<100?5:sbp<200?0:2;
+    const tempPts=temp>=39?3:0;
+    const pfPts=v.vent?(pf<100?11:pf<200?9:6):0;
+    const urinePts=urine<0.5?11:urine<1?4:0;
+    const bunPts=bun<28?0:bun<84?6:10;
+    const wbcPts=wbc<1?12:wbc<20?0:3;
+    const kPts=k<3?3:k<5?0:3;
+    const naPts=na<125?5:na<145?0:1;
+    const hco3Pts=hco3<15?6:hco3<20?3:0;
+    const biliPts=bili<4?0:bili<6?4:9;
+    const gcsPts=gcs>=14?0:gcs>=11?5:gcs>=9?7:gcs>=6?13:26;
+    const total=agePts+hrPts+sbpPts+tempPts+pfPts+urinePts+bunPts+wbcPts+kPts+naPts+hco3Pts+biliPts+gcsPts+Number(v.chronic||0)+Number(v.admission||0);
+    const logit=0.0737*total+0.9971*Math.log(total+1)-7.7631;
+    const mortality=100*Math.exp(logit)/(1+Math.exp(logit));
+    return {value:total,unit:'points',interpretation:`Estimated hospital mortality: ${mortality.toFixed(1)}%`,details:`Logit ${logit.toFixed(3)} • Published SAPS II logistic equation`};
+  }
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\icu\saps-iii.js
+============================================================
+
+const sapsIII = {
+  id: 'sapsIII',
+  name: 'SAPS III',
+  shortName: 'SAPS III',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'SAPS III from the MedCalc master calculator catalogue.',
+  keywords: ['SAPS III', 'ICU'],
+  aliases: ['SAPS III'],
+  inputs: [{id:'score',label:'SAPS III score',type:'number',min:0,max:217,step:1}],
+  calculate(values) {
+    const score=Number(values.score); if(!Number.isFinite(score)) return {error:'Enter SAPS III score.'}
+    return {value:score,displayValue:String(score),unit:'points',category:'SAPS III'}
+  },
+  references: ['Original validated ICU score publication.']
+}
+
+export default sapsIII
+
+============================================================
+FILE: src\calculators\icu\sofa.js
+============================================================
+
+const sofa = {
+  id: 'sofa',
+  name: 'SOFA Score',
+  shortName: 'SOFA',
+  type: 'score',
+  categoryId: 'icu',
+  category: 'ICU',
+  description: 'Calculates the classic Sequential Organ Failure Assessment score across six organ systems.',
+  keywords: ['SOFA', 'sequential organ failure assessment', 'sepsis', 'organ dysfunction', 'ICU'],
+  aliases: ['sequential organ failure assessment'],
+  inputs: [
+    { id: 'pao2', label: 'PaO₂', type: 'number', unit: 'mmHg', step: 1 },
+    { id: 'fio2', label: 'FiO₂', type: 'number', unit: '%', min: 21, max: 100, step: 1 },
+    { id: 'respSupport', label: 'Mechanical ventilation / qualifying respiratory support', type: 'boolean' },
+    { id: 'platelets', label: 'Platelets', type: 'number', unit: '×10³/µL', step: 1 },
+    { id: 'bilirubin', label: 'Total Bilirubin', type: 'number', unit: 'mg/dL', min: 0, step: 0.1 },
+    {
+      id: 'cardiovascular',
+      label: 'Cardiovascular status',
+      type: 'choice',
+      options: [
+        { value: '0', label: 'MAP ≥70 mmHg' },
+        { value: '1', label: 'MAP <70 mmHg' },
+        { value: '2', label: 'Dopamine ≤5 or dobutamine (any dose)' },
+        { value: '3', label: 'Dopamine >5 to 15, or epinephrine ≤0.1, or norepinephrine ≤0.1 µg/kg/min' },
+        { value: '4', label: 'Dopamine >15, or epinephrine >0.1, or norepinephrine >0.1 µg/kg/min' }
+      ],
+      optionsLayout: 'stack'
+    },
+    { id: 'gcs', label: 'Glasgow Coma Scale', type: 'number', min: 3, max: 15, step: 1 },
+    { id: 'creatinine', label: 'Creatinine', type: 'number', unit: 'mg/dL', min: 0, step: 0.1 },
+    { id: 'urineOutput', label: 'Urine output over 24 hours (optional)', type: 'number', unit: 'mL/day', min: 0, step: 1 }
+  ],
+  calculate(values) {
+    const n = id => Number(values[id])
+    const required = ['pao2', 'fio2', 'platelets', 'bilirubin', 'gcs', 'creatinine']
+    if (!values.respSupport && values.respSupport !== false) return { error: 'Please specify respiratory support.' }
+    if (!values.cardiovascular || required.some(id => !Number.isFinite(n(id)))) {
+      return { error: 'Please complete all required SOFA inputs.' }
+    }
+
+    const ratio = n('pao2') / (n('fio2') / 100)
+
+    const respiratory =
+      ratio < 100 && values.respSupport ? 4 :
+      ratio < 200 && values.respSupport ? 3 :
+      ratio < 300 ? 2 :
+      ratio < 400 ? 1 : 0
+
+    const coagulation =
+      n('platelets') < 20 ? 4 :
+      n('platelets') < 50 ? 3 :
+      n('platelets') < 100 ? 2 :
+      n('platelets') < 150 ? 1 : 0
+
+    const liver =
+      n('bilirubin') >= 12 ? 4 :
+      n('bilirubin') >= 6 ? 3 :
+      n('bilirubin') >= 2 ? 2 :
+      n('bilirubin') >= 1.2 ? 1 : 0
+
+    const cardiovascular = Number(values.cardiovascular)
+
+    const cns =
+      n('gcs') < 6 ? 4 :
+      n('gcs') <= 9 ? 3 :
+      n('gcs') <= 12 ? 2 :
+      n('gcs') <= 14 ? 1 : 0
+
+    const urine = values.urineOutput === '' || values.urineOutput == null
+      ? null
+      : n('urineOutput')
+
+    const renalByCr =
+      n('creatinine') >= 5 ? 4 :
+      n('creatinine') >= 3.5 ? 3 :
+      n('creatinine') >= 2 ? 2 :
+      n('creatinine') >= 1.2 ? 1 : 0
+
+    const renalByUrine =
+      Number.isFinite(urine)
+        ? (urine < 200 ? 4 : urine < 500 ? 3 : 0)
+        : 0
+
+    const renal = Math.max(renalByCr, renalByUrine)
+
+    const total =
+      respiratory +
+      coagulation +
+      liver +
+      cardiovascular +
+      cns +
+      renal
+
+    return {
+      value: total,
+      displayValue: String(total),
+      unit: '/ 24 points',
+      category: `Resp ${respiratory} • Coag ${coagulation} • Liver ${liver} • CV ${cardiovascular} • CNS ${cns} • Renal ${renal}`
+    }
+  },
+  references: [
+    'Vincent JL, et al. The SOFA (Sepsis-related Organ Failure Assessment) score. Intensive Care Med. 1996;22:707–710.',
+    'Merck Manual Professional Edition — Sequential Organ Failure Assessment (SOFA) Score.'
+  ]
+}
+
+export default sofa
+
+============================================================
+FILE: src\calculators\icu\tiss-28.js
+============================================================
+
+const items=[
+ ['standard','Standard monitoring (hourly vital signs, registration and fluid balance)',5],
+ ['lab','Biochemical and microbiological investigations',1],
+ ['singleMed','Single medication, any route',2],
+ ['multipleMed','Multiple IV medications',3],
+ ['routineDress','Routine dressing / pressure-area care',1],
+ ['frequentDress','Frequent dressing changes / extensive wound care',1],
+ ['drains','Care of drains (excluding gastric tube)',3],
+ ['mechanicalVent','Mechanical ventilation / assisted ventilation / PEEP',5],
+ ['suppVent','Supplementary ventilatory support / oxygen',2],
+ ['airway','Care of artificial airway',1],
+ ['lung','Treatment to improve lung function',1],
+ ['singleVaso','Single vasoactive medication',3],
+ ['multipleVaso','Multiple vasoactive medications',4],
+ ['largeFluid','IV replacement of large fluid losses',4],
+ ['arterial','Peripheral arterial catheter',5],
+ ['pac','Pulmonary artery catheter',8],
+ ['central','Central venous line',2],
+ ['cpr','CPR after arrest within past 24 h',3],
+ ['singleSpecific','Single specific ICU intervention',3],
+ ['multipleSpecific','Multiple specific ICU interventions',5],
+ ['outside','Specific intervention outside ICU',5],
+ ['dialysis','Hemofiltration / dialysis',3],
+ ['urine','Quantitative urine output measurement',2],
+ ['diuresis','Active diuresis',3],
+ ['icp','Intracranial pressure measurement',4],
+ ['acidBase','Treatment of complicated metabolic acidosis / alkalosis',4],
+ ['ivNutrition','IV alimentation',3],
+ ['enteral','Enteral feeding',2]
+];
+const calc={
+ id:'tiss-28',name:'TISS-28',shortName:'TISS-28',categoryId:'icu',
+ description:'Therapeutic Intervention Scoring System-28 using the published weighted 28-item table.',type:'score',
+ inputs:items.map(([id,label])=>({id,label,type:'boolean'})),
+ calculate(v){const value=items.reduce((sum,[id,,points])=>sum+(v[id]?points:0),0);return{value,unit:'points',interpretation:`TISS-28 ${value}/78`,note:'TISS-28 is a weighted ICU intervention/workload score.'}}
+};
+export default calc;

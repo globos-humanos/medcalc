@@ -1,14 +1,15 @@
-const calc = {
+﻿const calc = {
   id: 'p-possum',
   name: 'P-POSSUM',
   shortName: 'P-POSSUM',
   categoryId: 'surgery',
   description: 'Portsmouth modification of POSSUM for predicted postoperative mortality.',
+  type: 'score',
 
   inputs: [
     {
       id: 'physiologicalScore',
-      label: 'Physiological Score',
+      label: 'POSSUM physiological score',
       type: 'number',
       min: 12,
       max: 96,
@@ -16,7 +17,7 @@ const calc = {
     },
     {
       id: 'operativeScore',
-      label: 'Operative Severity Score',
+      label: 'POSSUM operative severity score',
       type: 'number',
       min: 6,
       max: 48,
@@ -28,38 +29,20 @@ const calc = {
     const ps = Number(v.physiologicalScore)
     const os = Number(v.operativeScore)
 
-    if (
-      !Number.isFinite(ps) ||
-      !Number.isFinite(os) ||
-      ps < 12 ||
-      os < 6
-    ) {
-      return {
-        error: 'Please enter valid POSSUM physiological and operative scores.'
-      }
+    if (!Number.isFinite(ps) || !Number.isFinite(os)) {
+      return { error: 'Enter valid POSSUM physiological and operative scores.' }
     }
 
-    const mortalityLogit =
-      -9.065 +
-      (0.1692 * ps) +
-      (0.1550 * os)
-
-    const mortality =
-      100 *
-      Math.exp(mortalityLogit) /
-      (1 + Math.exp(mortalityLogit))
+    const logit = -9.065 + (0.1692 * ps) + (0.1550 * os)
+    const mortality = 100 * Math.exp(logit) / (1 + Math.exp(logit))
 
     return {
       value: Number(mortality.toFixed(1)),
       unit: '% predicted mortality',
-      interpretation: 'P-POSSUM predicted mortality',
-      note: 'P-POSSUM uses the POSSUM physiological and operative scores and a modified mortality equation. It is intended for surgical risk prediction and audit, not as a standalone clinical decision.'
+      interpretation: 'P-POSSUM predicted postoperative mortality',
+      note: 'P-POSSUM uses the POSSUM physiological and operative severity scores. It is intended for risk prediction and surgical audit, not as a standalone decision rule.'
     }
-  },
-
-  references: [
-    'Prytherch DR et al. POSSUM and Portsmouth POSSUM for predicting mortality. Br J Surg. 1998.'
-  ]
+  }
 }
 
 export default calc

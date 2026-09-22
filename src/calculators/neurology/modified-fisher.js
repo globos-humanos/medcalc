@@ -1,4 +1,47 @@
-const mf={id:'modified-fisher',name:'Modified Fisher Scale',shortName:'Modified Fisher',categoryId:'neurology',description:'Modified CT grading for SAH and vasospasm risk.',type:'score',
-inputs:[{id:'sah',label:'SAH thickness',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Thin <1 mm'},{value:2,label:'Thick ≥1 mm'}],optionsLayout:'stack'},{id:'ivh',label:'Intraventricular hemorrhage?',type:'boolean'}],
-calculate(v){const s=Number(v.sah)+(v.ivh?2:0);return{value:s,unit:'grade',interpretation:`Modified Fisher grade ${s}`}}
-};export default mf
+﻿const modifiedFisher = {
+  id:'modified-fisher',
+  name:'Modified Fisher Scale',
+  shortName:'Modified Fisher',
+  type:'score',
+  categoryId:'neurology',
+  category:'Neurology',
+  description:'Modified CT grading of subarachnoid hemorrhage incorporating intraventricular hemorrhage.',
+  keywords:['modified Fisher','SAH','IVH','CT'],
+
+  inputs:[
+    {
+      id:'sah',
+      label:'Subarachnoid hemorrhage',
+      type:'choice',
+      options:[
+        {value:'none',label:'None'},
+        {value:'thin',label:'Thin SAH'},
+        {value:'thick',label:'Thick SAH'}
+      ],
+      optionsLayout:'stack'
+    },
+    {id:'ivh',label:'Intraventricular hemorrhage',type:'boolean'}
+  ],
+
+  calculate(v){
+    let score=0
+
+    if(v.sah==='thin'&&!v.ivh) score=1
+    else if(v.sah==='thin'&&v.ivh) score=2
+    else if(v.sah==='thick'&&!v.ivh) score=3
+    else if(v.sah==='thick'&&v.ivh) score=4
+
+    return {
+      value:score,
+      displayValue:String(score),
+      unit:'grade',
+      category:`Modified Fisher Grade ${score}`,
+      interpretation:`Modified Fisher Grade ${score}.`,
+      note:'Modified Fisher grading incorporates both subarachnoid blood thickness and intraventricular hemorrhage.'
+    }
+  },
+
+  references:['Frisullo et al. Modified Fisher scale']
+}
+
+export default modifiedFisher

@@ -1,0 +1,632 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: RESPIRATORY
+============================================================
+
+
+============================================================
+FILE: src\calculators\respiratory\aagradient.js
+============================================================
+
+const calc={id:'a-a-gradient',name:'A–a Oxygen Gradient',shortName:'A–a Gradient',categoryId:'respiratory',description:'Alveolar–arterial oxygen gradient.',type:'calculation',
+inputs:[{id:'fio2',label:'FiO₂',unit:'fraction',min:0.21,max:1,step:0.01},{id:'pao2',label:'PaO₂',unit:'mmHg',min:20,max:800},{id:'paco2',label:'PaCO₂',unit:'mmHg',min:10,max:150},{id:'patm',label:'Atmospheric pressure',unit:'mmHg',min:500,max:850},{id:'rq',label:'Respiratory quotient',min:0.7,max:1.2,step:0.01}],
+calculate(v){const fio=+v.fio2,p=+v.paco2,patm=+v.patm,rq=+v.rq,pa=+v.pao2;const pb=patm-47;const pao=fio*(pb-p/rq);return{value:pao-pa,unit:'mmHg',note:'Simplified alveolar gas equation assumes sea-level-style water vapor pressure at 37°C.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\alveolar-gas-equation.js
+============================================================
+
+const alveolarGas = {
+  id: 'alveolarGas',
+  name: 'Alveolar Gas Equation',
+  shortName: 'Alveolar Gas Equation',
+  type: 'score',
+  categoryId: 'respiratory',
+  category: 'Respiratory',
+  description: 'Alveolar Gas Equation from the MedCalc master calculator catalogue.',
+  keywords: ['Alveolar Gas Equation', 'Respiratory'],
+  aliases: ['Alveolar Gas Equation'],
+  inputs: [{id:'fio2',label:'FiO2',type:'number',min:0,max:1,step:0.01},{id:'patm',label:'Atmospheric pressure',type:'number',unit:'mmHg',step:1},{id:'ph2o',label:'Water vapor pressure',type:'number',unit:'mmHg',step:1},{id:'paco2',label:'PaCO2',type:'number',unit:'mmHg',step:1},{id:'rq',label:'Respiratory quotient',type:'number',step:0.01}],
+  calculate(values) {
+    const f=Number(values.fio2),p=Number(values.patm),w=Number(values.ph2o),c=Number(values.paco2),r=Number(values.rq)
+    if(![f,p,w,c,r].every(Number.isFinite)||r<=0) return {error:'Complete alveolar gas equation inputs.'}
+    const v=f*(p-w)-c/r; return {value:v,displayValue:v.toFixed(1),unit:'mmHg',category:'Estimated PAO2'}
+  },
+  references: ['Original validated respiratory/PE score publication.']
+}
+
+export default alveolarGas
+
+============================================================
+FILE: src\calculators\respiratory\bode.js
+============================================================
+
+const bode={id:'bode',name:'BODE Index',shortName:'BODE',categoryId:'respiratory',description:'Multidimensional COPD prognosis index.',type:'score',
+inputs:[{id:'bmi',label:'BMI',unit:'kg/m²',min:5,max:80,step:0.1},{id:'fev1',label:'FEV₁ % predicted',unit:'%',min:1,max:150},{id:'mmrc',label:'mMRC dyspnea scale',min:0,max:4,step:1},{id:'walk',label:'6-minute walk distance',unit:'m',min:0,max:1000}],
+calculate(v){const bmi=Number(v.bmi),f=Number(v.fev1),m=Number(v.mmrc),w=Number(v.walk);const b=bmi>=21?0:1;const fp=f>=65?0:f>=50?1:f>=36?2:3;const mp=m<1?0:m<2?1:m===2?2:m===3?3:3;const wp=w>=350?0:w>=250?1:w>=150?2:3;const s=b+fp+mp+wp;return{value:s,unit:'/10',interpretation:s<=2?'Lower BODE category':s<=4?'Intermediate BODE category':'Higher BODE category'}}
+};export default bode
+
+============================================================
+FILE: src\calculators\respiratory\cao2.js
+============================================================
+
+const calc={id:'cao2',name:'Arterial Oxygen Content',shortName:'CaO₂',categoryId:'respiratory',description:'Calculated arterial oxygen content.',type:'calculation',
+inputs:[{id:'hb',label:'Hemoglobin',unit:'g/dL',min:1,max:25,step:0.1},{id:'sao2',label:'SaO₂',unit:'%',min:0,max:100},{id:'pao2',label:'PaO₂',unit:'mmHg',min:0,max:800}],
+calculate(v){const value=1.34*Number(v.hb)*(Number(v.sao2)/100)+0.0031*Number(v.pao2);return{value,unit:'mL O₂/dL'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\crb65.js
+============================================================
+
+const calc={id:'crb-65',name:'CRB-65',shortName:'CRB-65',categoryId:'respiratory',description:'Community-acquired pneumonia severity score without laboratory testing.',type:'score',
+inputs:[{id:'confusion',label:'Confusion',type:'boolean'},{id:'rr',label:'Respiratory rate ≥30/min',type:'boolean'},{id:'bp',label:'SBP <90 or DBP ≤60 mmHg',type:'boolean'},{id:'age',label:'Age ≥65 years',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/4',interpretation:s===0?'Lower risk':s===1?'Intermediate risk':'Higher risk'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\curb-65.js
+============================================================
+
+const curb65 = {
+  id: 'curb-65',
+  name: 'CURB-65 Score',
+  shortName: 'CURB-65',
+  type: 'score',
+  categoryId: 'respiratory',
+  category: 'Respiratory',
+  description: 'Assesses severity and mortality risk in community-acquired pneumonia.',
+  keywords: [
+    'CURB-65',
+    'pneumonia',
+    'CAP',
+    'confusion',
+    'urea',
+    'BUN',
+    'respiratory rate',
+    'blood pressure',
+    'age'
+  ],
+  aliases: [
+    'CURB65',
+    'CURB 65',
+    'pneumonia severity score'
+  ],
+  inputs: [
+    {
+      id: 'confusion',
+      label: 'Confusion',
+      type: 'boolean'
+    },
+    {
+      id: 'bun',
+      label: 'BUN >19 mg/dL (>7 mmol/L urea)',
+      type: 'boolean'
+    },
+    {
+      id: 'respiratoryRate',
+      label: 'Respiratory rate =30/min',
+      type: 'boolean'
+    },
+    {
+      id: 'bloodPressure',
+      label: 'SBP <90 mmHg or DBP =60 mmHg',
+      type: 'boolean'
+    },
+    {
+      id: 'age',
+      label: 'Age =65 years',
+      type: 'boolean'
+    }
+  ],
+  calculate(values) {
+    const fields = [
+      'confusion',
+      'bun',
+      'respiratoryRate',
+      'bloodPressure',
+      'age'
+    ]
+
+    if (fields.some(field => values[field] === undefined)) {
+      return { error: 'Please answer every CURB-65 criterion.' }
+    }
+
+    const score = fields.reduce(
+      (total, field) =>
+        total + (values[field] ? 1 : 0),
+      0
+    )
+
+    let interpretation = ''
+
+    if (score <= 1) {
+      interpretation = 'Lower score'
+    } else if (score === 2) {
+      interpretation = 'Intermediate score'
+    } else {
+      interpretation = 'High score'
+    }
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/5',
+      category: interpretation
+    }
+  },
+  references: [
+    'Lim WS, et al. Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study. Thorax. 2003;58:377-382.',
+    'MDCalc. CURB-65 Score for Pneumonia Severity.'
+  ]
+}
+
+export default curb65
+
+============================================================
+FILE: src\calculators\respiratory\decaf.js
+============================================================
+
+const decaf={id:'decaf',name:'DECAF Score',shortName:'DECAF',categoryId:'respiratory',description:'Predicts mortality in acute exacerbation of COPD.',type:'score',
+inputs:[{id:'dyspnea',label:'Extended MRC dyspnea grade',type:'choice',options:[{value:0,label:'1–4'},{value:1,label:'5'}]},{id:'eosinopenia',label:'Eosinopenia <0.05×10⁹/L?',type:'boolean'},{id:'consolidation',label:'Consolidation on imaging?',type:'boolean'},{id:'acidemia',label:'Acidemia pH <7.30?',type:'boolean'},{id:'af',label:'Atrial fibrillation?',type:'boolean'}],
+calculate(v){const s=Number(v.dyspnea)+(v.eosinopenia?1:0)+(v.consolidation?1:0)+(v.acidemia?1:0)+(v.af?1:0);return{value:s,unit:'/6',interpretation:s<=1?'Low risk':s<=3?'Intermediate risk':'High risk'}}
+};export default decaf
+
+============================================================
+FILE: src\calculators\respiratory\gold-copd.js
+============================================================
+
+const goldCopd = {
+  id: 'goldCopd',
+  name: 'GOLD COPD Assessment',
+  shortName: 'GOLD COPD Assessment',
+  type: 'score',
+  categoryId: 'respiratory',
+  category: 'Respiratory',
+  description: 'GOLD COPD Assessment from the MedCalc master calculator catalogue.',
+  keywords: ['GOLD COPD Assessment', 'Respiratory'],
+  aliases: ['GOLD COPD Assessment'],
+  inputs: [{id:'symptoms',label:'Symptom burden',type:'choice',options:[{value:'low',label:'Lower symptoms'},{value:'high',label:'Higher symptoms'}]},{id:'exacerbations',label:'Exacerbation risk',type:'choice',options:[{value:'low',label:'Lower risk'},{value:'high',label:'Higher risk'}]}],
+  calculate(values) {
+    if(!values.symptoms||!values.exacerbations) return {error:'Complete GOLD assessment.'}
+    return {value:0,displayValue:'Assessment',unit:'',category:`Symptoms: ${values.symptoms}; exacerbation risk: ${values.exacerbations}`}
+  },
+  references: ['Original validated respiratory/PE score publication.']
+}
+
+export default goldCopd
+
+============================================================
+FILE: src\calculators\respiratory\hacor.js
+============================================================
+
+const hacor={id:'hacor',name:'HACOR Score',shortName:'HACOR',categoryId:'respiratory',description:'Predicts noninvasive ventilation failure.',type:'score',
+inputs:[{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'acidosis',label:'pH',min:6,max:8,step:0.01},{id:'gcs',label:'GCS',min:3,max:15},{id:'oxygen',label:'PaO₂/FiO₂',min:20,max:800},{id:'rr',label:'Respiratory rate',unit:'/min',min:1,max:80}],
+calculate(v){const hr=Number(v.hr),pH=Number(v.acidosis),g=Number(v.gcs),pf=Number(v.oxygen),rr=Number(v.rr);const s=(hr<120?0:2)+(pH>=7.35?0:pH>=7.30?2:pH>=7.25?3:4)+(g>=15?0:g>=13?2:g>=11?5:10)+(pf>=300?0:pf>=200?2:pf>=100?3:5)+(rr<25?0:rr<35?1:rr<45?2:3);return{value:s,unit:'points',note:'HACOR has timing- and population-specific validation; interpret using the appropriate protocol.'}}
+};export default hacor
+
+============================================================
+FILE: src\calculators\respiratory\metabolic-alkalosis.js
+============================================================
+
+const calc={id:'expected-paco2-alkalosis',name:'Expected PaCO₂ in Metabolic Alkalosis',shortName:'Metabolic Alkalosis',categoryId:'respiratory',description:'Estimated respiratory compensation in metabolic alkalosis.',type:'calculation',
+inputs:[{id:'hco3',label:'Serum bicarbonate',unit:'mmol/L',min:24,max:60}],
+calculate(v){const value=40+0.7*(Number(v.hco3)-24);return{value,unit:'mmHg',note:'Expected PaCO₂ is approximate; compensation usually does not exceed roughly 55 mmHg.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\murray.js
+============================================================
+
+const murray={id:'murray',name:'Murray Lung Injury Score',shortName:'Murray LIS',categoryId:'respiratory',description:'Four-component lung injury severity score.',type:'score',
+inputs:[{id:'pao2fio2',label:'PaO₂/FiO₂',min:20,max:800},{id:'peep',label:'PEEP',unit:'cmH₂O',min:0,max:40},{id:'compliance',label:'Static compliance',unit:'mL/cmH₂O',min:1,max:200},{id:'quadrants',label:'Quadrants with infiltrates',min:0,max:4,step:1}],
+calculate(v){const p=Number(v.pao2fio2),peep=Number(v.peep),c=Number(v.compliance),q=Number(v.quadrants);const a=p>300?0:p>=226?1:p>=176?2:p>=100?3:4;const b=peep<6?0:peep<8?1:peep<11?2:peep<14?3:4;const d=c>80?0:c>=60?1:c>=40?2:c>=20?3:4;const s=(a+b+d+q)/4;return{value:s,unit:'LIS',interpretation:s<0.5?'No/mild lung injury':s<1?'Mild–moderate lung injury':'Severe lung injury'}}
+};export default murray
+
+============================================================
+FILE: src\calculators\respiratory\pao2fio2.js
+============================================================
+
+const calc={id:'pao2-fio2',name:'P/F Ratio',shortName:'P/F Ratio',categoryId:'respiratory',description:'PaO₂ to FiO₂ ratio.',type:'calculation',
+inputs:[{id:'pao2',label:'PaO₂',unit:'mmHg',min:20,max:800},{id:'fio2',label:'FiO₂',unit:'fraction',min:0.21,max:1,step:0.01}],
+calculate(v){return{value:Number(v.pao2)/Number(v.fio2),unit:'mmHg',note:'Enter FiO₂ as a fraction, e.g. 0.40 for 40%.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\pesi.js
+============================================================
+
+const pesi = {
+  id: 'pesi',
+  name: 'PESI Score',
+  shortName: 'PESI Score',
+  type: 'score',
+  categoryId: 'respiratory',
+  category: 'Respiratory',
+  description: 'PESI Score from the MedCalc master calculator catalogue.',
+  keywords: ['PESI Score', 'Respiratory'],
+  aliases: ['PESI Score'],
+  inputs: [{id:'score',label:'PESI score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter PESI score.'}
+    const c=s<=65?'I':s<=85?'II':s<=105?'III':s<=125?'IV':'V'
+    return {value:s,displayValue:String(s),unit:'points',category:`Class ${c}`}
+  },
+  references: ['Original validated respiratory/PE score publication.']
+}
+
+export default pesi
+
+============================================================
+FILE: src\calculators\respiratory\psi.js
+============================================================
+
+const psi = {
+  id: 'psi',
+  name: 'Pneumonia Severity Index (PSI/PORT)',
+  shortName: 'PSI',
+  type: 'score',
+  categoryId: 'respiratory',
+  category: 'Respiratory',
+  description:
+    'Calculates the Pneumonia Severity Index (PSI/PORT) score for adults with community-acquired pneumonia to estimate 30-day mortality risk and assist with disposition decisions.',
+  keywords: [
+    'PSI',
+    'PORT',
+    'Pneumonia Severity Index',
+    'pneumonia',
+    'community acquired pneumonia',
+    'CAP',
+    'mortality',
+    'risk stratification'
+  ],
+  aliases: [
+    'Pneumonia Severity Index',
+    'PORT Score',
+    'PSI Score'
+  ],
+
+  inputs: [
+    {
+      id: 'age',
+      label: 'Age',
+      type: 'number',
+      unit: 'years',
+      min: 18,
+      step: 1
+    },
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' }
+      ]
+    },
+    {
+      id: 'nursingHome',
+      label: 'Nursing home resident',
+      type: 'boolean'
+    },
+
+    {
+      id: 'neoplasticDisease',
+      label: 'Neoplastic disease',
+      type: 'boolean'
+    },
+    {
+      id: 'liverDisease',
+      label: 'Liver disease',
+      type: 'boolean'
+    },
+    {
+      id: 'congestiveHeartFailure',
+      label: 'Congestive heart failure',
+      type: 'boolean'
+    },
+    {
+      id: 'cerebrovascularDisease',
+      label: 'Cerebrovascular disease',
+      type: 'boolean'
+    },
+    {
+      id: 'renalDisease',
+      label: 'Renal disease',
+      type: 'boolean'
+    },
+
+    {
+      id: 'alteredMentalStatus',
+      label: 'Altered mental status',
+      type: 'boolean'
+    },
+    {
+      id: 'respiratoryRate',
+      label: 'Respiratory rate',
+      type: 'number',
+      unit: '/min',
+      min: 0,
+      step: 1
+    },
+    {
+      id: 'systolicBP',
+      label: 'Systolic blood pressure',
+      type: 'number',
+      unit: 'mmHg',
+      min: 0,
+      step: 1
+    },
+    {
+      id: 'temperature',
+      label: 'Temperature',
+      type: 'number',
+      unit: '°C',
+      step: 0.1
+    },
+    {
+      id: 'pulse',
+      label: 'Pulse',
+      type: 'number',
+      unit: 'beats/min',
+      min: 0,
+      step: 1
+    },
+
+    {
+      id: 'arterialPh',
+      label: 'Arterial pH',
+      type: 'number',
+      min: 0,
+      max: 14,
+      step: 0.01
+    },
+    {
+      id: 'bun',
+      label: 'Blood urea nitrogen (BUN)',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'sodium',
+      label: 'Serum sodium',
+      type: 'number',
+      unit: 'mmol/L',
+      step: 0.1
+    },
+    {
+      id: 'glucose',
+      label: 'Serum glucose',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'hematocrit',
+      label: 'Hematocrit',
+      type: 'number',
+      unit: '%',
+      min: 0,
+      max: 100,
+      step: 0.1
+    },
+    {
+      id: 'oxygenSaturation',
+      label: 'Oxygen saturation',
+      type: 'number',
+      unit: '%',
+      min: 0,
+      max: 100,
+      step: 0.1
+    },
+    {
+      id: 'pleuralEffusion',
+      label: 'Pleural effusion on chest radiograph',
+      type: 'boolean'
+    }
+  ],
+
+  calculate(values) {
+    const age = Number(values.age)
+    const respiratoryRate = Number(values.respiratoryRate)
+    const systolicBP = Number(values.systolicBP)
+    const temperature = Number(values.temperature)
+    const pulse = Number(values.pulse)
+    const arterialPh = Number(values.arterialPh)
+    const bun = Number(values.bun)
+    const sodium = Number(values.sodium)
+    const glucose = Number(values.glucose)
+    const hematocrit = Number(values.hematocrit)
+    const oxygenSaturation = Number(values.oxygenSaturation)
+
+    if (
+      !Number.isFinite(age) ||
+      !Number.isFinite(respiratoryRate) ||
+      !Number.isFinite(systolicBP) ||
+      !Number.isFinite(temperature) ||
+      !Number.isFinite(pulse) ||
+      !Number.isFinite(arterialPh) ||
+      !Number.isFinite(bun) ||
+      !Number.isFinite(sodium) ||
+      !Number.isFinite(glucose) ||
+      !Number.isFinite(hematocrit) ||
+      !Number.isFinite(oxygenSaturation) ||
+      !values.sex
+    ) {
+      return {
+        error: 'Please complete all PSI inputs.'
+      }
+    }
+
+    const booleanInputs = [
+      'nursingHome',
+      'neoplasticDisease',
+      'liverDisease',
+      'congestiveHeartFailure',
+      'cerebrovascularDisease',
+      'renalDisease',
+      'alteredMentalStatus',
+      'pleuralEffusion'
+    ]
+
+    if (
+      booleanInputs.some(
+        key => typeof values[key] !== 'boolean'
+      )
+    ) {
+      return {
+        error: 'Please complete all PSI clinical history and examination inputs.'
+      }
+    }
+
+    let score = values.sex === 'male' ? age : age - 10
+
+    if (values.nursingHome) score += 10
+
+    if (values.neoplasticDisease) score += 30
+    if (values.liverDisease) score += 20
+    if (values.congestiveHeartFailure) score += 10
+    if (values.cerebrovascularDisease) score += 10
+    if (values.renalDisease) score += 10
+
+    if (values.alteredMentalStatus) score += 20
+
+    if (respiratoryRate >= 30) score += 20
+    if (systolicBP < 90) score += 20
+    if (temperature < 35 || temperature >= 40) score += 15
+    if (pulse >= 125) score += 10
+
+    if (arterialPh < 7.35) score += 30
+    if (bun >= 30) score += 20
+    if (sodium < 130) score += 20
+    if (glucose >= 250) score += 10
+    if (hematocrit < 30) score += 10
+    if (oxygenSaturation < 90) score += 10
+    if (pleuralEffusion) score += 10
+
+    let riskClass
+    let mortality
+
+    if (score <= 50) {
+      riskClass = 'Class I'
+      mortality = 'Very low'
+    } else if (score <= 70) {
+      riskClass = 'Class II'
+      mortality = 'Low'
+    } else if (score <= 90) {
+      riskClass = 'Class III'
+      mortality = 'Low'
+    } else if (score <= 130) {
+      riskClass = 'Class IV'
+      mortality = 'Moderate'
+    } else {
+      riskClass = 'Class V'
+      mortality = 'High'
+    }
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: 'PSI points',
+      category: riskClass,
+      interpretation: `${riskClass} — ${mortality} mortality risk.`
+    }
+  },
+
+  references: [
+    'Fine MJ, et al. A prediction rule to identify low-risk patients with community-acquired pneumonia. N Engl J Med. 1997;336:243–250.',
+    'Fine MJ, et al. The Pneumonia Severity Index: a validated prediction rule for mortality in patients with community-acquired pneumonia.'
+  ]
+}
+
+export default psi
+
+============================================================
+FILE: src\calculators\respiratory\roX.js
+============================================================
+
+const calc={id:'rox',name:'ROX Index',shortName:'ROX',categoryId:'respiratory',description:'ROX index for patients receiving high-flow nasal cannula.',type:'calculation',
+inputs:[{id:'spo2',label:'SpO₂',unit:'%',min:50,max:100},{id:'fio2',label:'FiO₂',unit:'fraction',min:0.21,max:1,step:0.01},{id:'rr',label:'Respiratory rate',unit:'/min',min:1,max:80}],
+calculate(v){return{value:(Number(v.spo2)/Number(v.fio2))/Number(v.rr),unit:'ROX index'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\sfio2.js
+============================================================
+
+const calc={id:'sf-ratio',name:'S/F Ratio',shortName:'S/F Ratio',categoryId:'respiratory',description:'SpO₂ to FiO₂ ratio.',type:'calculation',
+inputs:[{id:'spo2',label:'SpO₂',unit:'%',min:50,max:100},{id:'fio2',label:'FiO₂',unit:'fraction',min:0.21,max:1,step:0.01}],
+calculate(v){return{value:Number(v.spo2)/Number(v.fio2),unit:'ratio'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\smart-cop.js
+============================================================
+
+const smart={id:'smart-cop',name:'SMART-COP',shortName:'SMART-COP',categoryId:'respiratory',description:'Predicts need for intensive respiratory or vasopressor support in pneumonia.',type:'score',
+inputs:[{id:'sbp',label:'Systolic BP <90 mmHg?',type:'boolean'},{id:'multilobar',label:'Multilobar infiltrates?',type:'boolean'},{id:'albumin',label:'Albumin <3.5 g/dL?',type:'boolean'},{id:'rr',label:'Respiratory rate threshold met for age?',type:'boolean'},{id:'tachy',label:'Tachycardia ≥125/min?',type:'boolean'},{id:'confusion',label:'Confusion?',type:'boolean'},{id:'oxygen',label:'Low oxygenation criterion met?',type:'boolean'},{id:'ph',label:'Arterial pH <7.35?',type:'boolean'}],
+calculate(v){const s=(v.sbp?2:0)+(v.multilobar?1:0)+(v.albumin?1:0)+(v.rr?1:0)+(v.tachy?1:0)+(v.confusion?1:0)+(v.oxygen?2:0)+(v.ph?2:0);return{value:s,unit:'points',interpretation:s>=5?'High risk of intensive respiratory/vasopressor support':'Lower score',note:'SMART-COP contains age-adjusted respiratory-rate and oxygenation definitions; this interface uses explicit criterion inputs.'}}
+};export default smart
+
+============================================================
+FILE: src\calculators\respiratory\spesi.js
+============================================================
+
+const spesi = {
+  id: 'spesi',
+  name: 'Simplified PESI',
+  shortName: 'Simplified PESI',
+  type: 'score',
+  categoryId: 'respiratory',
+  category: 'Respiratory',
+  description: 'Simplified PESI from the MedCalc master calculator catalogue.',
+  keywords: ['Simplified PESI', 'Respiratory'],
+  aliases: ['Simplified PESI'],
+  inputs: [
+ {id:'age80',label:'Age >80 years',type:'boolean'},
+ {id:'cancer',label:'Cancer',type:'boolean'},
+ {id:'cardiopulmonary',label:'Chronic cardiopulmonary disease',type:'boolean'},
+ {id:'hr110',label:'Heart rate =110/min',type:'boolean'},
+ {id:'sbp100',label:'Systolic BP <100 mmHg',type:'boolean'},
+ {id:'spo290',label:'Oxygen saturation <90%',type:'boolean'}
+],
+  calculate(values) {
+    const k=['age80','cancer','cardiopulmonary','hr110','sbp100','spo290']
+    if(k.some(x=>typeof values[x]!=='boolean')) return {error:'Complete all sPESI inputs.'}
+    const s=k.reduce((n,x)=>n+(values[x]?1:0),0)
+    return {value:s,displayValue:String(s),unit:'points',category:s===0?'Low-risk':'Higher-risk'}
+  },
+  references: ['Original validated respiratory/PE score publication.']
+}
+
+export default spesi
+
+============================================================
+FILE: src\calculators\respiratory\stopbang.js
+============================================================
+
+const stopbang={id:'stopbang',name:'STOP-BANG',shortName:'STOP-BANG',categoryId:'respiratory',description:'Obstructive sleep apnea screening questionnaire.',type:'score',
+inputs:[{id:'snore',label:'Snoring?',type:'boolean'},{id:'tired',label:'Tired / sleepy during daytime?',type:'boolean'},{id:'observed',label:'Observed apnea?',type:'boolean'},{id:'pressure',label:'High blood pressure?',type:'boolean'},{id:'bmi',label:'BMI >35 kg/m²?',type:'boolean'},{id:'age',label:'Age >50 years?',type:'boolean'},{id:'neck',label:'Neck circumference >40 cm?',type:'boolean'},{id:'male',label:'Male sex?',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/8',interpretation:s<=2?'Low risk':s<=4?'Intermediate risk':'High risk'}}
+};export default stopbang
+
+============================================================
+FILE: src\calculators\respiratory\winter.js
+============================================================
+
+const calc={id:'winters-formula',name:'Winter’s Formula',shortName:'Winter’s',categoryId:'respiratory',description:'Expected PaCO₂ compensation in metabolic acidosis.',type:'calculation',
+inputs:[{id:'hco3',label:'Serum bicarbonate',unit:'mmol/L',min:1,max:60}],
+calculate(v){const value=1.5*Number(v.hco3)+8;return{value,unit:'mmHg',note:'Expected PaCO₂ ≈ 1.5 × HCO₃⁻ + 8 ±2 mmHg.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\respiratory\years.js
+============================================================
+
+const years={id:'years',name:'YEARS Algorithm',shortName:'YEARS',categoryId:'respiratory',description:'Clinical-probability and D-dimer strategy for suspected pulmonary embolism.',type:'score',
+inputs:[{id:'dvt',label:'Clinical signs of DVT?',type:'boolean'},{id:'hemoptysis',label:'Hemoptysis?',type:'boolean'},{id:'peMostLikely',label:'PE most likely diagnosis?',type:'boolean'},{id:'ddimer',label:'D-dimer',unit:'ng/mL FEU',min:0,max:10000}],
+calculate(v){const items=(v.dvt?1:0)+(v.hemoptysis?1:0)+(v.peMostLikely?1:0);const threshold=items===0?1000:500;return{value:items,unit:'YEARS items',note:`D-dimer threshold in this implementation: ${threshold} ng/mL FEU. Apply only within the validated YEARS diagnostic pathway.`}}
+};export default years

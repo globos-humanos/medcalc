@@ -1,94 +1,36 @@
-﻿const curb65 = {
+﻿const calc = {
   id: 'curb-65',
-  name: 'CURB-65 Score',
+  name: 'CURB-65',
   shortName: 'CURB-65',
-  type: 'score',
   categoryId: 'respiratory',
-  category: 'Respiratory',
-  description: 'Assesses severity and mortality risk in community-acquired pneumonia.',
-  keywords: [
-    'CURB-65',
-    'pneumonia',
-    'CAP',
-    'confusion',
-    'urea',
-    'BUN',
-    'respiratory rate',
-    'blood pressure',
-    'age'
-  ],
-  aliases: [
-    'CURB65',
-    'CURB 65',
-    'pneumonia severity score'
-  ],
+  description: 'Severity assessment for community-acquired pneumonia.',
+  type: 'score',
   inputs: [
-    {
-      id: 'confusion',
-      label: 'Confusion',
-      type: 'boolean'
-    },
-    {
-      id: 'bun',
-      label: 'BUN >19 mg/dL (>7 mmol/L urea)',
-      type: 'boolean'
-    },
-    {
-      id: 'respiratoryRate',
-      label: 'Respiratory rate ≥30/min',
-      type: 'boolean'
-    },
-    {
-      id: 'bloodPressure',
-      label: 'SBP <90 mmHg or DBP ≤60 mmHg',
-      type: 'boolean'
-    },
-    {
-      id: 'age',
-      label: 'Age ≥65 years',
-      type: 'boolean'
-    }
+    { id: 'confusion', label: 'Confusion', type: 'boolean' },
+    { id: 'urea', label: 'Blood urea', type: 'number', unit: 'mmol/L', min: 0, max: 60, step: 0.1 },
+    { id: 'rr', label: 'Respiratory rate', type: 'number', unit: '/min', min: 0, max: 80, step: 1 },
+    { id: 'sbp', label: 'Systolic blood pressure', type: 'number', unit: 'mmHg', min: 40, max: 250, step: 1 },
+    { id: 'dbp', label: 'Diastolic blood pressure', type: 'number', unit: 'mmHg', min: 20, max: 150, step: 1 },
+    { id: 'age', label: 'Age', type: 'number', unit: 'years', min: 0, max: 120, step: 1 }
   ],
-  calculate(values) {
-    const fields = [
-      'confusion',
-      'bun',
-      'respiratoryRate',
-      'bloodPressure',
-      'age'
-    ]
-
-    if (fields.some(field => values[field] === undefined)) {
-      return { error: 'Please answer every CURB-65 criterion.' }
-    }
-
-    const score = fields.reduce(
-      (total, field) =>
-        total + (values[field] ? 1 : 0),
-      0
-    )
-
-    let interpretation = ''
-
-    if (score <= 1) {
-      interpretation = 'Lower score'
-    } else if (score === 2) {
-      interpretation = 'Intermediate score'
-    } else {
-      interpretation = 'High score'
-    }
+  calculate(v) {
+    const score =
+      (v.confusion ? 1 : 0) +
+      (Number(v.urea) > 7 ? 1 : 0) +
+      (Number(v.rr) >= 30 ? 1 : 0) +
+      (Number(v.sbp) < 90 || Number(v.dbp) <= 60 ? 1 : 0) +
+      (Number(v.age) >= 65 ? 1 : 0)
 
     return {
       value: score,
-      displayValue: String(score),
       unit: '/5',
-      category: interpretation
+      interpretation:
+        score <= 1 ? 'Low-risk CURB-65 category.' :
+        score === 2 ? 'Intermediate-risk category; clinical assessment of disposition is required.' :
+        'Higher-risk category; consider higher-acuity assessment in the clinical context.',
+      note: 'CURB-65 is a severity tool and does not replace clinical judgment.'
     }
-  },
-  references: [
-    'Lim WS, et al. Defining community acquired pneumonia severity on presentation to hospital: an international derivation and validation study. Thorax. 2003;58:377-382.',
-    'MDCalc. CURB-65 Score for Pneumonia Severity.'
-  ]
+  }
 }
 
-export default curb65
+export default calc

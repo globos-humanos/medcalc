@@ -1,9 +1,12 @@
-const calc = {
+﻿const calc = {
   id: 't-score-z-score',
   name: 'T-Score / Z-Score',
   shortName: 'T / Z Score',
   categoryId: 'endocrinology',
-  description: 'Calculates T-score and Z-score from a measured value and reference mean and standard deviation.',
+  category: 'Endocrinology',
+  description:
+    'Calculates T-score and Z-score from a measured value and appropriate reference mean and standard deviation.',
+  type: 'calculation',
 
   inputs: [
     {
@@ -35,6 +38,22 @@ const calc = {
       label: 'Age-matched reference SD',
       type: 'number',
       step: 0.001
+    },
+    {
+      id: 'interpretationGroup',
+      label: 'Interpretation population',
+      type: 'choice',
+      options: [
+        {
+          value: 't',
+          label: 'Postmenopausal woman or man ≥50 years'
+        },
+        {
+          value: 'z',
+          label: 'Premenopausal woman or man <50 years'
+        }
+      ],
+      optionsLayout: 'stack'
     }
   ],
 
@@ -52,10 +71,11 @@ const calc = {
       !Number.isFinite(ageMean) ||
       !Number.isFinite(ageSd) ||
       youngSd <= 0 ||
-      ageSd <= 0
+      ageSd <= 0 ||
+      !['t', 'z'].includes(v.interpretationGroup)
     ) {
       return {
-        error: 'Please enter valid reference means and standard deviations.'
+        error: 'Please enter valid reference values and select the interpretation population.'
       }
     }
 
@@ -67,21 +87,38 @@ const calc = {
       (measured - ageMean) /
       ageSd
 
+    if (v.interpretationGroup === 't') {
+      return {
+        value: tScore,
+        displayValue: tScore.toFixed(1),
+        unit: 'T-score',
+        category:
+          tScore > -1
+            ? 'Normal bone density range'
+            : tScore > -2.5
+              ? 'Low bone mass range'
+              : 'Osteoporosis-range T-score',
+        note:
+          `Z-score for comparison: ${zScore.toFixed(1)}. For the selected population, T-score interpretation is the preferred densitometric framework. WHO diagnostic criteria use T-score ≤−2.5 at applicable skeletal sites.`
+      }
+    }
+
     return {
-      value: `T ${tScore.toFixed(2)} | Z ${zScore.toFixed(2)}`,
-      unit: 'SD',
-      interpretation:
-        tScore >= -1
-          ? 'T-score ≥ −1 SD'
-          : tScore > -2.5
-            ? 'T-score between −1 and −2.5 SD'
-            : 'T-score ≤ −2.5 SD',
-      note: 'Interpretation of T-scores depends on the population, sex, menopausal status, skeletal site and applicable densitometry guidance. Z-scores compare with an age-matched reference population.'
+      value: zScore,
+      displayValue: zScore.toFixed(1),
+      unit: 'Z-score',
+      category:
+        zScore <= -2
+          ? 'Below expected range for age'
+          : 'Within expected range for age',
+      note:
+        `T-score for reference: ${tScore.toFixed(1)}. For the selected population, Z-score reporting is preferred; a Z-score ≤−2.0 is defined by ISCD as below the expected range for age.`
     }
   },
 
   references: [
-    'International Society for Clinical Densitometry (ISCD) densitometry terminology and interpretation.'
+    'International Society for Clinical Densitometry. Official Positions 2023.',
+    'WHO densitometric classification and ISCD reporting recommendations.'
   ]
 }
 

@@ -1,4 +1,4 @@
-const revisedGeneva = {
+﻿const revisedGeneva = {
   id: 'revised-geneva',
   name: 'Revised Geneva Score for Pulmonary Embolism',
   shortName: 'Revised Geneva',
@@ -21,8 +21,8 @@ const revisedGeneva = {
       type: 'choice',
       options: [
         { value: '0', label: '<75/min' },
-        { value: '3', label: '75–94/min' },
-        { value: '5', label: '≥95/min' }
+        { value: '3', label: '75â€“94/min' },
+        { value: '5', label: 'â‰¥95/min' }
       ]
     },
     { id: 'painEdema', label: 'Pain on lower-limb palpation and unilateral edema', type: 'boolean' }
@@ -54,9 +54,10 @@ const revisedGeneva = {
     }
   },
   references: [
-    'Le Gal G, et al. Prediction of pulmonary embolism in the emergency department: the revised Geneva score. Ann Intern Med. 2006;144:165–171.',
-    'MDCalc — Geneva Score (Revised) for Pulmonary Embolism.'
+    'Le Gal G, et al. Prediction of pulmonary embolism in the emergency department: the revised Geneva score. Ann Intern Med. 2006;144:165â€“171.',
+    'MDCalc â€” Geneva Score (Revised) for Pulmonary Embolism.'
   ]
 }
 
 export default revisedGeneva
+

@@ -1,4 +1,4 @@
-import {
+﻿import {
   useState
 } from 'react'
 
@@ -93,7 +93,7 @@ function Home() {
         </div>
 
         <div className="hero-decoration">
-          🩺
+          ðŸ©º
         </div>
 
       </section>

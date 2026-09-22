@@ -1,13 +1,14 @@
-const heart = {
+﻿const heart = {
   id: 'heart',
   name: 'HEART Score for Major Cardiac Events',
   shortName: 'HEART',
   type: 'score',
   categoryId: 'cardiology',
   category: 'Cardiology',
-  description: 'Calculates the HEART score for patients presenting with symptoms suggestive of acute coronary syndrome.',
-  keywords: ['HEART', 'chest pain', 'ACS', 'acute coronary syndrome', 'MACE', 'troponin'],
-  aliases: ['HEART score', 'history ECG age risk factors troponin'],
+  description: 'HEART score for patients presenting with symptoms suggestive of acute coronary syndrome.',
+  keywords: ['HEART', 'chest pain', 'ACS', 'acute coronary syndrome', 'MACE'],
+  aliases: ['HEART score'],
+
   inputs: [
     {
       id: 'history',
@@ -27,7 +28,7 @@ const heart = {
       options: [
         { value: '0', label: 'Normal' },
         { value: '1', label: 'Non-specific repolarization disturbance' },
-        { value: '2', label: 'Significant ST deviation' }
+        { value: '2', label: 'Significant ST-segment deviation' }
       ],
       optionsLayout: 'stack'
     },
@@ -37,6 +38,7 @@ const heart = {
       type: 'number',
       unit: 'years',
       min: 0,
+      max: 120,
       step: 1
     },
     {
@@ -62,34 +64,53 @@ const heart = {
       optionsLayout: 'stack'
     }
   ],
-  calculate(values) {
-    const age = Number(values.age)
-    if (!values.history || !values.ecg || !values.riskFactors || !values.troponin || !Number.isFinite(age)) {
-      return { error: 'Please complete all HEART inputs.' }
+
+  calculate(v) {
+    const age = Number(v.age)
+
+    if (
+      !valuesPresent(v.history) ||
+      !valuesPresent(v.ecg) ||
+      !valuesPresent(v.riskFactors) ||
+      !valuesPresent(v.troponin) ||
+      !Number.isFinite(age)
+    ) {
+      return {
+        error: 'Please complete all HEART inputs.'
+      }
     }
 
-    const agePoints = age >= 65 ? 2 : age >= 45 ? 1 : 0
+    const agePoints =
+      age >= 65 ? 2 :
+      age >= 45 ? 1 : 0
+
     const score =
-      Number(values.history) +
-      Number(values.ecg) +
+      Number(v.history) +
+      Number(v.ecg) +
       agePoints +
-      Number(values.riskFactors) +
-      Number(values.troponin)
+      Number(v.riskFactors) +
+      Number(v.troponin)
 
     return {
       value: score,
-      displayValue: String(score),
-      unit: '/ 10 points',
+      displayValue: `${score}/10`,
+      unit: 'points',
       category:
         score <= 3 ? 'Low-risk range' :
         score <= 6 ? 'Intermediate-risk range' :
-        'High-risk range'
+        'High-risk range',
+      note: 'HEART consists of History, ECG, Age, Risk factors, and Troponin, each contributing 0–2 points. Exact risk estimates depend on the validated population and HEART version used.'
     }
   },
+
   references: [
-    'Six AJ, et al. A clinical score for assessing the risk of major adverse cardiac events in patients with chest pain. Neth Heart J. 2008;16:191–196.',
-    'MDCalc — HEART Score for Major Cardiac Events.'
+    'Six AJ, et al. Neth Heart J. 2008;16:191–196.',
+    'HEART score review and validation literature.'
   ]
+}
+
+function valuesPresent(value) {
+  return value !== undefined && value !== null && value !== ''
 }
 
 export default heart

@@ -5,7 +5,8 @@
   type: 'score',
   categoryId: 'emergency',
   category: 'Emergency',
-  description: 'Estimates pre-test probability of pulmonary embolism using the Wells criteria.',
+  description:
+    'Calculates the Wells clinical score for pretest probability of pulmonary embolism.',
   keywords: [
     'Wells',
     'Wells PE',
@@ -21,6 +22,7 @@
     'Wells criteria',
     'Wells score pulmonary embolism'
   ],
+
   inputs: [
     {
       id: 'dvtSigns',
@@ -58,6 +60,7 @@
       type: 'boolean'
     }
   ],
+
   calculate(values) {
     const fields = [
       'dvtSigns',
@@ -69,24 +72,20 @@
       'malignancy'
     ]
 
-    if (fields.some(field => values[field] === undefined)) {
-      return { error: 'Please answer every Wells criterion.' }
+    if (fields.some(field => typeof values[field] !== 'boolean')) {
+      return {
+        error: 'Please answer every Wells PE criterion.'
+      }
     }
 
-    let score = 0
-
-    if (values.dvtSigns) score += 3
-    if (values.peLikely) score += 3
-    if (values.heartRate) score += 1.5
-    if (values.immobilization) score += 1.5
-    if (values.previousVte) score += 1.5
-    if (values.hemoptysis) score += 1
-    if (values.malignancy) score += 1
-
-    const interpretation =
-      score > 4
-        ? 'PE likely'
-        : 'PE unlikely'
+    const score =
+      (values.dvtSigns ? 3 : 0) +
+      (values.peLikely ? 3 : 0) +
+      (values.heartRate ? 1.5 : 0) +
+      (values.immobilization ? 1.5 : 0) +
+      (values.previousVte ? 1.5 : 0) +
+      (values.hemoptysis ? 1 : 0) +
+      (values.malignancy ? 1 : 0)
 
     return {
       value: score,
@@ -94,12 +93,19 @@
         ? String(score)
         : score.toFixed(1),
       unit: 'points',
-      category: interpretation
+      category:
+        score > 4
+          ? 'PE likely'
+          : 'PE unlikely',
+      note:
+        'This is the two-tier Wells PE interpretation (≤4 PE unlikely; >4 PE likely). The Wells score estimates pretest probability and should be used within an appropriate diagnostic pathway.'
     }
   },
+
   references: [
-    'Wells PS, et al. Ann Intern Med. 2001;135(2):98-107.',
-    'MDCalc. Wells Criteria for Pulmonary Embolism.'
+    'Wells PS, et al. Derivation of a simple clinical model to categorize patients probability of pulmonary embolism: increasing the model utility with the SimpliRED D-dimer. Thrombosis and Haemostasis. 2000.',
+    'Wells PS, et al. Evaluation of D-dimer in the diagnosis of suspected deep-vein thrombosis. New England Journal of Medicine. 2003.',
+    'Prospective validation of Wells Criteria in patients with suspected pulmonary embolism.'
   ]
 }
 

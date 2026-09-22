@@ -1,4 +1,4 @@
-const glasgowBlatchford = {
+﻿const glasgowBlatchford = {
   id: 'glasgow-blatchford',
   name: 'Glasgow-Blatchford Bleeding Score',
   shortName: 'GBS',
@@ -19,9 +19,9 @@ const glasgowBlatchford = {
       ]
     },
     { id: 'hemoglobin', label: 'Hemoglobin', type: 'number', unit: 'g/dL', min: 1, step: 0.1 },
-    { id: 'bun', label: 'Blood Urea Nitrogen', type: 'number', unit: 'mmol/L', min: 0, step: 0.1, placeholder: 'Urea (mmol/L)' },
+    { id: 'bun', label: 'Blood urea', type: 'number', unit: 'mmol/L', min: 0, step: 0.1, placeholder: 'Urea (mmol/L)' },
     { id: 'sbp', label: 'Initial Systolic BP', type: 'number', unit: 'mmHg', min: 40, step: 1 },
-    { id: 'pulse100', label: 'Heart rate ≥100/min', type: 'boolean' },
+    { id: 'pulse100', label: 'Heart rate â‰¥100/min', type: 'boolean' },
     { id: 'melena', label: 'Melena', type: 'boolean' },
     { id: 'syncope', label: 'Recent syncope', type: 'boolean' },
     { id: 'hepatic', label: 'Hepatic disease', type: 'boolean' },
@@ -33,7 +33,7 @@ const glasgowBlatchford = {
     const sbp = Number(values.sbp)
 
     if (!values.sex || !Number.isFinite(hb) || !Number.isFinite(bun) || !Number.isFinite(sbp)) {
-      return { error: 'Please enter sex, hemoglobin, BUN/urea, and systolic BP.' }
+      return { error: 'Please enter sex, hemoglobin, blood urea, and systolic BP.' }
     }
 
     const boolIds = ['pulse100', 'melena', 'syncope', 'hepatic', 'heartFailure']
@@ -75,9 +75,10 @@ const glasgowBlatchford = {
     }
   },
   references: [
-    'Blatchford O, et al. A risk score to predict the need for treatment for upper-gastrointestinal haemorrhage. Lancet. 2000;356:1318–1321.',
-    'MDCalc — Glasgow-Blatchford Bleeding Score.'
+    'Blatchford O, et al. A risk score to predict the need for treatment for upper-gastrointestinal haemorrhage. Lancet. 2000;356:1318â€“1321.',
+    'MDCalc â€” Glasgow-Blatchford Bleeding Score.'
   ]
 }
 
 export default glasgowBlatchford
+

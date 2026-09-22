@@ -1,0 +1,265 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: ENDOCRINOLOGY
+============================================================
+
+
+============================================================
+FILE: src\calculators\endocrinology\ascvd.js
+============================================================
+
+const calc={id:'ascvd',name:'ASCVD Risk Estimate Inputs',shortName:'ASCVD',categoryId:'endocrinology',description:'Atherosclerotic cardiovascular disease risk model inputs.',type:'score',
+inputs:[{id:'age',label:'Age',unit:'years',min:20,max:100},{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'race',label:'Race / ethnicity category required by selected legacy model',type:'text'},{id:'tc',label:'Total cholesterol',unit:'mg/dL',min:50,max:600},{id:'hdl',label:'HDL cholesterol',unit:'mg/dL',min:10,max:200},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:70,max:250},{id:'treated',label:'On BP treatment?',type:'boolean'},{id:'smoker',label:'Current smoker?',type:'boolean'},{id:'diabetes',label:'Diabetes?',type:'boolean'}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'ASCVD calculators have model/version limitations and different treatment implications; use the validated current model appropriate to the population.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\endocrinology\ca-cr-clearance-ratio.js
+============================================================
+
+const caCr = {
+  id: 'ca-cr-clearance-ratio',
+  name: 'Calcium / Creatinine Clearance Ratio',
+  shortName: 'Ca/Cr Clearance Ratio',
+  type: 'formula',
+  categoryId: 'endocrinology',
+  category: 'Endocrinology',
+  description: 'Calculates the calcium-to-creatinine clearance ratio using 24-hour urine calcium and creatinine together with serum calcium and creatinine. It is commonly used when evaluating PTH-dependent hypercalcemia, including differentiation of familial hypocalciuric hypercalcemia from primary hyperparathyroidism.',
+  keywords: [
+    'calcium creatinine clearance ratio',
+    'Ca Cr clearance ratio',
+    'CCCR',
+    'FHH',
+    'familial hypocalciuric hypercalcemia',
+    'hypercalcemia',
+    'urine calcium'
+  ],
+  aliases: [
+    'CCCR',
+    'Calcium Creatinine Clearance Ratio',
+    'Ca/Cr Clearance Ratio'
+  ],
+  inputs: [
+    {
+      id: 'urineCalcium',
+      label: '24-hour urine calcium',
+      type: 'number',
+      unit: 'mg/24 h',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'serumCreatinine',
+      label: 'Serum creatinine',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'urineCreatinine',
+      label: '24-hour urine creatinine',
+      type: 'number',
+      unit: 'mg/24 h',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'serumCalcium',
+      label: 'Serum calcium',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.01
+    }
+  ],
+  calculate(values) {
+    const urineCalcium = Number(values.urineCalcium)
+    const serumCreatinine = Number(values.serumCreatinine)
+    const urineCreatinine = Number(values.urineCreatinine)
+    const serumCalcium = Number(values.serumCalcium)
+
+    if (
+      !Number.isFinite(urineCalcium) ||
+      !Number.isFinite(serumCreatinine) ||
+      !Number.isFinite(urineCreatinine) ||
+      !Number.isFinite(serumCalcium)
+    ) {
+      return { error: 'Please enter all calcium and creatinine values.' }
+    }
+
+    if (
+      urineCreatinine <= 0 ||
+      serumCalcium <= 0
+    ) {
+      return {
+        error: 'Urine creatinine and serum calcium must be greater than zero.'
+      }
+    }
+
+    const ratio =
+      (urineCalcium * serumCreatinine) /
+      (urineCreatinine * serumCalcium)
+
+    return {
+      value: ratio,
+      displayValue: ratio.toFixed(4),
+      unit: 'clearance ratio',
+      category:
+        ratio < 0.01
+          ? 'Low / hypocalciuric range'
+          : ratio <= 0.02
+            ? 'Indeterminate range'
+            : 'Higher range',
+      interpretation:
+        ratio < 0.01
+          ? 'A ratio <0.01 can support consideration of familial hypocalciuric hypercalcemia in the appropriate clinical setting.'
+          : ratio <= 0.02
+            ? 'Intermediate values may overlap between familial hypocalciuric hypercalcemia and primary hyperparathyroidism.'
+            : 'A higher ratio is more compatible with primary hyperparathyroidism than familial hypocalciuric hypercalcemia, although clinical context is required.'
+    }
+  },
+  references: [
+    'Marx SJ. Familial hypocalciuric hypercalcemia. UpToDate/Endotext literature.',
+    'Clinical calculation: Calcium/creatinine clearance ratio = (24-h urine calcium � serum creatinine) / (24-h urine creatinine � serum calcium).'
+  ]
+}
+
+export default caCr
+
+============================================================
+FILE: src\calculators\endocrinology\findrisc.js
+============================================================
+
+const findrisc={id:'findrisc',name:'FINDRISC',shortName:'FINDRISC',categoryId:'endocrinology',description:'Finnish Diabetes Risk Score for future type 2 diabetes risk.',type:'score',
+inputs:[{id:'age',label:'Age',type:'choice',options:[{value:0,label:'<45'},{value:2,label:'45–54'},{value:3,label:'55–64'},{value:4,label:'≥65'}]},{id:'bmi',label:'BMI',type:'choice',options:[{value:0,label:'<25'},{value:1,label:'25–30'},{value:3,label:'>30'}]},{id:'waist',label:'Waist circumference',type:'choice',options:[{value:0,label:'Below sex-specific low threshold'},{value:3,label:'Intermediate'},{value:4,label:'High'}]},{id:'activity',label:'Physical activity ≥30 min/day?',type:'boolean'},{id:'diet',label:'Daily vegetables/fruits?',type:'boolean'},{id:'bp',label:'History of antihypertensive treatment?',type:'boolean'},{id:'glucose',label:'History of high blood glucose?',type:'boolean'},{id:'family',label:'Family history of diabetes?',type:'choice',options:[{value:0,label:'None'},{value:3,label:'Second-degree relative'},{value:5,label:'First-degree relative'}],optionsLayout:'stack'}],
+calculate(v){const s=Number(v.age)+Number(v.bmi)+Number(v.waist)+(v.activity?0:2)+(v.diet?0:1)+(v.bp?2:0)+(v.glucose?5:0)+Number(v.family);return{value:s,unit:'points',interpretation:s<7?'Low risk':s<12?'Slightly elevated':s<15?'Moderate':s<21?'High':'Very high'}}
+};export default findrisc
+
+============================================================
+FILE: src\calculators\endocrinology\frax.js
+============================================================
+
+const frax={id:'frax',name:'FRAX Risk Inputs',shortName:'FRAX',categoryId:'endocrinology',description:'Clinical fracture-risk calculator input set.',type:'score',
+inputs:[{id:'country',label:'Country / FRAX model',type:'text'},{id:'age',label:'Age',unit:'years',min:40,max:90},{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'weight',label:'Weight',unit:'kg',min:20,max:300},{id:'height',label:'Height',unit:'cm',min:100,max:250},{id:'priorFracture',label:'Previous fragility fracture?',type:'boolean'},{id:'parentHip',label:'Parental hip fracture?',type:'boolean'},{id:'smoker',label:'Current smoker?',type:'boolean'},{id:'glucocorticoid',label:'Glucocorticoids?',type:'boolean'},{id:'ra',label:'Rheumatoid arthritis?',type:'boolean'},{id:'secondary',label:'Secondary osteoporosis?',type:'boolean'},{id:'alcohol',label:'Alcohol ≥3 units/day?',type:'boolean'},{id:'bmd',label:'Femoral neck BMD T-score',min:-5,max:2,step:0.1}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'FRAX uses country-specific fracture and mortality models and may use femoral-neck BMD; a validated country model is required for the actual 10-year probability.'}}
+};export default frax
+
+============================================================
+FILE: src\calculators\endocrinology\homa-beta.js
+============================================================
+
+const calc={id:'homa-beta',name:'HOMA-β',shortName:'HOMA-β',categoryId:'endocrinology',description:'Homeostatic estimate of beta-cell function.',type:'calculation',
+inputs:[{id:'glucose',label:'Fasting glucose',unit:'mg/dL',min:20,max:1000,step:0.1},{id:'insulin',label:'Fasting insulin',unit:'µU/mL',min:0,max:500,step:0.1}],
+calculate(v){const value=(360*Number(v.insulin))/(Number(v.glucose)-63);return{value,unit:'%',note:'Formula assumes glucose in mg/dL; values become unstable near glucose 63 mg/dL.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\endocrinology\homa-ir.js
+============================================================
+
+const homa={id:'homa-ir',name:'HOMA-IR',shortName:'HOMA-IR',categoryId:'endocrinology',description:'Homeostatic Model Assessment of insulin resistance.',type:'calculation',
+inputs:[{id:'glucose',label:'Fasting glucose',unit:'mg/dL',min:20,max:1000,step:0.1},{id:'insulin',label:'Fasting insulin',unit:'µU/mL',min:0,max:500,step:0.1}],
+calculate(v){const value=(Number(v.glucose)*Number(v.insulin))/405;return{value,unit:'HOMA-IR',note:'This conventional formula assumes glucose in mg/dL; cutoffs vary by population and assay.'}}
+};export default homa
+
+============================================================
+FILE: src\calculators\endocrinology\quicki.js
+============================================================
+
+const quicki={id:'quicki',name:'QUICKI',shortName:'QUICKI',categoryId:'endocrinology',description:'Quantitative Insulin Sensitivity Check Index.',type:'calculation',
+inputs:[{id:'glucose',label:'Fasting glucose',unit:'mg/dL',min:20,max:1000,step:0.1},{id:'insulin',label:'Fasting insulin',unit:'µU/mL',min:0.1,max:500,step:0.1}],
+calculate(v){const value=1/(Math.log10(Number(v.glucose))+Math.log10(Number(v.insulin)));return{value,unit:'QUICKI'}}
+};export default quicki
+
+============================================================
+FILE: src\calculators\endocrinology\t-score-z-score.js
+============================================================
+
+const calc = {
+  id: 't-score-z-score',
+  name: 'T-Score / Z-Score',
+  shortName: 'T / Z Score',
+  categoryId: 'endocrinology',
+  description: 'Calculates T-score and Z-score from a measured value and reference mean and standard deviation.',
+
+  inputs: [
+    {
+      id: 'measured',
+      label: 'Measured BMD / value',
+      type: 'number',
+      step: 0.001
+    },
+    {
+      id: 'youngMean',
+      label: 'Young-adult reference mean',
+      type: 'number',
+      step: 0.001
+    },
+    {
+      id: 'youngSd',
+      label: 'Young-adult reference SD',
+      type: 'number',
+      step: 0.001
+    },
+    {
+      id: 'ageMean',
+      label: 'Age-matched reference mean',
+      type: 'number',
+      step: 0.001
+    },
+    {
+      id: 'ageSd',
+      label: 'Age-matched reference SD',
+      type: 'number',
+      step: 0.001
+    }
+  ],
+
+  calculate(v) {
+    const measured = Number(v.measured)
+    const youngMean = Number(v.youngMean)
+    const youngSd = Number(v.youngSd)
+    const ageMean = Number(v.ageMean)
+    const ageSd = Number(v.ageSd)
+
+    if (
+      !Number.isFinite(measured) ||
+      !Number.isFinite(youngMean) ||
+      !Number.isFinite(youngSd) ||
+      !Number.isFinite(ageMean) ||
+      !Number.isFinite(ageSd) ||
+      youngSd <= 0 ||
+      ageSd <= 0
+    ) {
+      return {
+        error: 'Please enter valid reference means and standard deviations.'
+      }
+    }
+
+    const tScore =
+      (measured - youngMean) /
+      youngSd
+
+    const zScore =
+      (measured - ageMean) /
+      ageSd
+
+    return {
+      value: `T ${tScore.toFixed(2)} | Z ${zScore.toFixed(2)}`,
+      unit: 'SD',
+      interpretation:
+        tScore >= -1
+          ? 'T-score ≥ −1 SD'
+          : tScore > -2.5
+            ? 'T-score between −1 and −2.5 SD'
+            : 'T-score ≤ −2.5 SD',
+      note: 'Interpretation of T-scores depends on the population, sex, menopausal status, skeletal site and applicable densitometry guidance. Z-scores compare with an age-matched reference population.'
+    }
+  },
+
+  references: [
+    'International Society for Clinical Densitometry (ISCD) densitometry terminology and interpretation.'
+  ]
+}
+
+export default calc

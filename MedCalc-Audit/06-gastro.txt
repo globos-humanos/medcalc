@@ -1,0 +1,609 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: GASTRO
+============================================================
+
+
+============================================================
+FILE: src\calculators\gastro\aims65.js
+============================================================
+
+const aims65 = {
+  id: 'aims65',
+  name: 'AIMS65 Score',
+  shortName: 'AIMS65 Score',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'AIMS65 Score from the MedCalc master calculator catalogue.',
+  keywords: ['AIMS65 Score', 'Gastroenterology'],
+  aliases: ['AIMS65 Score'],
+  inputs: [
+ {id:'albumin',label:'Albumin <3.0 g/dL',type:'boolean'},
+ {id:'inr',label:'INR >1.5',type:'boolean'},
+ {id:'mental',label:'Altered mental status',type:'boolean'},
+ {id:'systolic',label:'Systolic BP =90 mmHg',type:'boolean'},
+ {id:'age',label:'Age =65 years',type:'boolean'}
+],
+  calculate(values) {
+    const k=['albumin','inr','mental','systolic','age']; if(k.some(x=>typeof values[x]!=='boolean')) return {error:'Complete AIMS65 inputs.'}
+    const s=k.reduce((n,x)=>n+(values[x]?1:0),0)
+    return {value:s,displayValue:String(s),unit:'/ 5 points',category:s===0?'0':String(s)}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default aims65
+
+============================================================
+FILE: src\calculators\gastro\apri.js
+============================================================
+
+const calc={id:'apri',name:'APRI',shortName:'APRI',categoryId:'gastro',description:'AST-to-platelet ratio index.',type:'calculation',
+inputs:[{id:'ast',label:'AST',unit:'U/L',min:1,max:10000,step:0.1},{id:'uln',label:'AST upper limit of normal',unit:'U/L',min:1,max:500,step:0.1},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000}],
+calculate(v){const value=((Number(v.ast)/Number(v.uln))/Number(v.platelets))*100;return{value,unit:'APRI',note:'Interpretation depends on disease population and assay reference range.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\gastro\bisap.js
+============================================================
+
+const calc={id:'bisap',name:'BISAP Score',shortName:'BISAP',categoryId:'gastro',description:'Bedside Index for Severity in Acute Pancreatitis.',type:'score',
+inputs:[{id:'bun',label:'BUN >25 mg/dL?',type:'boolean'},{id:'impaired',label:'Impaired mental status?',type:'boolean'},{id:'sirs',label:'SIRS present?',type:'boolean'},{id:'age',label:'Age >60 years?',type:'boolean'},{id:'effusion',label:'Pleural effusion?',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/5',interpretation:s>=3?'Higher-risk score':'Lower score'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\gastro\child-pugh.js
+============================================================
+
+const childPugh = {
+  id: 'child-pugh',
+  name: 'Child-Pugh Score',
+  shortName: 'Child-Pugh',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Stages severity of cirrhosis using bilirubin, albumin, INR, ascites, and hepatic encephalopathy.',
+  keywords: ['Child-Pugh', 'cirrhosis', 'liver', 'hepatic failure', 'portal hypertension'],
+  aliases: ['Child Pugh', 'Child-Turcotte-Pugh', 'CTP'],
+  inputs: [
+    {
+      id: 'bilirubin',
+      label: 'Total Bilirubin',
+      type: 'choice',
+      options: [
+        { value: '1', label: '<2 mg/dL' },
+        { value: '2', label: '2–3 mg/dL' },
+        { value: '3', label: '>3 mg/dL' }
+      ]
+    },
+    {
+      id: 'albumin',
+      label: 'Albumin',
+      type: 'choice',
+      options: [
+        { value: '1', label: '>3.5 g/dL' },
+        { value: '2', label: '2.8–3.5 g/dL' },
+        { value: '3', label: '<2.8 g/dL' }
+      ]
+    },
+    {
+      id: 'inr',
+      label: 'INR',
+      type: 'choice',
+      options: [
+        { value: '1', label: '<1.7' },
+        { value: '2', label: '1.7–2.3' },
+        { value: '3', label: '>2.3' }
+      ]
+    },
+    {
+      id: 'ascites',
+      label: 'Ascites',
+      type: 'choice',
+      options: [
+        { value: '1', label: 'Absent' },
+        { value: '2', label: 'Slight' },
+        { value: '3', label: 'Moderate' }
+      ]
+    },
+    {
+      id: 'encephalopathy',
+      label: 'Hepatic Encephalopathy',
+      type: 'choice',
+      options: [
+        { value: '1', label: 'None' },
+        { value: '2', label: 'Grade 1–2' },
+        { value: '3', label: 'Grade 3–4' }
+      ]
+    }
+  ],
+  calculate(values) {
+    const ids = ['bilirubin', 'albumin', 'inr', 'ascites', 'encephalopathy']
+    if (ids.some(id => !values[id])) return { error: 'Please select all five Child-Pugh components.' }
+
+    const score = ids.reduce((sum, id) => sum + Number(values[id]), 0)
+
+    const klass =
+      score <= 6 ? 'Class A' :
+      score <= 9 ? 'Class B' :
+      'Class C'
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 15 points',
+      category: klass
+    }
+  },
+  references: [
+    'Pugh RN, et al. Transection of the oesophagus for bleeding oesophageal varices. Br J Surg. 1973;60:646–649.',
+    'MDCalc — Child-Pugh Score for Cirrhosis Mortality.'
+  ]
+}
+
+export default childPugh
+
+============================================================
+FILE: src\calculators\gastro\ctsi.js
+============================================================
+
+const ctsi = {
+  id: 'ctsi',
+  name: 'CT Severity Index',
+  shortName: 'CT Severity Index',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'CT Severity Index from the MedCalc master calculator catalogue.',
+  keywords: ['CT Severity Index', 'Gastroenterology'],
+  aliases: ['CT Severity Index'],
+  inputs: [{id:'score',label:'CT Severity Index',type:'number',min:0,max:10,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter CTSI.'}
+    return {value:s,displayValue:String(s),unit:'/ 10 points',category:s<=3?'Mild':s<=6?'Moderate':'Severe'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default ctsi
+
+============================================================
+FILE: src\calculators\gastro\fib4.js
+============================================================
+
+const calc={id:'fib4',name:'FIB-4 Index',shortName:'FIB-4',categoryId:'gastro',description:'Non-invasive fibrosis index.',type:'calculation',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'ast',label:'AST',unit:'U/L',min:1,max:10000,step:0.1},{id:'alt',label:'ALT',unit:'U/L',min:1,max:10000,step:0.1},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000}],
+calculate(v){const value=(Number(v.age)*Number(v.ast))/(Number(v.platelets)*Math.sqrt(Number(v.alt)));return{value,unit:'FIB-4',interpretation:value<1.3?'Lower-risk range':value<=2.67?'Intermediate range':'Higher-risk range'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\gastro\glasgow-blatchford.js
+============================================================
+
+const glasgowBlatchford = {
+  id: 'glasgow-blatchford',
+  name: 'Glasgow-Blatchford Bleeding Score',
+  shortName: 'GBS',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Stratifies upper gastrointestinal bleeding risk before endoscopy using clinical and laboratory findings.',
+  keywords: ['Glasgow-Blatchford', 'GBS', 'GI bleed', 'upper GI bleeding', 'UGIB'],
+  aliases: ['GBS', 'Glasgow Blatchford Score'],
+  inputs: [
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' }
+      ]
+    },
+    { id: 'hemoglobin', label: 'Hemoglobin', type: 'number', unit: 'g/dL', min: 1, step: 0.1 },
+    { id: 'bun', label: 'Blood Urea Nitrogen', type: 'number', unit: 'mmol/L', min: 0, step: 0.1, placeholder: 'Urea (mmol/L)' },
+    { id: 'sbp', label: 'Initial Systolic BP', type: 'number', unit: 'mmHg', min: 40, step: 1 },
+    { id: 'pulse100', label: 'Heart rate ≥100/min', type: 'boolean' },
+    { id: 'melena', label: 'Melena', type: 'boolean' },
+    { id: 'syncope', label: 'Recent syncope', type: 'boolean' },
+    { id: 'hepatic', label: 'Hepatic disease', type: 'boolean' },
+    { id: 'heartFailure', label: 'Cardiac failure', type: 'boolean' }
+  ],
+  calculate(values) {
+    const hb = Number(values.hemoglobin)
+    const bun = Number(values.bun)
+    const sbp = Number(values.sbp)
+
+    if (!values.sex || !Number.isFinite(hb) || !Number.isFinite(bun) || !Number.isFinite(sbp)) {
+      return { error: 'Please enter sex, hemoglobin, BUN/urea, and systolic BP.' }
+    }
+
+    const boolIds = ['pulse100', 'melena', 'syncope', 'hepatic', 'heartFailure']
+    if (boolIds.some(id => typeof values[id] !== 'boolean')) {
+      return { error: 'Please answer all clinical GBS criteria.' }
+    }
+
+    let score = 0
+
+    if (bun >= 25) score += 6
+    else if (bun >= 10) score += 4
+    else if (bun >= 8) score += 3
+    else if (bun >= 6.5) score += 2
+
+    if (values.sex === 'male') {
+      if (hb < 10) score += 6
+      else if (hb < 12) score += 3
+      else if (hb < 13) score += 1
+    } else {
+      if (hb < 10) score += 6
+      else if (hb < 12) score += 1
+    }
+
+    if (sbp < 90) score += 3
+    else if (sbp < 100) score += 2
+    else if (sbp < 110) score += 1
+
+    if (values.pulse100) score += 1
+    if (values.melena) score += 1
+    if (values.syncope) score += 2
+    if (values.hepatic) score += 2
+    if (values.heartFailure) score += 2
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: 'points',
+      category: score <= 1 ? 'Low-risk range' : 'Higher-risk range'
+    }
+  },
+  references: [
+    'Blatchford O, et al. A risk score to predict the need for treatment for upper-gastrointestinal haemorrhage. Lancet. 2000;356:1318–1321.',
+    'MDCalc — Glasgow-Blatchford Bleeding Score.'
+  ]
+}
+
+export default glasgowBlatchford
+
+============================================================
+FILE: src\calculators\gastro\glasgow-imrie.js
+============================================================
+
+const glasgowImrie = {
+  id: 'glasgowImrie',
+  name: 'Glasgow-Imrie Score',
+  shortName: 'Glasgow-Imrie Score',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Glasgow-Imrie Score from the MedCalc master calculator catalogue.',
+  keywords: ['Glasgow-Imrie Score', 'Gastroenterology'],
+  aliases: ['Glasgow-Imrie Score'],
+  inputs: [{id:'score',label:'Glasgow-Imrie score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter Glasgow-Imrie score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:s>=3?'Severe pancreatitis':'Less severe range'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default glasgowImrie
+
+============================================================
+FILE: src\calculators\gastro\haps.js
+============================================================
+
+const haps = {
+  id: 'haps',
+  name: 'Harmless Acute Pancreatitis Score',
+  shortName: 'Harmless Acute Pancreatitis Score',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Harmless Acute Pancreatitis Score from the MedCalc master calculator catalogue.',
+  keywords: ['Harmless Acute Pancreatitis Score', 'Gastroenterology'],
+  aliases: ['Harmless Acute Pancreatitis Score'],
+  inputs: [
+ {id:'peritonitis',label:'Peritonitis',type:'boolean'},
+ {id:'creatinine',label:'Creatinine >2 mg/dL',type:'boolean'},
+ {id:'hematocrit',label:'Hematocrit abnormal / elevated',type:'boolean'}
+],
+  calculate(values) {
+    const k=['peritonitis','creatinine','hematocrit']; if(k.some(x=>typeof values[x]!=='boolean')) return {error:'Complete HAPS inputs.'}
+    const abnormal=k.reduce((n,x)=>n+(values[x]?1:0),0)
+    return {value:abnormal,displayValue:String(abnormal),unit:'abnormal criteria',category:abnormal===0?'HAPS-negative / potentially harmless course':'HAPS-positive'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default haps
+
+============================================================
+FILE: src\calculators\gastro\lille.js
+============================================================
+
+const lille = {
+  id: 'lille',
+  name: 'Lille Score',
+  shortName: 'Lille Score',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Lille Score from the MedCalc master calculator catalogue.',
+  keywords: ['Lille Score', 'Gastroenterology'],
+  aliases: ['Lille Score'],
+  inputs: [{id:'score',label:'Lille model output',type:'number',min:0,max:1,step:0.01}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter Lille model output.'}
+    return {value:s,displayValue:s.toFixed(2),unit:'model score',category:s>=0.45?'Higher predicted mortality / poor response':'Lower predicted mortality / response'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default lille
+
+============================================================
+FILE: src\calculators\gastro\maddrey-df.js
+============================================================
+
+const calc={id:'maddrey-df',name:'Maddrey Discriminant Function',shortName:'Maddrey DF',categoryId:'gastro',description:'Severity score for alcoholic hepatitis.',type:'calculation',
+inputs:[{id:'pt',label:'Patient prothrombin time',unit:'seconds',min:5,max:100,step:0.1},{id:'control',label:'Control prothrombin time',unit:'seconds',min:5,max:100,step:0.1},{id:'bilirubin',label:'Total bilirubin',unit:'mg/dL',min:0,max:100,step:0.1}],
+calculate(v){const value=4.6*(Number(v.pt)-Number(v.control))+Number(v.bilirubin);return{value,unit:'points',interpretation:value>=32?'Severe alcoholic hepatitis range':'Below severe range',note:'Maddrey DF is used in the context of a clinical diagnosis of alcohol-associated hepatitis.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\gastro\meld.js
+============================================================
+
+const meld = {
+  id: 'meld',
+  name: 'MELD Score',
+  shortName: 'MELD Score',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'MELD Score from the MedCalc master calculator catalogue.',
+  keywords: ['MELD Score', 'Gastroenterology'],
+  aliases: ['MELD Score'],
+  inputs: [{id:'score',label:'MELD score',type:'number',min:0,max:40,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter MELD score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:'MELD'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default meld
+
+============================================================
+FILE: src\calculators\gastro\meld-3.js
+============================================================
+
+const meld3 = {
+  id: 'meld3',
+  name: 'MELD 3.0',
+  shortName: 'MELD 3.0',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'MELD 3.0 from the MedCalc master calculator catalogue.',
+  keywords: ['MELD 3.0', 'Gastroenterology'],
+  aliases: ['MELD 3.0'],
+  inputs: [{id:'score',label:'MELD 3.0 score',type:'number',min:0,max:40,step:0.1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter MELD 3.0 score.'}
+    return {value:s,displayValue:s.toFixed(1),unit:'points',category:'MELD 3.0'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default meld3
+
+============================================================
+FILE: src\calculators\gastro\meld-na.js
+============================================================
+
+const meldNa = {
+  id: 'meld-na',
+  name: 'MELD-Na Score',
+  shortName: 'MELD-Na',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology & Hepatology',
+  description: 'Calculates the classic MELD-Na score from bilirubin, INR, creatinine, and sodium.',
+  keywords: [
+    'MELD-Na',
+    'MELD Na',
+    'MELD',
+    'Model for End-Stage Liver Disease',
+    'liver disease',
+    'cirrhosis',
+    'sodium',
+    'bilirubin',
+    'INR',
+    'creatinine'
+  ],
+  aliases: [
+    'MELD sodium',
+    'MELD-Na',
+    'MELD Na',
+    'UNOS MELD-Na'
+  ],
+  inputs: [
+    {
+      id: 'bilirubin',
+      label: 'Bilirubin',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'inr',
+      label: 'INR',
+      type: 'number',
+      unit: '',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'creatinine',
+      label: 'Serum Creatinine',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'sodium',
+      label: 'Serum Sodium',
+      type: 'number',
+      unit: 'mEq/L',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'dialysis',
+      label: '=2 dialysis treatments in the prior 7 days OR =24 h CVVHD',
+      type: 'boolean'
+    }
+  ],
+  calculate(values) {
+    let bilirubin = Number(values.bilirubin)
+    let inr = Number(values.inr)
+    let creatinine = Number(values.creatinine)
+    let sodium = Number(values.sodium)
+
+    if (
+      !bilirubin || !inr || !creatinine || !sodium ||
+      bilirubin <= 0 || inr <= 0 ||
+      creatinine <= 0 || sodium <= 0 ||
+      values.dialysis === undefined
+    ) {
+      return { error: 'Please enter all MELD-Na values.' }
+    }
+
+    bilirubin = Math.max(1, bilirubin)
+    inr = Math.max(1, inr)
+    creatinine = Math.max(1, creatinine)
+    creatinine = Math.min(4, creatinine)
+
+    if (values.dialysis) {
+      creatinine = 4
+    }
+
+    sodium = Math.min(137, Math.max(125, sodium))
+
+    const meldI =
+      3.78 * Math.log(bilirubin) +
+      11.2 * Math.log(inr) +
+      9.57 * Math.log(creatinine) +
+      6.43
+
+    const meld = Math.min(40, meldI)
+
+    const meldNa =
+      meld +
+      1.32 * (137 - sodium) -
+      (0.033 * meld * (137 - sodium))
+
+    const finalScore = Math.max(
+      6,
+      Math.min(40, meldNa)
+    )
+
+    return {
+      value: finalScore,
+      displayValue: finalScore.toFixed(1),
+      unit: 'points',
+      category: 'Classic MELD-Na'
+    }
+  },
+  references: [
+    'OPTN/UNOS MELD-Na policy documentation.',
+    'MELD-Na = MELD(i) + 1.32 � (137 - Na) - [0.033 � MELD(i) � (137 - Na)].'
+  ]
+}
+
+export default meldNa
+
+============================================================
+FILE: src\calculators\gastro\nafld-fibrosis.js
+============================================================
+
+const calc={id:'nafld-fibrosis',name:'NAFLD Fibrosis Score',shortName:'NFS',categoryId:'gastro',description:'Non-invasive fibrosis score for NAFLD/MASLD.',type:'calculation',
+inputs:[{id:'age',label:'Age',unit:'years',min:18,max:120},{id:'bmi',label:'BMI',unit:'kg/m²',min:10,max:80,step:0.1},{id:'impaired',label:'Impaired fasting glucose / diabetes?',type:'boolean'},{id:'ast',label:'AST',unit:'U/L',min:1,max:10000,step:0.1},{id:'alt',label:'ALT',unit:'U/L',min:1,max:10000,step:0.1},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000},{id:'albumin',label:'Albumin',unit:'g/dL',min:1,max:8,step:0.1}],
+calculate(v){const age=+v.age,bmi=+v.bmi,ast=+v.ast,alt=+v.alt,pl=+v.platelets,alb=+v.albumin;const value=-1.675+0.037*age+0.094*bmi+1.13*(v.impaired?1:0)+0.99*(ast/alt)-0.013*pl-0.66*alb;return{value,unit:'NFS',note:'NFS performance and cutoffs depend on the population and disease context.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\gastro\ranson.js
+============================================================
+
+const ranson = {
+  id: 'ranson',
+  name: "Ranson's Criteria for Acute Pancreatitis",
+  shortName: 'Ranson',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Calculates Ranson criteria using admission findings and changes during the first 48 hours.',
+  keywords: ['Ranson', 'pancreatitis', 'acute pancreatitis', 'severity'],
+  aliases: ["Ranson's criteria", 'Ranson score'],
+  inputs: [
+    { id: 'wbc', label: 'Admission WBC >16 ×10³/µL', type: 'boolean' },
+    { id: 'age', label: 'Admission age >55 years', type: 'boolean' },
+    { id: 'glucose', label: 'Admission glucose >200 mg/dL', type: 'boolean' },
+    { id: 'ast', label: 'Admission AST >250 IU/L', type: 'boolean' },
+    { id: 'ldh', label: 'Admission LDH >350 IU/L', type: 'boolean' },
+    { id: 'hctDrop', label: '48h hematocrit drop >10%', type: 'boolean' },
+    { id: 'bunRise', label: '48h BUN increase >5 mg/dL', type: 'boolean' },
+    { id: 'calcium', label: '48h calcium <8 mg/dL', type: 'boolean' },
+    { id: 'pao2', label: '48h PaO₂ <60 mmHg', type: 'boolean' },
+    { id: 'baseDeficit', label: '48h base deficit >4 mEq/L', type: 'boolean' },
+    { id: 'fluids', label: '48h fluid requirement >6 L', type: 'boolean' }
+  ],
+  calculate(values) {
+    const ids = ['wbc', 'age', 'glucose', 'ast', 'ldh', 'hctDrop', 'bunRise', 'calcium', 'pao2', 'baseDeficit', 'fluids']
+    if (ids.some(id => typeof values[id] !== 'boolean')) return { error: 'Please answer all Ranson criteria.' }
+
+    const score = ids.reduce((sum, id) => sum + (values[id] ? 1 : 0), 0)
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 11 points',
+      category: score >= 3 ? 'Higher-severity range' : 'Lower-severity range'
+    }
+  },
+  references: [
+    'Ranson JHC, et al. Objective early identification of severe acute pancreatitis. Am J Gastroenterol. 1974;61:443–451.',
+    "MDCalc — Ranson's Criteria for Pancreatitis Mortality."
+  ]
+}
+
+export default ranson
+
+============================================================
+FILE: src\calculators\gastro\rockall.js
+============================================================
+
+const rockall = {
+  id: 'rockall',
+  name: 'Rockall Score',
+  shortName: 'Rockall Score',
+  type: 'score',
+  categoryId: 'gastro',
+  category: 'Gastroenterology',
+  description: 'Rockall Score from the MedCalc master calculator catalogue.',
+  keywords: ['Rockall Score', 'Gastroenterology'],
+  aliases: ['Rockall Score'],
+  inputs: [{id:'score',label:'Rockall score',type:'number',min:0,max:11,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter Rockall score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:'Rockall'}
+  },
+  references: ['Original validated gastroenterology score publication.']
+}
+
+export default rockall

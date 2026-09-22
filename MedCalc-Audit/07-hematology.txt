@@ -1,0 +1,402 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: HEMATOLOGY
+============================================================
+
+
+============================================================
+FILE: src\calculators\hematology\4ts.js
+============================================================
+
+const fourTs={id:'4ts',name:'4Ts Score for HIT',shortName:'4Ts',categoryId:'hematology',description:'Pretest probability score for heparin-induced thrombocytopenia.',type:'score',
+inputs:[{id:'thrombocytopenia',label:'Thrombocytopenia magnitude',type:'choice',options:[{value:2,label:'Platelet fall >50% and nadir ≥20'},{value:1,label:'Fall 30–50% or nadir 10–19'},{value:0,label:'Fall <30% or nadir <10'}],optionsLayout:'stack'},{id:'timing',label:'Timing of platelet fall',type:'choice',options:[{value:2,label:'Typical onset day 5–10 or ≤1 day with recent exposure'},{value:1,label:'Consistent but not typical'},{value:0,label:'Not consistent'}],optionsLayout:'stack'},{id:'thrombosis',label:'Thrombosis / other sequelae',type:'choice',options:[{value:2,label:'New thrombosis / skin necrosis / acute systemic reaction'},{value:1,label:'Progressive/recurrent thrombosis or suspected thrombosis'},{value:0,label:'None'}],optionsLayout:'stack'},{id:'other',label:'Other causes of thrombocytopenia',type:'choice',options:[{value:2,label:'None apparent'},{value:1,label:'Possible'},{value:0,label:'Definite'}],optionsLayout:'stack'}],
+calculate(v){const s=Number(v.thrombocytopenia)+Number(v.timing)+Number(v.thrombosis)+Number(v.other);return{value:s,unit:'/8',interpretation:s<=3?'Low probability':s<=5?'Intermediate probability':'High probability'}}
+};export default fourTs
+
+============================================================
+FILE: src\calculators\hematology\anc.js
+============================================================
+
+const anc={id:'anc',name:'Absolute Neutrophil Count',shortName:'ANC',categoryId:'hematology',description:'Absolute neutrophil count from WBC and neutrophil percentage.',type:'calculation',
+inputs:[{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'neut',label:'Neutrophils',unit:'%',min:0,max:100},{id:'bands',label:'Bands',unit:'%',min:0,max:100}],
+calculate(v){const value=Number(v.wbc)*(Number(v.neut)+Number(v.bands))/100;return{value,unit:'×10⁹/L',interpretation:value<0.5?'Severe neutropenia':value<1?'Moderate neutropenia':value<1.5?'Mild neutropenia':'Not neutropenic by common threshold'}}
+};export default anc
+
+============================================================
+FILE: src\calculators\hematology\caprini.js
+============================================================
+
+const caprini={id:'caprini',name:'Caprini VTE Risk Score',shortName:'Caprini',categoryId:'hematology',description:'Surgical venous thromboembolism risk assessment.',type:'score',
+inputs:['Age 41–60','Minor surgery','BMI >25','Swollen legs','Varicose veins','Pregnancy/postpartum','History of unexplained/recurrent abortion','Oral contraceptives/HRT','Sepsis <1 month','Serious lung disease including pneumonia <1 month','Abnormal pulmonary function','Acute MI','CHF <1 month','History of IBD','Medical patient currently at bed rest','Age 61–74','Arthroscopic surgery','Major open surgery >45 min','Laparoscopic surgery >45 min','Malignancy','Bed rest >72 h','Immobilizing plaster cast','Central venous access','Age ≥75','History of VTE','Family history VTE','Factor V Leiden','Prothrombin 20210A','Lupus anticoagulant','Elevated homocysteine','Heparin-induced thrombocytopenia','Other congenital/acquired thrombophilia','Stroke <1 month','Elective arthroplasty','Hip/pelvis/leg fracture','Acute spinal cord injury <1 month'].map((label,i)=>({id:`c${i}`,label,type:'boolean'})),
+calculate(v){const weights=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,5,5,5,5];const s=weights.reduce((sum,w,i)=>sum+(v[`c${i}`]?w:0),0);return{value:s,unit:'points',interpretation:s<=2?'Low risk':s<=4?'Moderate risk':s<=8?'High risk':'Highest risk',note:'Use the exact Caprini version adopted by the surgical service.'}}
+};export default caprini
+
+============================================================
+FILE: src\calculators\hematology\cisne.js
+============================================================
+
+const calc={
+ id:'cisne',name:'CISNE Score',shortName:'CISNE',categoryId:'hematology',
+ description:'Clinical Index of Stable Febrile Neutropenia.',type:'score',
+ inputs:[
+  {id:'ecog',label:'ECOG performance status ≥2',type:'boolean'},{id:'hyperglycemia',label:'Stress-induced hyperglycemia',type:'boolean'},
+  {id:'copd',label:'COPD',type:'boolean'},{id:'cardio',label:'Chronic cardiovascular disease',type:'boolean'},
+  {id:'mucositis',label:'NCI mucositis grade ≥2',type:'boolean'},{id:'monocytes',label:'Monocytes <200/µL',type:'boolean'}
+ ],
+ calculate(v){const value=(v.ecog?2:0)+(v.hyperglycemia?2:0)+(v.copd?1:0)+(v.cardio?1:0)+(v.mucositis?1:0)+(v.monocytes?1:0);return{value,unit:'/8',interpretation:value===0?'Low-risk class':value<=2?'Intermediate-risk class':'High-risk class'}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\hematology\cll-ipi.js
+============================================================
+
+const cllIpi = {
+  id: 'cllIpi',
+  name: 'CLL-IPI',
+  shortName: 'CLL-IPI',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'CLL-IPI from the MedCalc master calculator catalogue.',
+  keywords: ['CLL-IPI', 'Hematology & Oncology'],
+  aliases: ['CLL-IPI'],
+  inputs: [{id:'score',label:'CLL-IPI score',type:'number',min:0,max:10,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter CLL-IPI score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:'CLL-IPI'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default cllIpi
+
+============================================================
+FILE: src\calculators\hematology\corrected-retic.js
+============================================================
+
+const correctedRetic = {
+  id: 'corrected-retic',
+  name: 'Corrected Reticulocyte Count & RPI',
+  shortName: 'Retic / RPI',
+  type: 'calculator',
+  categoryId: 'hematology',
+  category: 'Hematology',
+  description: 'Calculates the corrected reticulocyte percentage and reticulocyte production index for anemia assessment.',
+  keywords: ['reticulocyte', 'corrected retic', 'RPI', 'reticulocyte production index', 'anemia'],
+  aliases: ['retic index', 'reticulocyte index', 'RPI'],
+  inputs: [
+    { id: 'retic', label: 'Reticulocyte Count', type: 'number', unit: '%', min: 0, step: 0.1 },
+    { id: 'hematocrit', label: 'Patient Hematocrit', type: 'number', unit: '%', min: 1, max: 70, step: 0.1 },
+    { id: 'normalHct', label: 'Reference Hematocrit', type: 'number', unit: '%', min: 20, max: 60, step: 0.1, placeholder: '45' }
+  ],
+  calculate(values) {
+    const retic = Number(values.retic)
+    const hct = Number(values.hematocrit)
+    const normalHct = Number(values.normalHct || 45)
+
+    if (!Number.isFinite(retic) || !Number.isFinite(hct) || !Number.isFinite(normalHct) || retic < 0 || hct <= 0 || normalHct <= 0) {
+      return { error: 'Please enter valid reticulocyte and hematocrit values.' }
+    }
+
+    const corrected = retic * (hct / normalHct)
+    const maturation =
+      hct >= 45 ? 1 :
+      hct >= 35 ? 1.5 :
+      hct >= 25 ? 2 : 2.5
+
+    const rpi = corrected / maturation
+
+    return {
+      value: rpi,
+      displayValue: rpi.toFixed(2),
+      unit: 'RPI',
+      category: `Corrected retic ${corrected.toFixed(1)}% • maturation factor ${maturation}`
+    }
+  },
+  references: [
+    'MDCalc — Corrected Reticulocyte Percentage / Reticulocyte Production Index.',
+    'Clinical hematology convention: corrected reticulocyte percentage = retic % × patient Hct / reference Hct; RPI additionally adjusts for maturation.'
+  ]
+}
+
+export default correctedRetic
+
+============================================================
+FILE: src\calculators\hematology\flipi.js
+============================================================
+
+const flipi = {
+  id: 'flipi',
+  name: 'FLIPI',
+  shortName: 'FLIPI',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'FLIPI from the MedCalc master calculator catalogue.',
+  keywords: ['FLIPI', 'Hematology & Oncology'],
+  aliases: ['FLIPI'],
+  inputs: [{id:'score',label:'FLIPI score',type:'number',min:0,max:5,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter FLIPI score.'}
+    return {value:s,displayValue:String(s),unit:'/ 5',category:s<=1?'Low-risk group':s<=2?'Intermediate-risk group':'High-risk group'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default flipi
+
+============================================================
+FILE: src\calculators\hematology\hasenclever.js
+============================================================
+
+const hasenclever = {
+  id: 'hasenclever',
+  name: 'Hasenclever Index',
+  shortName: 'Hasenclever Index',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'Hasenclever Index from the MedCalc master calculator catalogue.',
+  keywords: ['Hasenclever Index', 'Hematology & Oncology'],
+  aliases: ['Hasenclever Index'],
+  inputs: [{id:'score',label:'Hasenclever score',type:'number',min:0,max:7,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter Hasenclever score.'}
+    return {value:s,displayValue:String(s),unit:'/ 7',category:'Hasenclever Index'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default hasenclever
+
+============================================================
+FILE: src\calculators\hematology\hscore.js
+============================================================
+
+const calc={
+ id:'hscore',name:'HScore',shortName:'HScore',categoryId:'hematology',
+ description:'Published HScore for probability of reactive hemophagocytic syndrome / secondary HLH.',type:'score',
+ inputs:[
+  {id:'immuno',label:'Known underlying immunosuppression',type:'boolean'},
+  {id:'temp',label:'Temperature',unit:'°C',min:30,max:45,step:0.1},
+  {id:'organomegaly',label:'Organomegaly',type:'choice',options:[{value:0,label:'None'},{value:23,label:'Hepatomegaly OR splenomegaly'},{value:38,label:'Both hepatomegaly AND splenomegaly'}],optionsLayout:'stack'},
+  {id:'cytopenias',label:'Number of cytopenic lineages',type:'choice',options:[{value:0,label:'1 lineage'},{value:24,label:'2 lineages'},{value:34,label:'3 lineages'}],optionsLayout:'stack'},
+  {id:'ferritin',label:'Ferritin',unit:'ng/mL',min:0,max:100000},{id:'triglycerides',label:'Triglycerides',unit:'mmol/L',min:0,max:30,step:0.1},
+  {id:'fibrinogen',label:'Fibrinogen',unit:'g/L',min:0,max:10,step:0.1},{id:'ast',label:'AST',unit:'U/L',min:0,max:10000},{id:'hemo',label:'Hemophagocytosis on bone marrow aspirate',type:'boolean'}
+ ],
+ calculate(v){
+  const t=+v.temp,f=+v.ferritin,tg=+v.triglycerides,fb=+v.fibrinogen,ast=+v.ast;
+  const value=(v.immuno?18:0)+(t<38.4?0:t<=39.4?33:49)+Number(v.organomegaly||0)+Number(v.cytopenias||0)+(f<2000?0:f<=6000?35:50)+(tg<1.5?0:tg<=4?44:64)+(fb>2.5?0:30)+(ast>=30?19:0)+(v.hemo?35:0);
+  return{value,unit:'points',interpretation:value>=169?'HScore ≥169':'HScore <169',note:'HScore estimates probability of secondary/reactive HLH; diagnosis requires clinical context.'};
+ }
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\hematology\improve-bleeding.js
+============================================================
+
+const improveBleed={id:'improve-bleeding',name:'IMPROVE Bleeding Score',shortName:'IMPROVE Bleeding',categoryId:'hematology',description:'Bleeding risk assessment in hospitalized medical patients.',type:'score',
+inputs:[{id:'activeUlcer',label:'Active gastroduodenal ulcer',type:'boolean'},{id:'bleed',label:'Bleeding in 3 months',type:'boolean'},{id:'platelets',label:'Platelets <50 ×10⁹/L',type:'boolean'},{id:'age',label:'Age ≥85',type:'boolean'},{id:'liver',label:'Hepatic failure',type:'boolean'},{id:'renal',label:'Severe renal failure',type:'boolean'},{id:'icu',label:'ICU stay',type:'boolean'},{id:'catheter',label:'Central venous catheter',type:'boolean'},{id:'rheum',label:'Rheumatic disease',type:'boolean'},{id:'cancer',label:'Current cancer',type:'boolean'},{id:'male',label:'Male sex',type:'boolean'}],
+calculate(v){const s=(v.activeUlcer?4.5:0)+(v.bleed?4:0)+(v.platelets?4:0)+(v.age?3.5:0)+(v.liver?2.5:0)+(v.renal?2.5:0)+(v.icu?2.5:0)+(v.catheter?2:0)+(v.rheum?2:0)+(v.cancer?2:0)+(v.male?1:0);return{value:s,unit:'points',note:'Use the validated original IMPROVE Bleeding item definitions and thresholds for formal risk assessment.'}}
+};export default improveBleed
+
+============================================================
+FILE: src\calculators\hematology\improve-vte.js
+============================================================
+
+const improve={id:'improve-vte',name:'IMPROVE VTE Score',shortName:'IMPROVE VTE',categoryId:'hematology',description:'VTE risk score for hospitalized medical patients.',type:'score',
+inputs:[{id:'priorVte',label:'Previous VTE',type:'boolean'},{id:'thrombophilia',label:'Known thrombophilia',type:'boolean'},{id:'paralysis',label:'Lower-limb paralysis',type:'boolean'},{id:'cancer',label:'Current cancer',type:'boolean'},{id:'icu',label:'ICU / CCU stay',type:'boolean'},{id:'age',label:'Age >60 years',type:'boolean'},{id:'immobility',label:'Immobilization ≥7 days',type:'boolean'}],
+calculate(v){const s=(v.priorVte?3:0)+(v.thrombophilia?2:0)+(v.paralysis?2:0)+(v.cancer?2:0)+(v.icu?1:0)+(v.age?1:0)+(v.immobility?1:0);return{value:s,unit:'points',interpretation:s>=4?'Higher VTE risk':'Lower VTE risk'}}
+};export default improve
+
+============================================================
+FILE: src\calculators\hematology\ipi.js
+============================================================
+
+const ipi = {
+  id: 'ipi',
+  name: 'International Prognostic Index',
+  shortName: 'International Prognostic Index',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'International Prognostic Index from the MedCalc master calculator catalogue.',
+  keywords: ['International Prognostic Index', 'Hematology & Oncology'],
+  aliases: ['International Prognostic Index'],
+  inputs: [{id:'score',label:'IPI score',type:'number',min:0,max:5,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter IPI score.'}
+    return {value:s,displayValue:String(s),unit:'/ 5',category:'IPI'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default ipi
+
+============================================================
+FILE: src\calculators\hematology\ipss-m.js
+============================================================
+
+const ipssM = {
+  id: 'ipssM',
+  name: 'IPSS-M',
+  shortName: 'IPSS-M',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'IPSS-M from the MedCalc master calculator catalogue.',
+  keywords: ['IPSS-M', 'Hematology & Oncology'],
+  aliases: ['IPSS-M'],
+  inputs: [{id:'score',label:'IPSS-M score',type:'number',step:0.01}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter IPSS-M score.'}
+    return {value:s,displayValue:String(s),unit:'model score',category:'IPSS-M'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default ipssM
+
+============================================================
+FILE: src\calculators\hematology\ipss-r.js
+============================================================
+
+const ipssR = {
+  id: 'ipssR',
+  name: 'IPSS-R',
+  shortName: 'IPSS-R',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'IPSS-R from the MedCalc master calculator catalogue.',
+  keywords: ['IPSS-R', 'Hematology & Oncology'],
+  aliases: ['IPSS-R'],
+  inputs: [{id:'score',label:'IPSS-R score',type:'number',min:0,step:0.1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter IPSS-R score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:'IPSS-R'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default ipssR
+
+============================================================
+FILE: src\calculators\hematology\ist-dic.js
+============================================================
+
+const calc={id:'ist-dic',name:'ISTH DIC Score',shortName:'ISTH DIC',categoryId:'hematology',description:'ISTH overt disseminated intravascular coagulation score framework.',type:'score',
+inputs:[{id:'platelets',label:'Platelets',type:'choice',options:[{value:0,label:'≥100 ×10⁹/L'},{value:1,label:'50–99 ×10⁹/L'},{value:2,label:'<50 ×10⁹/L'}]},{id:'dimer',label:'D-dimer / fibrin degradation products',type:'choice',options:[{value:0,label:'No increase'},{value:2,label:'Moderate increase'},{value:3,label:'Strong increase'}],optionsLayout:'stack'},{id:'pt',label:'Prolonged PT',type:'choice',options:[{value:0,label:'<3 s'},{value:1,label:'3–6 s'},{value:2,label:'>6 s'}]},{id:'fibrinogen',label:'Fibrinogen <1 g/L?',type:'boolean'}],
+calculate(v){const s=Number(v.platelets)+Number(v.dimer)+Number(v.pt)+(v.fibrinogen?1:0);return{value:s,unit:'points',interpretation:s>=5?'Compatible with overt DIC':'Does not meet overt DIC threshold'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\hematology\khorana.js
+============================================================
+
+const khorana={id:'khorana',name:'Khorana Score',shortName:'Khorana',categoryId:'hematology',description:'Cancer-associated venous thromboembolism risk score.',type:'score',
+inputs:[{id:'site',label:'Cancer site',type:'choice',options:[{value:0,label:'Other / no listed high-risk site'},{value:1,label:'Lung, lymphoma, gynecologic, bladder'},{value:2,label:'Stomach or pancreas'}],optionsLayout:'stack'},{id:'platelets',label:'Platelets ≥350 ×10⁹/L?',type:'boolean'},{id:'hb',label:'Hemoglobin <10 g/dL or ESA use?',type:'boolean'},{id:'wbc',label:'WBC >11 ×10⁹/L?',type:'boolean'},{id:'bmi',label:'BMI ≥35 kg/m²?',type:'boolean'}],
+calculate(v){const s=Number(v.site)+(v.platelets?1:0)+(v.hb?1:0)+(v.wbc?1:0)+(v.bmi?1:0);return{value:s,unit:'/6',interpretation:s>=3?'High score':s===2?'Intermediate score':'Low score'}}
+};export default khorana
+
+============================================================
+FILE: src\calculators\hematology\mascc.js
+============================================================
+
+const calc={
+ id:'mascc',name:'MASCC Febrile Neutropenia Score',shortName:'MASCC',categoryId:'hematology',
+ description:'Published MASCC risk index for febrile neutropenia.',type:'score',
+ inputs:[
+  {id:'burden',label:'Burden of illness',type:'choice',options:[{value:5,label:'No or mild symptoms'},{value:3,label:'Moderate symptoms'},{value:0,label:'Severe symptoms'}],optionsLayout:'stack'},
+  {id:'hypotension',label:'No hypotension (SBP >90 mmHg)',type:'boolean'},{id:'copd',label:'No COPD',type:'boolean'},
+  {id:'tumor',label:'Solid tumor OR hematologic malignancy without prior fungal infection',type:'boolean'},
+  {id:'dehydration',label:'No dehydration requiring IV fluids',type:'boolean'},{id:'outpatient',label:'Outpatient at fever onset',type:'boolean'},{id:'age',label:'Age <60 years',type:'boolean'}
+ ],
+ calculate(v){const value=Number(v.burden)+(v.hypotension?5:0)+(v.copd?4:0)+(v.tumor?4:0)+(v.dehydration?3:0)+(v.outpatient?3:0)+(v.age?2:0);return{value,unit:'/26',interpretation:value>=21?'Low-risk MASCC group':'Higher-risk MASCC group'}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\hematology\mentzer.js
+============================================================
+
+const mentzer={id:'mentzer',name:'Mentzer Index',shortName:'Mentzer',categoryId:'hematology',description:'MCV divided by RBC count for microcytic anemia differentiation.',type:'calculation',
+inputs:[{id:'mcv',label:'MCV',unit:'fL',min:1,max:200,step:0.1},{id:'rbc',label:'RBC count',unit:'×10¹²/L',min:0.1,max:20,step:0.1}],
+calculate(v){const value=Number(v.mcv)/Number(v.rbc);return{value,unit:'ratio',interpretation:value<13?'Pattern favors thalassemia trait':'Pattern favors iron deficiency'}}
+};export default mentzer
+
+============================================================
+FILE: src\calculators\hematology\padua.js
+============================================================
+
+const padua={id:'padua',name:'Padua Prediction Score',shortName:'Padua',categoryId:'hematology',description:'VTE risk assessment in hospitalized medical patients.',type:'score',
+inputs:[{id:'cancer',label:'Active cancer',type:'boolean'},{id:'vte',label:'Previous VTE',type:'boolean'},{id:'mobility',label:'Reduced mobility ≥3 days',type:'boolean'},{id:'thrombophilia',label:'Known thrombophilia',type:'boolean'},{id:'trauma',label:'Recent trauma or surgery',type:'boolean'},{id:'age',label:'Age ≥70',type:'boolean'},{id:'heart',label:'Heart or respiratory failure',type:'boolean'},{id:'mi',label:'Acute MI or ischemic stroke',type:'boolean'},{id:'infection',label:'Acute infection / rheumatologic disorder',type:'boolean'},{id:'obesity',label:'BMI ≥30',type:'boolean'},{id:'hormone',label:'Ongoing hormonal treatment',type:'boolean'}],
+calculate(v){const s=(v.cancer?3:0)+(v.vte?3:0)+(v.mobility?3:0)+(v.thrombophilia?3:0)+(v.trauma?2:0)+(v.age?1:0)+(v.heart?1:0)+(v.mi?1:0)+(v.infection?1:0)+(v.obesity?1:0)+(v.hormone?1:0);return{value:s,unit:'points',interpretation:s>=4?'High VTE risk':'Lower VTE risk'}}
+};export default padua
+
+============================================================
+FILE: src\calculators\hematology\rdw-index.js
+============================================================
+
+const rdw={id:'rdw-index',name:'RDW Index',shortName:'RDWI',categoryId:'hematology',description:'Red-cell distribution width index used in microcytosis assessment.',type:'calculation',
+inputs:[{id:'mcv',label:'MCV',unit:'fL',min:1,max:200,step:0.1},{id:'rbc',label:'RBC count',unit:'×10¹²/L',min:0.1,max:20,step:0.1},{id:'rdw',label:'RDW',unit:'%',min:1,max:50,step:0.1}],
+calculate(v){const value=Number(v.mcv)*Number(v.rdw)/Number(v.rbc);return{value,unit:'RDWI'}}
+};export default rdw
+
+============================================================
+FILE: src\calculators\hematology\retic-index.js
+============================================================
+
+const calc={id:'reticulocyte-production-index',name:'Reticulocyte Production Index',shortName:'RPI',categoryId:'hematology',description:'Corrected reticulocyte response accounting for anemia and maturation.',type:'calculation',
+inputs:[{id:'retic',label:'Reticulocyte percentage',unit:'%',min:0,max:50,step:0.1},{id:'hct',label:'Patient hematocrit',unit:'%',min:5,max:70,step:0.1},{id:'normal',label:'Normal hematocrit',unit:'%',min:20,max:60,step:0.1}],
+calculate(v){const h=+v.hct,n=+v.normal||45;const corr=+v.retic*(h/n);const factor=h>=36?1:h>=26?1.5:h>=16?2:2.5;return{value:corr/factor,unit:'RPI',note:'RPI interpretation depends on the clinical context and marrow response.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\hematology\r-ipi.js
+============================================================
+
+const rIpi = {
+  id: 'rIpi',
+  name: 'Revised International Prognostic Index',
+  shortName: 'Revised International Prognostic Index',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'Revised International Prognostic Index from the MedCalc master calculator catalogue.',
+  keywords: ['Revised International Prognostic Index', 'Hematology & Oncology'],
+  aliases: ['Revised International Prognostic Index'],
+  inputs: [{id:'score',label:'R-IPI score',type:'number',min:0,max:5,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter R-IPI score.'}
+    return {value:s,displayValue:String(s),unit:'/ 5',category:'R-IPI'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default rIpi
+
+============================================================
+FILE: src\calculators\hematology\shine-lal.js
+============================================================
+
+const shineLal = {
+  id: 'shineLal',
+  name: 'Shine-Lal Index',
+  shortName: 'Shine-Lal Index',
+  type: 'score',
+  categoryId: 'hematology',
+  category: 'Hematology & Oncology',
+  description: 'Shine-Lal Index from the MedCalc master calculator catalogue.',
+  keywords: ['Shine-Lal Index', 'Hematology & Oncology'],
+  aliases: ['Shine-Lal Index'],
+  inputs: [{id:'mcv',label:'MCV',type:'number',unit:'fL',step:0.1},{id:'hb',label:'Hemoglobin',type:'number',unit:'g/dL',step:0.1}],
+  calculate(values) {
+    const m=Number(values.mcv),h=Number(values.hb); if(![m,h].every(Number.isFinite)) return {error:'Enter MCV and hemoglobin.'}
+    const s=m*m*h/100; return {value:s,displayValue:s.toFixed(1),unit:'index',category:'Shine-Lal index'}
+  },
+  references: ['Original hematology/oncology score publication.']
+}
+
+export default shineLal

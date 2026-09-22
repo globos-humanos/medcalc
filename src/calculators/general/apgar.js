@@ -5,7 +5,9 @@
   type: 'score',
   categoryId: 'general-medicine',
   category: 'General Medicine',
+
   description: 'Scores newborn condition using appearance, pulse, grimace, activity, and respiration.',
+
   keywords: [
     'Apgar',
     'newborn',
@@ -17,11 +19,13 @@
     'respiration',
     'neonatal assessment'
   ],
+
   aliases: [
     'Apgar score',
     'APGAR',
     'newborn score'
   ],
+
   inputs: [
     {
       id: 'appearance',
@@ -74,6 +78,7 @@
       ]
     }
   ],
+
   calculate(values) {
     const fields = [
       values.appearance,
@@ -84,7 +89,9 @@
     ]
 
     if (fields.some(value => value === undefined || value === '')) {
-      return { error: 'Please score all five APGAR components.' }
+      return {
+        error: 'Please score all five APGAR components.'
+      }
     }
 
     const score = fields.reduce(
@@ -92,23 +99,30 @@
       0
     )
 
-    let interpretation = ''
+    let category
+    let interpretation
 
     if (score <= 3) {
-      interpretation = 'Low score'
+      category = 'Low'
+      interpretation = 'APGAR 0–3 is a low score.'
     } else if (score <= 6) {
-      interpretation = 'Intermediate score'
+      category = 'Moderately abnormal'
+      interpretation = 'APGAR 4–6 is a moderately abnormal score.'
     } else {
-      interpretation = 'Generally reassuring score'
+      category = 'Reassuring'
+      interpretation = 'APGAR 7–10 is generally reassuring.'
     }
 
     return {
       value: score,
       displayValue: String(score),
       unit: '/10',
-      category: interpretation
+      category,
+      interpretation,
+      note: 'APGAR is used to describe newborn condition and response to resuscitation. It should not be used alone to determine whether initial resuscitation is required.'
     }
   },
+
   references: [
     'American Academy of Pediatrics. The Apgar Score. Pediatrics. 2015;136(4):819-822.'
   ]

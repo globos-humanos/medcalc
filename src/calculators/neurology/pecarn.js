@@ -1,9 +1,12 @@
-const calc = {
+﻿const pecarn = {
   id: 'pecarn',
-  name: 'PECARN Pediatric Head Injury Rule',
+  name: 'PECARN Pediatric Head Trauma Rule',
   shortName: 'PECARN',
+  type: 'score',
   categoryId: 'neurology',
-  description: 'PECARN clinical prediction rule for clinically important traumatic brain injury after minor blunt head trauma.',
+  category: 'Neurology',
+  description: 'Age-specific PECARN decision rule for clinically important traumatic brain injury in children.',
+  keywords: ['PECARN', 'pediatric head injury', 'CT'],
 
   inputs: [
     {
@@ -11,154 +14,151 @@ const calc = {
       label: 'Age group',
       type: 'choice',
       options: [
-        {
-          value: 'under2',
-          label: '<2 years'
-        },
-        {
-          value: '2plus',
-          label: '≥2 years'
-        }
+        { value: 'under2', label: '<2 years' },
+        { value: '2plus', label: '≥2 years' }
       ],
       optionsLayout: 'stack'
     },
+
     {
-      id: 'alteredMentalStatus',
-      label: 'Altered mental status / GCS <15',
+      id: 'mental',
+      label: 'Altered mental status',
       type: 'boolean'
     },
+
     {
       id: 'palpableSkull',
-      label: 'Palpable skull fracture',
+      label: 'Palpable skull fracture (<2 years)',
       type: 'boolean'
     },
-    {
-      id: 'nonFrontalHematoma',
-      label: 'Non-frontal scalp hematoma',
-      type: 'boolean'
-    },
-    {
-      id: 'loc5sec',
-      label: 'Loss of consciousness ≥5 seconds',
-      type: 'boolean'
-    },
-    {
-      id: 'actingAbnormal',
-      label: 'Not acting normally according to parent',
-      type: 'boolean'
-    },
-    {
-      id: 'anyLoc',
-      label: 'Any loss of consciousness',
-      type: 'boolean'
-    },
-    {
-      id: 'vomiting',
-      label: 'Vomiting',
-      type: 'boolean'
-    },
+
     {
       id: 'basilarSkull',
-      label: 'Signs of basilar skull fracture',
+      label: 'Signs of basilar skull fracture (≥2 years)',
       type: 'boolean'
     },
+
     {
-      id: 'severeHeadache',
-      label: 'Severe headache',
+      id: 'loc',
+      label: 'Loss of consciousness',
       type: 'boolean'
     },
+
     {
-      id: 'severeMechanism',
+      id: 'loc5',
+      label: 'Loss of consciousness ≥5 seconds (<2 years)',
+      type: 'boolean'
+    },
+
+    {
+      id: 'vomit',
+      label: 'History of vomiting (≥2 years)',
+      type: 'boolean'
+    },
+
+    {
+      id: 'severe',
       label: 'Severe mechanism of injury',
+      type: 'boolean'
+    },
+
+    {
+      id: 'headache',
+      label: 'Severe headache (≥2 years)',
+      type: 'boolean'
+    },
+
+    {
+      id: 'nonfrontal',
+      label: 'Non-frontal scalp hematoma (<2 years)',
+      type: 'boolean'
+    },
+
+    {
+      id: 'notActing',
+      label: 'Not acting normally according to parent (<2 years)',
       type: 'boolean'
     }
   ],
 
   calculate(v) {
-    if (!v.ageGroup) {
-      return {
-        error: 'Please select the age group.'
-      }
-    }
+    const under2 = v.ageGroup === 'under2'
 
-    if (v.ageGroup === 'under2') {
-
+    if (under2) {
       const highRisk =
-        v.alteredMentalStatus === true ||
+        v.mental === true ||
         v.palpableSkull === true
-
-      const intermediateRisk =
-        v.nonFrontalHematoma === true ||
-        v.loc5sec === true ||
-        v.severeMechanism === true ||
-        v.actingAbnormal === true
 
       if (highRisk) {
         return {
-          value: 'CT recommended',
+          value: 'High-risk feature',
+          displayValue: 'High-risk',
           unit: 'PECARN',
-          interpretation: 'Higher-risk category',
-          note: 'Age <2 years: altered mental status or palpable skull fracture.'
+          category: 'Higher-risk PECARN pathway',
+          interpretation: 'A high-risk predictor is present for children younger than 2 years.',
+          note: 'The <2-year PECARN high-risk predictors are altered mental status or palpable skull fracture.'
         }
       }
 
-      if (intermediateRisk) {
-        return {
-          value: 'Observation vs CT',
-          unit: 'PECARN',
-          interpretation: 'Intermediate-risk category',
-          note: 'Consider observation versus CT using clinical factors, including multiple findings, worsening symptoms, age <3 months, clinician experience and caregiver preference.'
-        }
-      }
+      const intermediate =
+        v.nonfrontal === true ||
+        v.loc5 === true ||
+        v.severe === true ||
+        v.notActing === true
 
       return {
-        value: 'CT not routinely indicated',
+        value: intermediate ? 'Intermediate-risk feature' : 'No listed predictor',
+        displayValue: intermediate ? 'Intermediate-risk' : 'Very-low-risk features',
         unit: 'PECARN',
-        interpretation: 'Very low-risk category',
-        note: 'No PECARN predictor selected for the <2-year rule.'
+        category: intermediate
+          ? 'Intermediate-risk PECARN pathway'
+          : 'Very-low-risk PECARN pathway',
+        interpretation: intermediate
+          ? 'One or more age-specific intermediate-risk predictors are present.'
+          : 'No listed age-specific PECARN predictor is present.',
+        note: 'For children younger than 2 years, intermediate predictors include non-frontal scalp hematoma, LOC ≥5 seconds, severe mechanism, and not acting normally according to the parent.'
       }
     }
 
     const highRisk =
-      v.alteredMentalStatus === true ||
+      v.mental === true ||
       v.basilarSkull === true
-
-    const intermediateRisk =
-      v.anyLoc === true ||
-      v.vomiting === true ||
-      v.severeMechanism === true ||
-      v.severeHeadache === true
 
     if (highRisk) {
       return {
-        value: 'CT recommended',
+        value: 'High-risk feature',
+        displayValue: 'High-risk',
         unit: 'PECARN',
-        interpretation: 'Higher-risk category',
-        note: 'Age ≥2 years: altered mental status or signs of basilar skull fracture.'
+        category: 'Higher-risk PECARN pathway',
+        interpretation: 'A high-risk predictor is present for children aged 2 years or older.',
+        note: 'The ≥2-year PECARN high-risk predictors are altered mental status or signs of basilar skull fracture.'
       }
     }
 
-    if (intermediateRisk) {
-      return {
-        value: 'Observation vs CT',
-        unit: 'PECARN',
-        interpretation: 'Intermediate-risk category',
-        note: 'Consider observation versus CT using clinical factors and the overall presentation.'
-      }
-    }
+    const intermediate =
+      v.loc === true ||
+      v.vomit === true ||
+      v.severe === true ||
+      v.headache === true
 
     return {
-      value: 'CT not routinely indicated',
+      value: intermediate ? 'Intermediate-risk feature' : 'No listed predictor',
+      displayValue: intermediate ? 'Intermediate-risk' : 'Very-low-risk features',
       unit: 'PECARN',
-      interpretation: 'Very low-risk category',
-      note: 'No PECARN predictor selected for the ≥2-year rule.'
+      category: intermediate
+        ? 'Intermediate-risk PECARN pathway'
+        : 'Very-low-risk PECARN pathway',
+      interpretation: intermediate
+        ? 'One or more age-specific intermediate-risk predictors are present.'
+        : 'No listed age-specific PECARN predictor is present.',
+      note: 'For children aged 2 years or older, intermediate predictors include any LOC, vomiting, severe mechanism, and severe headache.'
     }
   },
 
   references: [
-    'Kuppermann N et al. Identification of children at very low risk of clinically-important brain injuries after head trauma. Lancet. 2009.',
-    'PECARN pediatric head trauma prediction rule validation literature.'
+    'Kuppermann et al. PECARN pediatric head trauma rule',
+    'PECARN age-specific clinical prediction rules'
   ]
 }
 
-export default calc
+export default pecarn

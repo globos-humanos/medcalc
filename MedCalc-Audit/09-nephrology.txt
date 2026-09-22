@@ -1,0 +1,849 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: NEPHROLOGY
+============================================================
+
+
+============================================================
+FILE: src\calculators\nephrology\anion-gap.js
+============================================================
+
+const anionGap = {
+  id: 'anion-gap',
+  name: 'Anion Gap Calculator',
+  shortName: 'AG',
+  type: 'calculator',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Calculates the serum anion gap from sodium, chloride, and bicarbonate.',
+  keywords: [
+    'anion gap',
+    'AG',
+    'metabolic acidosis',
+    'sodium',
+    'chloride',
+    'bicarbonate',
+    'HCO3'
+  ],
+  aliases: [
+    'anion gap',
+    'serum anion gap',
+    'AG'
+  ],
+  inputs: [
+    {
+      id: 'sodium',
+      label: 'Serum Sodium',
+      type: 'number',
+      unit: 'mEq/L',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'chloride',
+      label: 'Serum Chloride',
+      type: 'number',
+      unit: 'mEq/L',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'bicarbonate',
+      label: 'Serum Bicarbonate',
+      type: 'number',
+      unit: 'mEq/L',
+      min: 0,
+      step: 0.1
+    }
+  ],
+  calculate(values) {
+    const sodium = Number(values.sodium)
+    const chloride = Number(values.chloride)
+    const bicarbonate = Number(values.bicarbonate)
+
+    if (
+      !sodium || !chloride || !bicarbonate ||
+      sodium <= 0 || chloride <= 0 || bicarbonate <= 0
+    ) {
+      return { error: 'Please enter valid sodium, chloride, and bicarbonate values.' }
+    }
+
+    const gap = sodium - chloride - bicarbonate
+
+    return {
+      value: gap,
+      displayValue: gap.toFixed(1),
+      unit: 'mEq/L',
+      category: gap > 12 ? 'Elevated anion gap' : 'Anion gap'
+    }
+  },
+  references: [
+    'MDCalc. Anion Gap Calculator.'
+  ]
+}
+
+export default anionGap
+
+============================================================
+FILE: src\calculators\nephrology\bun-cr.js
+============================================================
+
+const bunCr = {
+  id: 'bunCr',
+  name: 'BUN / Creatinine Ratio',
+  shortName: 'BUN / Creatinine Ratio',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'BUN / Creatinine Ratio from the MedCalc master calculator catalogue.',
+  keywords: ['BUN / Creatinine Ratio', 'Nephrology'],
+  aliases: ['BUN / Creatinine Ratio'],
+  inputs: [{id:'bun',label:'BUN',type:'number',unit:'mg/dL',min:0,step:0.1},{id:'creatinine',label:'Creatinine',type:'number',unit:'mg/dL',min:0,step:0.01}],
+  calculate(values) {
+    const b=Number(values.bun),c=Number(values.creatinine); if(![b,c].every(Number.isFinite)||c<=0) return {error:'Complete BUN/creatinine inputs.'}
+    const r=b/c; return {value:r,displayValue:r.toFixed(1),unit:'ratio',category:'BUN/Cr ratio'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default bunCr
+
+============================================================
+FILE: src\calculators\nephrology\calcium-phosphate-product.js
+============================================================
+
+const calciumPhosphate = {
+  id: 'calciumPhosphate',
+  name: 'Calcium–Phosphate Product',
+  shortName: 'Calcium–Phosphate Product',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Calcium–Phosphate Product from the MedCalc master calculator catalogue.',
+  keywords: ['Calcium–Phosphate Product', 'Nephrology'],
+  aliases: ['Calcium–Phosphate Product'],
+  inputs: [{id:'calcium',label:'Calcium',type:'number',unit:'mg/dL',min:0,step:0.1},{id:'phosphate',label:'Phosphate',type:'number',unit:'mg/dL',min:0,step:0.1}],
+  calculate(values) {
+    const c=Number(values.calcium),p=Number(values.phosphate); if(![c,p].every(Number.isFinite)) return {error:'Enter calcium and phosphate.'}
+    const v=c*p; return {value:v,displayValue:v.toFixed(1),unit:'mg²/dL²',category:'Ca × phosphate product'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default calciumPhosphate
+
+============================================================
+FILE: src\calculators\nephrology\ckd-epi.js
+============================================================
+
+const ckdEpi = {
+  id: 'ckd-epi',
+  name: 'CKD-EPI 2021 eGFR',
+  shortName: 'CKD-EPI',
+  type: 'calculator',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Estimates eGFR from age, sex, and serum creatinine using the 2021 race-free CKD-EPI creatinine equation.',
+  keywords: ['CKD-EPI', 'eGFR', 'GFR', 'creatinine', 'kidney function', 'CKD'],
+  aliases: ['CKD EPI', '2021 CKD-EPI', 'eGFR calculator'],
+  inputs: [
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' }
+      ]
+    },
+    { id: 'age', label: 'Age', type: 'number', unit: 'years', min: 18, step: 1 },
+    { id: 'creatinine', label: 'Serum Creatinine', type: 'number', unit: 'mg/dL', min: 0.1, step: 0.01 }
+  ],
+  calculate(values) {
+    const age = Number(values.age)
+    const creatinine = Number(values.creatinine)
+
+    if (!values.sex || !age || age <= 0 || !creatinine || creatinine <= 0) {
+      return { error: 'Please enter valid CKD-EPI inputs.' }
+    }
+
+    const female = values.sex === 'female'
+    const k = female ? 0.7 : 0.9
+    const alpha = female ? -0.241 : -0.302
+
+    const egfr =
+      142 *
+      Math.pow(Math.min(creatinine / k, 1), alpha) *
+      Math.pow(Math.max(creatinine / k, 1), -1.2) *
+      Math.pow(0.9938, age) *
+      (female ? 1.012 : 1)
+
+    return {
+      value: egfr,
+      displayValue: egfr.toFixed(1),
+      unit: 'mL/min/1.73 mÂ²',
+      category:
+        egfr >= 90 ? 'G1 range' :
+        egfr >= 60 ? 'G2 range' :
+        egfr >= 45 ? 'G3a range' :
+        egfr >= 30 ? 'G3b range' :
+        egfr >= 15 ? 'G4 range' :
+        'G5 range'
+    }
+  },
+  references: [
+    'Inker LA, et al. New Creatinine- and Cystatin C-Based Equations to Estimate GFR without Race. N Engl J Med. 2021;385:1737â€“1749.',
+    'MDCalc â€” CKD-EPI Equations for Glomerular Filtration Rate.'
+  ]
+}
+
+export default ckdEpi
+
+============================================================
+FILE: src\calculators\nephrology\cockcroft-gault.js
+============================================================
+
+const cockcroftGault = {
+  id: 'cockcroft-gault',
+  name: 'Creatinine Clearance (Cockcroft-Gault)',
+  shortName: 'Cockcroft-Gault',
+  type: 'calculator',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Estimates creatinine clearance using age, sex, body weight, and serum creatinine.',
+  keywords: ['Cockcroft-Gault', 'creatinine clearance', 'CrCl', 'renal function', 'kidney'],
+  aliases: ['Cockcroft Gault', 'CrCl'],
+  inputs: [
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' }
+      ]
+    },
+    { id: 'age', label: 'Age', type: 'number', unit: 'years', min: 18, step: 1 },
+    { id: 'weight', label: 'Body Weight', type: 'number', unit: 'kg', min: 1, step: 0.1 },
+    { id: 'creatinine', label: 'Serum Creatinine', type: 'number', unit: 'mg/dL', min: 0.1, step: 0.1 }
+  ],
+  calculate(values) {
+    const age = Number(values.age)
+    const weight = Number(values.weight)
+    const creatinine = Number(values.creatinine)
+
+    if (!values.sex || !age || age <= 0 || !weight || weight <= 0 || !creatinine || creatinine <= 0) {
+      return { error: 'Please enter valid Cockcroft-Gault inputs.' }
+    }
+
+    let crcl = ((140 - age) * weight) / (72 * creatinine)
+    if (values.sex === 'female') crcl *= 0.85
+
+    return {
+      value: crcl,
+      displayValue: crcl.toFixed(1),
+      unit: 'mL/min',
+      category: 'Cockcroft-Gault creatinine clearance'
+    }
+  },
+  references: [
+    'Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine. Nephron. 1976;16:31â€“41.',
+    'MDCalc â€” Creatinine Clearance (Cockcroft-Gault Equation).'
+  ]
+}
+
+export default cockcroftGault
+
+============================================================
+FILE: src\calculators\nephrology\corrected-calcium.js
+============================================================
+
+const correctedCalcium = {
+  id: 'corrected-calcium',
+  name: 'Corrected Calcium Calculator',
+  shortName: 'Corrected Ca',
+  type: 'calculator',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Corrects total serum calcium for serum albumin.',
+  keywords: [
+    'corrected calcium',
+    'albumin corrected calcium',
+    'calcium',
+    'hypocalcemia',
+    'hypercalcemia',
+    'albumin'
+  ],
+  aliases: [
+    'corrected calcium',
+    'calcium correction',
+    'albumin corrected calcium'
+  ],
+  inputs: [
+    {
+      id: 'calcium',
+      label: 'Total Calcium',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'albumin',
+      label: 'Albumin',
+      type: 'number',
+      unit: 'g/dL',
+      min: 0,
+      step: 0.1
+    }
+  ],
+  calculate(values) {
+    const calcium = Number(values.calcium)
+    const albumin = Number(values.albumin)
+
+    if (
+      !calcium || !albumin ||
+      calcium <= 0 || albumin <= 0
+    ) {
+      return { error: 'Please enter valid calcium and albumin values.' }
+    }
+
+    const corrected = calcium + 0.8 * (4 - albumin)
+
+    return {
+      value: corrected,
+      displayValue: corrected.toFixed(1),
+      unit: 'mg/dL',
+      category: 'Albumin-corrected calcium'
+    }
+  },
+  references: [
+    'Common clinical correction: corrected calcium = measured calcium + 0.8 × (4.0 - albumin).'
+  ]
+}
+
+export default correctedCalcium
+
+============================================================
+FILE: src\calculators\nephrology\corrected-sodium.js
+============================================================
+
+const calc={id:'corrected-sodium',name:'Corrected Sodium for Hyperglycemia',shortName:'Corrected Na',categoryId:'nephrology',description:'Estimates sodium after accounting for hyperglycemia.',type:'calculation',
+inputs:[{id:'na',label:'Measured sodium',unit:'mmol/L',min:80,max:220},{id:'glucose',label:'Glucose',unit:'mg/dL',min:20,max:2000}],
+calculate(v){const value=Number(v.na)+1.6*((Number(v.glucose)-100)/100);return{value,unit:'mmol/L',note:'A 2.4 mmol/L correction factor is also used in some references; document which convention is applied.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\nephrology\delta-gap.js
+============================================================
+
+const deltaGap = {
+  id: 'deltaGap',
+  name: 'Delta Gap / Delta Ratio',
+  shortName: 'Delta Gap / Delta Ratio',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Delta Gap / Delta Ratio from the MedCalc master calculator catalogue.',
+  keywords: ['Delta Gap / Delta Ratio', 'Nephrology'],
+  aliases: ['Delta Gap / Delta Ratio'],
+  inputs: [
+ {id:'na',label:'Sodium',type:'number',unit:'mmol/L',step:0.1},
+ {id:'cl',label:'Chloride',type:'number',unit:'mmol/L',step:0.1},
+ {id:'hco3',label:'Bicarbonate',type:'number',unit:'mmol/L',step:0.1}
+],
+  calculate(values) {
+    const na=Number(values.na),cl=Number(values.cl),h=Number(values.hco3)
+    if(![na,cl,h].every(Number.isFinite)) return {error:'Complete anion-gap inputs.'}
+    const ag=na-cl-h, delta=ag-12, ratio=delta/(24-h)
+    return {value:ratio,displayValue:ratio.toFixed(2),unit:'delta ratio',category:`AG ${ag.toFixed(1)}; delta gap ${delta.toFixed(1)}`}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default deltaGap
+
+============================================================
+FILE: src\calculators\nephrology\fek.js
+============================================================
+
+const fek = {
+  id: 'fek',
+  name: 'Fractional Excretion of Potassium',
+  shortName: 'Fractional Excretion of Potassium',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Fractional Excretion of Potassium from the MedCalc master calculator catalogue.',
+  keywords: ['Fractional Excretion of Potassium', 'Nephrology'],
+  aliases: ['Fractional Excretion of Potassium'],
+  inputs: [
+ {id:'urineK',label:'Urine potassium',type:'number',unit:'mmol/L',min:0,step:0.1},
+ {id:'serumK',label:'Serum potassium',type:'number',unit:'mmol/L',min:0,step:0.1},
+ {id:'urineCreatinine',label:'Urine creatinine',type:'number',unit:'mg/dL',min:0,step:0.1},
+ {id:'serumCreatinine',label:'Serum creatinine',type:'number',unit:'mg/dL',min:0,step:0.01}
+],
+  calculate(values) {
+    const uK=Number(values.urineK),sK=Number(values.serumK),uC=Number(values.urineCreatinine),sC=Number(values.serumCreatinine)
+    if(![uK,sK,uC,sC].every(Number.isFinite)||sK<=0||uC<=0) return {error:'Complete FEK inputs.'}
+    const v=(uK*sC)/(sK*uC)*100
+    return {value:v,displayValue:v.toFixed(1),unit:'%',category:'Fractional excretion of potassium'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default fek
+
+============================================================
+FILE: src\calculators\nephrology\fena.js
+============================================================
+
+const fena = {
+  id: 'fena',
+  name: 'Fractional Excretion of Sodium',
+  shortName: 'FENa',
+  type: 'calculator',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Calculates fractional excretion of sodium using paired serum and urine measurements.',
+  keywords: [
+    'FENa',
+    'fractional excretion sodium',
+    'fractional excretion of sodium',
+    'acute kidney injury',
+    'AKI',
+    'prerenal',
+    'ATN',
+    'urine sodium'
+  ],
+  aliases: [
+    'FENa',
+    'fractional excretion of sodium',
+    'fractional sodium excretion'
+  ],
+  inputs: [
+    {
+      id: 'serumSodium',
+      label: 'Serum Sodium',
+      type: 'number',
+      unit: 'mEq/L',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'serumCreatinine',
+      label: 'Serum Creatinine',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.01
+    },
+    {
+      id: 'urineSodium',
+      label: 'Urine Sodium',
+      type: 'number',
+      unit: 'mEq/L',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'urineCreatinine',
+      label: 'Urine Creatinine',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0,
+      step: 0.1
+    }
+  ],
+  calculate(values) {
+    const serumSodium = Number(values.serumSodium)
+    const serumCreatinine = Number(values.serumCreatinine)
+    const urineSodium = Number(values.urineSodium)
+    const urineCreatinine = Number(values.urineCreatinine)
+
+    if (
+      serumSodium <= 0 ||
+      serumCreatinine <= 0 ||
+      urineSodium < 0 ||
+      urineCreatinine <= 0
+    ) {
+      return { error: 'Please enter valid serum and urine values.' }
+    }
+
+    const result =
+      (urineSodium * serumCreatinine) /
+      (serumSodium * urineCreatinine) * 100
+
+    let interpretation = ''
+
+    if (result < 1) {
+      interpretation = '<1% FENa'
+    } else if (result > 2) {
+      interpretation = '>2% FENa'
+    } else {
+      interpretation = '1–2% FENa'
+    }
+
+    return {
+      value: result,
+      displayValue: result.toFixed(2),
+      unit: '%',
+      category: interpretation
+    }
+  },
+  references: [
+    'MDCalc. Fractional Excretion of Sodium (FENa).'
+  ]
+}
+
+export default fena
+
+============================================================
+FILE: src\calculators\nephrology\feurea.js
+============================================================
+
+const feurea = {
+  id: 'feurea',
+  name: 'Fractional Excretion of Urea',
+  shortName: 'Fractional Excretion of Urea',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Fractional Excretion of Urea from the MedCalc master calculator catalogue.',
+  keywords: ['Fractional Excretion of Urea', 'Nephrology'],
+  aliases: ['Fractional Excretion of Urea'],
+  inputs: [
+ {id:'urineUrea',label:'Urine urea',type:'number',unit:'mg/dL',min:0,step:0.1},
+ {id:'serumUrea',label:'Serum urea',type:'number',unit:'mg/dL',min:0,step:0.1},
+ {id:'urineCreatinine',label:'Urine creatinine',type:'number',unit:'mg/dL',min:0,step:0.1},
+ {id:'serumCreatinine',label:'Serum creatinine',type:'number',unit:'mg/dL',min:0,step:0.01}
+],
+  calculate(values) {
+    const uU=Number(values.urineUrea),sU=Number(values.serumUrea),uC=Number(values.urineCreatinine),sC=Number(values.serumCreatinine)
+    if(![uU,sU,uC,sC].every(Number.isFinite)||sU<=0||uC<=0) return {error:'Complete FEUrea inputs.'}
+    const v=(uU*sC)/(sU*uC)*100
+    return {value:v,displayValue:v.toFixed(1),unit:'%',category:v<35?'Low FEUrea':'Higher FEUrea'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default feurea
+
+============================================================
+FILE: src\calculators\nephrology\free-water-deficit.js
+============================================================
+
+const calc={id:'free-water-deficit',name:'Free Water Deficit',shortName:'Free Water Deficit',categoryId:'nephrology',description:'Estimated free-water deficit in hypernatremia.',type:'calculation',
+inputs:[{id:'weight',label:'Body weight',unit:'kg',min:1,max:300},{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'na',label:'Serum sodium',unit:'mmol/L',min:120,max:250},{id:'target',label:'Target sodium',unit:'mmol/L',min:120,max:180}],
+calculate(v){const tbw=Number(v.weight)*(v.sex==='male'?0.6:0.5);const value=tbw*(Number(v.na)/Number(v.target)-1);return{value,unit:'L',note:'TBW fraction should be individualized, particularly in older adults and obesity.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\nephrology\kfre.js
+============================================================
+
+const kfre = {
+  id: 'kfre',
+  name: 'Kidney Failure Risk Equation',
+  shortName: 'Kidney Failure Risk Equation',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Kidney Failure Risk Equation from the MedCalc master calculator catalogue.',
+  keywords: ['Kidney Failure Risk Equation', 'Nephrology'],
+  aliases: ['Kidney Failure Risk Equation'],
+  inputs: [{id:'risk',label:'Validated KFRE risk',type:'number',min:0,max:100,step:0.1,unit:'%'}],
+  calculate(values) {
+    const r=Number(values.risk); if(!Number.isFinite(r)) return {error:'Enter validated KFRE output.'}
+    return {value:r,displayValue:r.toFixed(1),unit:'%',category:'KFRE risk'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default kfre
+
+============================================================
+FILE: src\calculators\nephrology\ktv.js
+============================================================
+
+const ktv = {
+  id: 'ktv',
+  name: 'Kt/V Dialysis Adequacy',
+  shortName: 'Kt/V Dialysis Adequacy',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Kt/V Dialysis Adequacy from the MedCalc master calculator catalogue.',
+  keywords: ['Kt/V Dialysis Adequacy', 'Nephrology'],
+  aliases: ['Kt/V Dialysis Adequacy'],
+  inputs: [{id:'preBun',label:'Pre-dialysis BUN',type:'number',unit:'mg/dL',step:0.1},{id:'postBun',label:'Post-dialysis BUN',type:'number',unit:'mg/dL',step:0.1},{id:'weight',label:'Post-dialysis weight',type:'number',unit:'kg',min:0,step:0.1},{id:'ultrafiltration',label:'Ultrafiltration volume',type:'number',unit:'L',min:0,step:0.01},{id:'v',label:'Post-dialysis urea distribution volume',type:'number',unit:'L',min:0,step:0.1},{id:'t',label:'Dialysis duration',type:'hours',min:0,step:0.1}],
+  calculate(values) {
+    const pre=Number(values.preBun),post=Number(values.postBun),uf=Number(values.ultrafiltration),v=Number(values.v),t=Number(values.t)
+    if(![pre,post,uf,v,t].every(Number.isFinite)||pre<=0||post<=0||v<=0||t<=0) return {error:'Complete Kt/V inputs.'}
+    const r=post/pre, ktv=-Math.log(r-0.008*t)+(4-3.5*r)*uf/v
+    return {value:ktv,displayValue:ktv.toFixed(2),unit:'Kt/V',category:'Dialysis adequacy'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default ktv
+
+============================================================
+FILE: src\calculators\nephrology\mdrd.js
+============================================================
+
+const calc = {
+  id: 'mdrd',
+  name: 'MDRD eGFR',
+  shortName: 'MDRD',
+  categoryId: 'nephrology',
+  description: 'Four-variable MDRD equation for estimated glomerular filtration rate.',
+  type: 'calculation',
+
+  inputs: [
+    {
+      id: 'creatinine',
+      label: 'Serum creatinine',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0.1,
+      step: 0.01
+    },
+    {
+      id: 'age',
+      label: 'Age',
+      type: 'number',
+      unit: 'years',
+      min: 18,
+      max: 120,
+      step: 1
+    },
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        {
+          value: 'male',
+          label: 'Male'
+        },
+        {
+          value: 'female',
+          label: 'Female'
+        }
+      ]
+    }
+  ],
+
+  calculate(v) {
+    const creatinine = Number(v.creatinine)
+    const age = Number(v.age)
+
+    if (
+      !Number.isFinite(creatinine) ||
+      !Number.isFinite(age) ||
+      creatinine <= 0 ||
+      age < 18
+    ) {
+      return {
+        error: 'Please enter a valid adult age and serum creatinine.'
+      }
+    }
+
+    const femaleFactor =
+      v.sex === 'female'
+        ? 0.742
+        : 1
+
+    const egfr =
+      175 *
+      Math.pow(creatinine, -1.154) *
+      Math.pow(age, -0.203) *
+      femaleFactor
+
+    return {
+      value: Number(egfr.toFixed(1)),
+      unit: 'mL/min/1.73 mÂ²',
+      interpretation:
+        egfr >= 90
+          ? 'G1 range'
+          : egfr >= 60
+            ? 'G2 range'
+            : egfr >= 45
+              ? 'G3a range'
+              : egfr >= 30
+                ? 'G3b range'
+                : egfr >= 15
+                  ? 'G4 range'
+                  : 'G5 range',
+      note: 'Four-variable MDRD equation. The original MDRD equation included a historical race coefficient; this implementation uses the race-free form.'
+    }
+  },
+
+  references: [
+    'Levey et al. MDRD Study equation.',
+    'NIDDK: Previous eGFR Equations for Reference.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\nephrology\osmolar-gap.js
+============================================================
+
+const calc={id:'osmolar-gap',name:'Osmolar Gap',shortName:'Osmolar Gap',categoryId:'nephrology',description:'Measured minus calculated serum osmolality.',type:'calculation',
+inputs:[{id:'measured',label:'Measured serum osmolality',unit:'mOsm/kg',min:200,max:500},{id:'na',label:'Sodium',unit:'mmol/L',min:50,max:250},{id:'glucose',label:'Glucose',unit:'mg/dL',min:0,max:2000},{id:'bun',label:'BUN',unit:'mg/dL',min:0,max:300}],
+calculate(v){const calc=2*Number(v.na)+Number(v.glucose)/18+Number(v.bun)/2.8;return{value:Number(v.measured)-calc,unit:'mOsm/kg',note:'An elevated osmolar gap has a broad differential and is not specific for toxic alcohols.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\nephrology\schwartz.js
+============================================================
+
+const calc = {
+  id: 'schwartz',
+  name: 'Schwartz eGFR',
+  shortName: 'Schwartz',
+  categoryId: 'nephrology',
+  description: 'Bedside Schwartz equation for estimating GFR in children.',
+  type: 'calculation',
+
+  inputs: [
+    {
+      id: 'height',
+      label: 'Height',
+      type: 'number',
+      unit: 'cm',
+      min: 30,
+      max: 250,
+      step: 0.1
+    },
+    {
+      id: 'creatinine',
+      label: 'Serum creatinine',
+      type: 'number',
+      unit: 'mg/dL',
+      min: 0.01,
+      step: 0.01
+    }
+  ],
+
+  calculate(v) {
+    const height = Number(v.height)
+    const creatinine = Number(v.creatinine)
+
+    if (
+      !Number.isFinite(height) ||
+      !Number.isFinite(creatinine) ||
+      height <= 0 ||
+      creatinine <= 0
+    ) {
+      return {
+        error: 'Please enter valid height and serum creatinine values.'
+      }
+    }
+
+    const egfr =
+      0.413 *
+      (height / creatinine)
+
+    return {
+      value: Number(egfr.toFixed(1)),
+      unit: 'mL/min/1.73 mÂ²',
+      interpretation:
+        egfr >= 90
+          ? 'Normal or mildly increased range'
+          : egfr >= 60
+            ? 'Mildly decreased range'
+            : egfr >= 30
+              ? 'Moderately decreased range'
+              : egfr >= 15
+                ? 'Severely decreased range'
+                : 'Kidney failure range',
+      note: 'Bedside Schwartz equation: eGFR = 0.413 Ã— height (cm) / serum creatinine (mg/dL). Intended for pediatric use.'
+    }
+  },
+
+  references: [
+    'Schwartz et al. Bedside CKiD equation.',
+    'Pediatric creatinine-based GFR literature.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\nephrology\serum-osmolality.js
+============================================================
+
+const calc={id:'serum-osmolality',name:'Calculated Serum Osmolality',shortName:'Serum Osm',categoryId:'nephrology',description:'Calculated serum osmolality.',type:'calculation',
+inputs:[{id:'na',label:'Sodium',unit:'mmol/L',min:50,max:250},{id:'glucose',label:'Glucose',unit:'mg/dL',min:0,max:2000},{id:'bun',label:'BUN',unit:'mg/dL',min:0,max:300}],
+calculate(v){return{value:2*Number(v.na)+Number(v.glucose)/18+Number(v.bun)/2.8,unit:'mOsm/kg'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\nephrology\tbw.js
+============================================================
+
+const calc={id:'tbw',name:'Total Body Water',shortName:'TBW',categoryId:'nephrology',description:'Estimated total body water from weight and sex.',type:'calculation',
+inputs:[{id:'weight',label:'Body weight',unit:'kg',min:1,max:300},{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]}],
+calculate(v){const value=Number(v.weight)*(v.sex==='male'?0.6:0.5);return{value,unit:'L',note:'Fixed coefficients are approximations and should be adjusted for age/body composition when appropriate.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\nephrology\ttkg.js
+============================================================
+
+const ttkg = {
+  id: 'ttkg',
+  name: 'Transtubular Potassium Gradient',
+  shortName: 'Transtubular Potassium Gradient',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Transtubular Potassium Gradient from the MedCalc master calculator catalogue.',
+  keywords: ['Transtubular Potassium Gradient', 'Nephrology'],
+  aliases: ['Transtubular Potassium Gradient'],
+  inputs: [{id:'urineK',label:'Urine potassium',type:'number',unit:'mmol/L',step:0.1},{id:'serumK',label:'Serum potassium',type:'number',unit:'mmol/L',step:0.1},{id:'urineOsm',label:'Urine osmolality',type:'number',unit:'mOsm/kg',step:1},{id:'serumOsm',label:'Serum osmolality',type:'number',unit:'mOsm/kg',step:1}],
+  calculate(values) {
+    const uk=Number(values.urineK),sk=Number(values.serumK),uo=Number(values.urineOsm),so=Number(values.serumOsm)
+    if(![uk,sk,uo,so].every(Number.isFinite)||sk<=0||so<=0) return {error:'Complete TTKG inputs.'}
+    const v=(uk/sk)/(uo/so); return {value:v,displayValue:v.toFixed(1),unit:'gradient',category:'TTKG'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default ttkg
+
+============================================================
+FILE: src\calculators\nephrology\urine-anion-gap.js
+============================================================
+
+const calc={id:'urine-anion-gap',name:'Urine Anion Gap',shortName:'Urine AG',categoryId:'nephrology',description:'Urine electrolyte-based estimate used in non-anion-gap metabolic acidosis.',type:'calculation',
+inputs:[{id:'na',label:'Urine sodium',unit:'mmol/L',min:0,max:1000},{id:'k',label:'Urine potassium',unit:'mmol/L',min:0,max:1000},{id:'cl',label:'Urine chloride',unit:'mmol/L',min:0,max:1000}],
+calculate(v){return{value:+v.na + +v.k - +v.cl,unit:'mmol/L',note:'Interpret with urine osmolality and clinical context; diarrhea and renal tubular acidosis are common teaching applications.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\nephrology\urr.js
+============================================================
+
+const urr = {
+  id: 'urr',
+  name: 'Urea Reduction Ratio',
+  shortName: 'Urea Reduction Ratio',
+  type: 'score',
+  categoryId: 'nephrology',
+  category: 'Nephrology',
+  description: 'Urea Reduction Ratio from the MedCalc master calculator catalogue.',
+  keywords: ['Urea Reduction Ratio', 'Nephrology'],
+  aliases: ['Urea Reduction Ratio'],
+  inputs: [{id:'pre',label:'Pre-dialysis BUN',type:'number',unit:'mg/dL',step:0.1},{id:'post',label:'Post-dialysis BUN',type:'number',unit:'mg/dL',step:0.1}],
+  calculate(values) {
+    const pre=Number(values.pre),post=Number(values.post); if(![pre,post].every(Number.isFinite)||pre<=0) return {error:'Complete URR inputs.'}
+    const v=(1-post/pre)*100; return {value:v,displayValue:v.toFixed(1),unit:'%',category:'Urea reduction ratio'}
+  },
+  references: ['Standard renal/electrolyte equation reference.']
+}
+
+export default urr

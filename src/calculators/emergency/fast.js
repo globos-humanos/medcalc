@@ -1,14 +1,17 @@
-const calc = {
+﻿const fast = {
   id: 'fast',
   name: 'FAST / eFAST Assessment',
   shortName: 'FAST / eFAST',
   categoryId: 'emergency',
-  description: 'Focused assessment with sonography for trauma, including extended thoracic assessment.',
+  category: 'Emergency / Trauma',
+  description:
+    'Structured documentation aid for focused trauma ultrasound assessment of pericardial, abdominal, pleural and pneumothorax findings.',
+  type: 'assessment',
 
   inputs: [
     {
       id: 'pericardial',
-      label: 'Pericardial fluid',
+      label: 'Pericardial free fluid',
       type: 'boolean'
     },
     {
@@ -27,54 +30,104 @@ const calc = {
       type: 'boolean'
     },
     {
-      id: 'rightChest',
-      label: 'Right thoracic abnormality / pneumothorax',
+      id: 'rightPleural',
+      label: 'Right pleural free fluid',
       type: 'boolean'
     },
     {
-      id: 'leftChest',
-      label: 'Left thoracic abnormality / pneumothorax',
+      id: 'leftPleural',
+      label: 'Left pleural free fluid',
+      type: 'boolean'
+    },
+    {
+      id: 'rightPneumothorax',
+      label: 'Right pneumothorax finding',
+      type: 'boolean'
+    },
+    {
+      id: 'leftPneumothorax',
+      label: 'Left pneumothorax finding',
       type: 'boolean'
     }
   ],
 
   calculate(v) {
-    const abdominalOrPericardial =
-      v.pericardial === true ||
-      v.ruq === true ||
-      v.luq === true ||
-      v.pelvis === true
+    const ids = [
+      'pericardial',
+      'ruq',
+      'luq',
+      'pelvis',
+      'rightPleural',
+      'leftPleural',
+      'rightPneumothorax',
+      'leftPneumothorax'
+    ]
 
-    const thoracic =
-      v.rightChest === true ||
-      v.leftChest === true
-
-    if (abdominalOrPericardial || thoracic) {
+    if (ids.some(id => typeof v[id] !== 'boolean')) {
       return {
-        value: 'Abnormal',
+        error: 'Please complete all FAST/eFAST assessment fields.'
+      }
+    }
+
+    const peritoneal =
+      v.ruq ||
+      v.luq ||
+      v.pelvis
+
+    const pericardial = v.pericardial
+
+    const pleural =
+      v.rightPleural ||
+      v.leftPleural
+
+    const pneumothorax =
+      v.rightPneumothorax ||
+      v.leftPneumothorax
+
+    const findings = []
+
+    if (pericardial) {
+      findings.push('pericardial fluid')
+    }
+
+    if (peritoneal) {
+      findings.push('intraperitoneal free fluid')
+    }
+
+    if (pleural) {
+      findings.push('pleural free fluid')
+    }
+
+    if (pneumothorax) {
+      findings.push('pneumothorax finding')
+    }
+
+    if (findings.length === 0) {
+      return {
+        value: 'No positive finding selected',
+        displayValue: 'No positive finding',
         unit: 'FAST / eFAST',
-        interpretation:
-          abdominalOrPericardial && thoracic
-            ? 'Positive findings in abdominal/pericardial and thoracic views'
-            : abdominalOrPericardial
-              ? 'Positive FAST finding'
-              : 'Positive eFAST thoracic finding',
-        note: 'This is a structured assessment aid, not a substitute for real-time ultrasound examination or clinical judgment.'
+        category: 'No positive finding entered',
+        note:
+          'A negative FAST/eFAST assessment does not independently exclude traumatic injury. Interpret the examination with the clinical picture and examination quality.'
       }
     }
 
     return {
-      value: 'No positive finding selected',
+      value: findings.length,
+      displayValue: `${findings.length} positive finding${findings.length > 1 ? 's' : ''}`,
       unit: 'FAST / eFAST',
-      interpretation: 'No positive finding entered',
-      note: 'A negative FAST/eFAST assessment does not independently exclude injury.'
+      category: 'Positive finding(s) documented',
+      note:
+        findings.join('; ') +
+        '. This tool documents selected ultrasound findings; it does not perform or interpret the ultrasound examination itself.'
     }
   },
 
   references: [
-    'Focused Assessment with Sonography in Trauma (FAST).',
-    'Extended FAST (eFAST) trauma ultrasound assessment.'
+    'American College of Emergency Physicians. Emergency Ultrasound Imaging Criteria: Trauma / FAST.',
+    'Focused Assessment with Sonography in Trauma (FAST) and Extended FAST (eFAST).'
   ]
 }
 
-export default calc
+export default fast

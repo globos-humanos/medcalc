@@ -1,103 +1,65 @@
 ﻿const four = {
-  id: 'four',
-  name: 'FOUR Score',
-  shortName: 'FOUR',
-  type: 'score',
-  categoryId: 'neurology',
-  category: 'Neurology',
-  description: 'Grades coma severity using eye, motor, brainstem reflex, and respiration responses.',
-  keywords: [
-    'FOUR score',
-    'Full Outline of UnResponsiveness',
-    'coma',
-    'consciousness',
-    'brainstem reflexes',
-    'respiration',
-    'neurology'
-  ],
-  aliases: [
-    'FOUR',
-    'FOUR score',
-    'Full Outline of UnResponsiveness'
-  ],
-  inputs: [
-    {
-      id: 'eye',
-      label: 'Eye Response',
-      type: 'choice',
-      options: [
-        { value: 4, label: '4 — Tracking / blinking to command' },
-        { value: 3, label: '3 — Open, not tracking' },
-        { value: 2, label: '2 — Opens to loud voice' },
-        { value: 1, label: '1 — Opens to pain' },
-        { value: 0, label: '0 — Remains closed' }
-      ]
-    },
-    {
-      id: 'motor',
-      label: 'Motor Response',
-      type: 'choice',
-      options: [
-        { value: 4, label: '4 — Thumbs-up / fist / peace sign' },
-        { value: 3, label: '3 — Localizes pain' },
-        { value: 2, label: '2 — Flexion to pain' },
-        { value: 1, label: '1 — Extension to pain' },
-        { value: 0, label: '0 — No response / myoclonus' }
-      ]
-    },
-    {
-      id: 'brainstem',
-      label: 'Brainstem Reflexes',
-      type: 'choice',
-      options: [
-        { value: 4, label: '4 — Pupil and corneal reflexes present' },
-        { value: 3, label: '3 — One pupil wide and fixed' },
-        { value: 2, label: '2 — Pupil OR corneal reflex absent' },
-        { value: 1, label: '1 — Pupil AND corneal reflexes absent' },
-        { value: 0, label: '0 — Pupil, corneal and cough absent' }
-      ]
-    },
-    {
-      id: 'respiration',
-      label: 'Respiration',
-      type: 'choice',
-      options: [
-        { value: 4, label: '4 — Regular, not intubated' },
-        { value: 3, label: '3 — Cheyne-Stokes, not intubated' },
-        { value: 2, label: '2 — Irregular, not intubated' },
-        { value: 1, label: '1 — Breathes above ventilator rate' },
-        { value: 0, label: '0 — At ventilator rate / apnea' }
-      ]
-    }
-  ],
-  calculate(values) {
-    const fields = [
-      values.eye,
-      values.motor,
-      values.brainstem,
-      values.respiration
-    ]
+  id:'four',
+  name:'FOUR Score',
+  shortName:'FOUR',
+  type:'score',
+  categoryId:'neurology',
+  category:'Neurology',
+  description:'Full Outline of UnResponsiveness score assessing eye, motor, brainstem and respiration.',
+  keywords:['FOUR','coma','consciousness'],
 
-    if (fields.some(value => value === undefined || value === '')) {
-      return { error: 'Please score all four FOUR components.' }
-    }
+  inputs:[
+    {id:'eye',label:'Eye response',type:'choice',options:[
+      {value:4,label:'4 — Eyelids open or opened, tracking or blinking to command'},
+      {value:3,label:'3 — Eyelids open, but not tracking'},
+      {value:2,label:'2 — Eyelids closed, opened to loud voice'},
+      {value:1,label:'1 — Eyelids closed, opened to pain'},
+      {value:0,label:'0 — Eyelids remain closed with pain'}
+    ],optionsLayout:'stack'},
 
-    const score = fields.reduce(
-      (total, value) => total + Number(value),
-      0
-    )
+    {id:'motor',label:'Motor response',type:'choice',options:[
+      {value:4,label:'4 — Thumbs up, fist or peace sign'},
+      {value:3,label:'3 — Localizes to pain'},
+      {value:2,label:'2 — Flexion response to pain'},
+      {value:1,label:'1 — Extension response to pain'},
+      {value:0,label:'0 — No response to pain'}
+    ],optionsLayout:'stack'},
+
+    {id:'brainstem',label:'Brainstem reflexes',type:'choice',options:[
+      {value:4,label:'4 — Pupil and corneal reflexes present'},
+      {value:3,label:'3 — One pupil wide and fixed'},
+      {value:2,label:'2 — Pupil or corneal reflex absent'},
+      {value:1,label:'1 — Pupil and corneal reflexes absent'},
+      {value:0,label:'0 — Pupil, corneal and cough reflexes absent'}
+    ],optionsLayout:'stack'},
+
+    {id:'respiration',label:'Respiration',type:'choice',options:[
+      {value:4,label:'4 — Not intubated, regular breathing pattern'},
+      {value:3,label:'3 — Not intubated, Cheyne-Stokes pattern'},
+      {value:2,label:'2 — Not intubated, irregular breathing'},
+      {value:1,label:'1 — Breathes above ventilator rate'},
+      {value:0,label:'0 — Breathes at ventilator rate or apnea'}
+    ],optionsLayout:'stack'}
+  ],
+
+  calculate(v){
+    const score=
+      Number(v.eye)+
+      Number(v.motor)+
+      Number(v.brainstem)+
+      Number(v.respiration)
 
     return {
-      value: score,
-      displayValue: String(score),
-      unit: '/16',
-      category: score <= 4 ? 'Very low score' : 'FOUR Score'
+      value:score,
+      displayValue:String(score),
+      unit:'/16',
+      category:'FOUR Score',
+      interpretation:`FOUR Score = ${score}/16.`,
+      note:'FOUR Score provides neurologic assessment without requiring a verbal response and may be useful in intubated patients.'
     }
   },
-  references: [
-    'Wijdicks EFM, et al. Validation of a new coma scale: the FOUR score. Ann Neurol. 2005.',
-    'MDCalc. FOUR (Full Outline of UnResponsiveness) Score.'
-  ]
+
+  references:['Wijdicks et al. FOUR Score']
 }
 
 export default four

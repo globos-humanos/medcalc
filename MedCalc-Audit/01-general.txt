@@ -1,0 +1,729 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: GENERAL
+============================================================
+
+
+============================================================
+FILE: src\calculators\general\adjusted-bw.js
+============================================================
+
+const adjustedBw = {
+  id: 'adjusted-bw',
+  name: 'Adjusted Body Weight Calculator',
+  shortName: 'AdjBW',
+  type: 'calculator',
+  categoryId: 'general-medicine',
+  category: 'General Medicine',
+  description: 'Calculates adjusted body weight using Devine IBW and a 0.4 correction factor.',
+  keywords: [
+    'adjusted body weight',
+    'AdjBW',
+    'adjusted weight',
+    'drug dosing',
+    'obesity',
+    'IBW'
+  ],
+  aliases: [
+    'adjusted body weight',
+    'adjusted weight',
+    'AdjBW'
+  ],
+  inputs: [
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' }
+      ]
+    },
+    {
+      id: 'height',
+      label: 'Height',
+      type: 'number',
+      unit: 'cm',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'weight',
+      label: 'Actual Body Weight',
+      type: 'number',
+      unit: 'kg',
+      min: 0,
+      step: 0.1
+    }
+  ],
+  calculate(values) {
+    const sex = values.sex
+    const height = Number(values.height)
+    const weight = Number(values.weight)
+
+    if (!sex || !height || !weight || height <= 0 || weight <= 0) {
+      return { error: 'Please select sex and enter valid height and weight.' }
+    }
+
+    const inches = height / 2.54
+    const ibw = (sex === 'male' ? 50 : 45.5) +
+      2.3 * Math.max(0, inches - 60)
+
+    const adjusted = ibw + 0.4 * (weight - ibw)
+
+    return {
+      value: adjusted,
+      displayValue: adjusted.toFixed(1),
+      unit: 'kg',
+      category: 'Adjusted Body Weight'
+    }
+  },
+  references: [
+    'Devine BJ. Gentamicin therapy. Drug Intell Clin Pharm. 1974.',
+    'Adjusted body weight commonly calculated as IBW + 0.4 × (actual body weight - IBW).'
+  ]
+}
+
+export default adjustedBw
+
+============================================================
+FILE: src\calculators\general\apgar.js
+============================================================
+
+const apgar = {
+  id: 'apgar',
+  name: 'APGAR Score',
+  shortName: 'APGAR',
+  type: 'score',
+  categoryId: 'general-medicine',
+  category: 'General Medicine',
+  description: 'Scores newborn condition using appearance, pulse, grimace, activity, and respiration.',
+  keywords: [
+    'Apgar',
+    'newborn',
+    'neonate',
+    'appearance',
+    'pulse',
+    'grimace',
+    'activity',
+    'respiration',
+    'neonatal assessment'
+  ],
+  aliases: [
+    'Apgar score',
+    'APGAR',
+    'newborn score'
+  ],
+  inputs: [
+    {
+      id: 'appearance',
+      label: 'Appearance / Color',
+      type: 'choice',
+      options: [
+        { value: 0, label: '0 — Blue / pale' },
+        { value: 1, label: '1 — Body pink, extremities blue' },
+        { value: 2, label: '2 — Completely pink' }
+      ]
+    },
+    {
+      id: 'pulse',
+      label: 'Pulse',
+      type: 'choice',
+      options: [
+        { value: 0, label: '0 — Absent' },
+        { value: 1, label: '1 — <100 bpm' },
+        { value: 2, label: '2 — =100 bpm' }
+      ]
+    },
+    {
+      id: 'grimace',
+      label: 'Grimace / Reflex Response',
+      type: 'choice',
+      options: [
+        { value: 0, label: '0 — No response' },
+        { value: 1, label: '1 — Grimace' },
+        { value: 2, label: '2 — Cry / active response' }
+      ]
+    },
+    {
+      id: 'activity',
+      label: 'Activity / Muscle Tone',
+      type: 'choice',
+      options: [
+        { value: 0, label: '0 — Limp' },
+        { value: 1, label: '1 — Some flexion' },
+        { value: 2, label: '2 — Active movement' }
+      ]
+    },
+    {
+      id: 'respiration',
+      label: 'Respiration',
+      type: 'choice',
+      options: [
+        { value: 0, label: '0 — Absent' },
+        { value: 1, label: '1 — Slow / irregular' },
+        { value: 2, label: '2 — Good cry' }
+      ]
+    }
+  ],
+  calculate(values) {
+    const fields = [
+      values.appearance,
+      values.pulse,
+      values.grimace,
+      values.activity,
+      values.respiration
+    ]
+
+    if (fields.some(value => value === undefined || value === '')) {
+      return { error: 'Please score all five APGAR components.' }
+    }
+
+    const score = fields.reduce(
+      (total, value) => total + Number(value),
+      0
+    )
+
+    let interpretation = ''
+
+    if (score <= 3) {
+      interpretation = 'Low score'
+    } else if (score <= 6) {
+      interpretation = 'Intermediate score'
+    } else {
+      interpretation = 'Generally reassuring score'
+    }
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/10',
+      category: interpretation
+    }
+  },
+  references: [
+    'American Academy of Pediatrics. The Apgar Score. Pediatrics. 2015;136(4):819-822.'
+  ]
+}
+
+export default apgar
+
+============================================================
+FILE: src\calculators\general\barthel.js
+============================================================
+
+const calc={
+ id:'barthel',name:'Barthel Index',shortName:'Barthel',categoryId:'general',
+ description:'Weighted Barthel Index for activities of daily living.',type:'score',
+ inputs:[
+  {id:'feeding',label:'Feeding',type:'choice',options:[{value:0,label:'Dependent'},{value:5,label:'Needs help'},{value:10,label:'Independent'}],optionsLayout:'stack'},
+  {id:'bathing',label:'Bathing',type:'choice',options:[{value:0,label:'Dependent'},{value:5,label:'Independent'}],optionsLayout:'stack'},
+  {id:'grooming',label:'Grooming',type:'choice',options:[{value:0,label:'Dependent'},{value:5,label:'Independent'}],optionsLayout:'stack'},
+  {id:'dressing',label:'Dressing',type:'choice',options:[{value:0,label:'Dependent'},{value:5,label:'Needs help'},{value:10,label:'Independent'}],optionsLayout:'stack'},
+  {id:'bowels',label:'Bowels',type:'choice',options:[{value:0,label:'Incontinent'},{value:5,label:'Occasional accident'},{value:10,label:'Continent'}],optionsLayout:'stack'},
+  {id:'bladder',label:'Bladder',type:'choice',options:[{value:0,label:'Incontinent / catheterized'},{value:5,label:'Occasional accident'},{value:10,label:'Continent'}],optionsLayout:'stack'},
+  {id:'toilet',label:'Toilet use',type:'choice',options:[{value:0,label:'Dependent'},{value:5,label:'Needs help'},{value:10,label:'Independent'}],optionsLayout:'stack'},
+  {id:'transfer',label:'Transfers bed â†” chair',type:'choice',options:[{value:0,label:'Unable'},{value:5,label:'Major help'},{value:10,label:'Minor help'},{value:15,label:'Independent'}],optionsLayout:'stack'},
+  {id:'mobility',label:'Mobility on level surface',type:'choice',options:[{value:0,label:'Immobile'},{value:5,label:'Wheelchair independent'},{value:10,label:'Walks with help'},{value:15,label:'Independent'}],optionsLayout:'stack'},
+  {id:'stairs',label:'Stairs',type:'choice',options:[{value:0,label:'Unable'},{value:5,label:'Needs help'},{value:10,label:'Independent'}],optionsLayout:'stack'}
+ ],
+ calculate(v){const value=Object.values(v).reduce((s,x)=>s+Number(x),0);return{value,unit:'/100',interpretation:value>=90?'Independent / minimal dependence':value>=60?'Moderate dependence':value>=40?'Severe dependence':'Total dependence'}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\general\bmi.js
+============================================================
+
+const bmi = {
+  id: 'bmi',
+  name: 'BMI Calculator',
+  shortName: 'BMI',
+
+  type: 'calculator',
+
+  categoryId: 'general-medicine',
+  category: 'General Medicine',
+
+  description: 'Calculates Body Mass Index from weight and height.',
+
+  keywords: [
+    'body mass index',
+    'weight',
+    'height',
+    'obesity',
+    'overweight',
+    'underweight'
+  ],
+
+  aliases: [
+    'body mass index',
+    'body mass',
+    'quetelet index'
+  ],
+
+  inputs: [
+    {
+      id: 'weight',
+      label: 'Weight',
+      type: 'number',
+      unit: 'kg',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'height',
+      label: 'Height',
+      type: 'number',
+      unit: 'cm',
+      min: 0,
+      step: 0.1
+    }
+  ],
+
+  calculate(values) {
+    const weight = Number(values.weight)
+    const heightCm = Number(values.height)
+
+    if (
+      !weight ||
+      !heightCm ||
+      weight <= 0 ||
+      heightCm <= 0
+    ) {
+      return {
+        error: 'Please enter a valid weight and height.'
+      }
+    }
+
+    const heightMeters = heightCm / 100
+    const bmi = weight / (heightMeters * heightMeters)
+
+    let category = ''
+
+    if (bmi < 18.5) {
+      category = 'Underweight'
+    } else if (bmi < 25) {
+      category = 'Normal weight'
+    } else if (bmi < 30) {
+      category = 'Overweight'
+    } else {
+      category = 'Obesity'
+    }
+
+    return {
+      value: bmi,
+      displayValue: bmi.toFixed(1),
+      unit: 'kg/mÂ²',
+      category
+    }
+  },
+
+  references: [
+    'WHO BMI classification'
+  ]
+}
+
+export default bmi
+
+============================================================
+FILE: src\calculators\general\braden.js
+============================================================
+
+const calc={id:'braden',name:'Braden Scale',shortName:'Braden',categoryId:'general',description:'Pressure-injury risk assessment.',type:'score',
+inputs:['Sensory perception','Moisture','Activity','Mobility','Nutrition','Friction / shear'].map((label,i)=>({id:`b${i}`,label,type:'choice',options:(i===5?[1,2,3]:[1,2,3,4]).map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const s=Object.values(v).reduce((a,b)=>a+Number(b),0);return{value:s,unit:'points',interpretation:s<=9?'Very high risk':s<=12?'High risk':s<=14?'Moderate risk':'Lower risk',note:'Braden category cutoffs vary slightly by institutional policy.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\bsa.js
+============================================================
+
+const bsa = {
+  id: 'bsa',
+  name: 'BSA Calculator',
+  shortName: 'BSA',
+
+  type: 'calculator',
+
+  categoryId: 'general-medicine',
+  category: 'General Medicine',
+
+  description:
+    'Calculates Body Surface Area from height and weight using the Mosteller formula.',
+
+  keywords: [
+    'body surface area',
+    'surface area',
+    'height',
+    'weight',
+    'BSA',
+    'Mosteller'
+  ],
+
+  aliases: [
+    'body surface area',
+    'body surface',
+    'mosteller formula'
+  ],
+
+  inputs: [
+    {
+      id: 'weight',
+      label: 'Weight',
+      type: 'number',
+      unit: 'kg',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'height',
+      label: 'Height',
+      type: 'number',
+      unit: 'cm',
+      min: 0,
+      step: 0.1
+    }
+  ],
+
+  calculate(values) {
+    const weight = Number(values.weight)
+    const heightCm = Number(values.height)
+
+    if (
+      !weight ||
+      !heightCm ||
+      weight <= 0 ||
+      heightCm <= 0
+    ) {
+      return {
+        error:
+          'Please enter a valid weight and height.'
+      }
+    }
+
+    const bsa = Math.sqrt(
+      (heightCm * weight) / 3600
+    )
+
+    return {
+      value: bsa,
+      displayValue: bsa.toFixed(2),
+      unit: 'mÂ²',
+      category: 'Mosteller BSA'
+    }
+  },
+
+  references: [
+    'Mosteller RD. Simplified calculation of body-surface area. N Engl J Med. 1987;317:1098.'
+  ]
+}
+
+export default bsa
+
+============================================================
+FILE: src\calculators\general\bsa-mosteller.js
+============================================================
+
+const calc={id:'bsa-mosteller',name:'BSA â€” Mosteller',shortName:'BSA Mosteller',categoryId:'general',description:'Body surface area using the Mosteller formula.',type:'calculation',
+inputs:[{id:'height',label:'Height',unit:'cm',min:30,max:250,step:0.1},{id:'weight',label:'Weight',unit:'kg',min:1,max:300,step:0.1}],
+calculate(v){return{value:Math.sqrt((Number(v.height)*Number(v.weight))/3600),unit:'mÂ²'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\charlson.js
+============================================================
+
+const charlson={id:'charlson',name:'Charlson Comorbidity Index',shortName:'Charlson',categoryId:'general',description:'Comorbidity burden score.',type:'score',
+inputs:[
+{id:'mi',label:'Prior myocardial infarction?',type:'boolean'},{id:'chf',label:'Congestive heart failure?',type:'boolean'},{id:'pvd',label:'Peripheral vascular disease?',type:'boolean'},{id:'cva',label:'Cerebrovascular disease / stroke?',type:'boolean'},{id:'dementia',label:'Dementia?',type:'boolean'},{id:'copd',label:'Chronic pulmonary disease?',type:'boolean'},{id:'ctd',label:'Connective tissue disease?',type:'boolean'},{id:'ulcer',label:'Peptic ulcer disease?',type:'boolean'},{id:'liver',label:'Mild liver disease?',type:'boolean'},{id:'diabetes',label:'Diabetes without end-organ damage?',type:'boolean'},{id:'renal',label:'Moderate/severe renal disease?',type:'boolean'},{id:'diabetesEnd',label:'Diabetes with end-organ damage?',type:'boolean'},{id:'hemiplegia',label:'Hemiplegia?',type:'boolean'},{id:'cancer',label:'Any solid tumor?',type:'boolean'},{id:'leukemia',label:'Leukemia?',type:'boolean'},{id:'lymphoma',label:'Lymphoma?',type:'boolean'},{id:'liverSevere',label:'Moderate/severe liver disease?',type:'boolean'},{id:'metastatic',label:'Metastatic solid tumor?',type:'boolean'},{id:'aids',label:'AIDS?',type:'boolean'},{id:'age',label:'Age',unit:'years',min:18,max:120}],
+calculate(v){let s=(v.mi?1:0)+(v.chf?1:0)+(v.pvd?1:0)+(v.cva?1:0)+(v.dementia?1:0)+(v.copd?1:0)+(v.ctd?1:0)+(v.ulcer?1:0)+(v.liver?1:0)+(v.diabetes?1:0)+(v.renal?2:0)+(v.diabetesEnd?2:0)+(v.hemiplegia?2:0)+(v.cancer?2:0)+(v.leukemia?2:0)+(v.lymphoma?2:0)+(v.liverSevere?3:0)+(v.metastatic?6:0)+(v.aids?6:0);const age=Number(v.age);s+=age<50?0:age<60?1:age<70?2:age<80?3:4;return{value:s,unit:'points',note:'Avoid double-counting overlapping comorbidity categories; use the validated Charlson implementation appropriate to your population.'}}
+};export default charlson
+
+============================================================
+FILE: src\calculators\general\elixhauser.js
+============================================================
+
+const elixhauser={id:'elixhauser',name:'Elixhauser Comorbidity Score',shortName:'Elixhauser',categoryId:'general',description:'Comorbidity-based risk assessment using Elixhauser conditions.',type:'score',
+inputs:['CHF','Arrhythmia','Valvular disease','Pulmonary circulation disorder','Peripheral vascular disease','Hypertension uncomplicated','Hypertension complicated','Paralysis','Other neurologic disorder','Chronic pulmonary disease','Diabetes uncomplicated','Diabetes complicated','Hypothyroidism','Renal failure','Liver disease','Peptic ulcer disease','AIDS/HIV','Lymphoma','Metastatic cancer','Solid tumor without metastasis','Rheumatoid arthritis/collagen vascular disease','Coagulopathy','Obesity','Weight loss','Fluid/electrolyte disorders','Blood loss anemia','Deficiency anemia','Alcohol abuse','Drug abuse','Psychoses','Depression'].map((label,i)=>({id:`c${i}`,label,type:'boolean'})),
+calculate(v){const score=Object.keys(v).filter(k=>v[k]===true).length;return{value:score,unit:'conditions',note:'This is a condition-count interface rather than the full validated AHRQ weighted mortality/readmission models.'}}
+};export default elixhauser
+
+============================================================
+FILE: src\calculators\general\ibw.js
+============================================================
+
+const ibw = {
+  id: 'ibw',
+  name: 'Ideal Body Weight Calculator',
+  shortName: 'IBW',
+
+  type: 'calculator',
+
+  categoryId: 'general-medicine',
+  category: 'General Medicine',
+
+  description:
+    'Estimates ideal body weight using the Devine formula based on sex and height.',
+
+  keywords: [
+    'ideal body weight',
+    'IBW',
+    'Devine',
+    'body weight',
+    'height',
+    'drug dosing',
+    'reference weight'
+  ],
+
+  aliases: [
+    'ideal weight',
+    'ideal body weight',
+    'Devine formula',
+    'Devine IBW'
+  ],
+
+  inputs: [
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        {
+          value: 'male',
+          label: 'Male'
+        },
+        {
+          value: 'female',
+          label: 'Female'
+        }
+      ]
+    },
+    {
+      id: 'height',
+      label: 'Height',
+      type: 'number',
+      unit: 'cm',
+      min: 0,
+      step: 0.1
+    }
+  ],
+
+  calculate(values) {
+    const sex = values.sex
+    const heightCm = Number(values.height)
+
+    if (
+      !sex ||
+      !heightCm ||
+      heightCm <= 0
+    ) {
+      return {
+        error:
+          'Please select sex and enter a valid height.'
+      }
+    }
+
+    const heightInches =
+      heightCm / 2.54
+
+    const inchesOverFiveFeet =
+      Math.max(0, heightInches - 60)
+
+    const baseWeight =
+      sex === 'male'
+        ? 50
+        : 45.5
+
+    const idealBodyWeight =
+      baseWeight +
+      (2.3 * inchesOverFiveFeet)
+
+    return {
+      value: idealBodyWeight,
+      displayValue: idealBodyWeight.toFixed(1),
+      unit: 'kg',
+      category: 'Devine IBW'
+    }
+  },
+
+  references: [
+    'Devine BJ. Gentamicin therapy. Drug Intell Clin Pharm. 1974.',
+    'UAE Ministry of Health and Prevention. Ideal Body Weight Calculator.'
+  ]
+}
+
+export default ibw
+
+============================================================
+FILE: src\calculators\general\ibw-devine.js
+============================================================
+
+const calc={id:'ibw-devine',name:'Ideal Body Weight â€” Devine',shortName:'IBW Devine',categoryId:'general',description:'Ideal body weight using the Devine formula.',type:'calculation',
+inputs:[{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'height',label:'Height',unit:'cm',min:100,max:250,step:0.1}],
+calculate(v){const inches=Number(v.height)/2.54;const base=v.sex==='male'?50:45.5;return{value:base+2.3*Math.max(0,inches-60),unit:'kg'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\katz-adl.js
+============================================================
+
+const calc={id:'katz-adl',name:'Katz Index of Independence in ADL',shortName:'Katz ADL',categoryId:'general',description:'Functional independence in activities of daily living.',type:'score',
+inputs:['Bathing','Dressing','Toileting','Transferring','Continence','Feeding'].map((label,i)=>({id:`k${i}`,label,type:'boolean'})),
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/6',interpretation:s===6?'Full independence':s>=4?'Moderate impairment':'Severe functional impairment'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\lean-bw.js
+============================================================
+
+const leanBw = {
+  id: 'lean-bw',
+  name: 'Lean Body Weight Calculator',
+  shortName: 'LBW',
+  type: 'calculator',
+  categoryId: 'general-medicine',
+  category: 'General Medicine',
+  description: 'Estimates lean body weight using the Janmahasatian equation.',
+  keywords: [
+    'lean body weight',
+    'LBW',
+    'lean body mass',
+    'fat free mass',
+    'Janmahasatian',
+    'BMI'
+  ],
+  aliases: [
+    'lean body weight',
+    'lean body mass',
+    'LBW',
+    'Janmahasatian'
+  ],
+  inputs: [
+    {
+      id: 'sex',
+      label: 'Sex',
+      type: 'choice',
+      options: [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' }
+      ]
+    },
+    {
+      id: 'height',
+      label: 'Height',
+      type: 'number',
+      unit: 'cm',
+      min: 0,
+      step: 0.1
+    },
+    {
+      id: 'weight',
+      label: 'Weight',
+      type: 'number',
+      unit: 'kg',
+      min: 0,
+      step: 0.1
+    }
+  ],
+  calculate(values) {
+    const sex = values.sex
+    const height = Number(values.height)
+    const weight = Number(values.weight)
+
+    if (!sex || !height || !weight || height <= 0 || weight <= 0) {
+      return { error: 'Please select sex and enter valid height and weight.' }
+    }
+
+    const heightMeters = height / 100
+    const bmi = weight / (heightMeters * heightMeters)
+
+    const lbw = sex === 'male'
+      ? (9270 * weight) / (6680 + 216 * bmi)
+      : (9270 * weight) / (8780 + 244 * bmi)
+
+    return {
+      value: lbw,
+      displayValue: lbw.toFixed(1),
+      unit: 'kg',
+      category: 'Janmahasatian LBW'
+    }
+  },
+  references: [
+    'Janmahasatian S, et al. Quantification of lean bodyweight. Clin Pharmacokinet. 2005;44(10):1051-1065.'
+  ]
+}
+
+export default leanBw
+
+============================================================
+FILE: src\calculators\general\lean-bw-james.js
+============================================================
+
+const calc={id:'lean-bw-james',name:'Lean Body Weight â€” James',shortName:'James LBW',categoryId:'general',description:'Lean body weight using the James equation.',type:'calculation',
+inputs:[{id:'sex',label:'Sex',type:'choice',options:[{value:'male',label:'Male'},{value:'female',label:'Female'}]},{id:'weight',label:'Weight',unit:'kg',min:1,max:300,step:0.1},{id:'height',label:'Height',unit:'cm',min:100,max:250,step:0.1}],
+calculate(v){const w=+v.weight,h=+v.height;const value=v.sex==='male'?(1.1*w)-(128*(w*w)/(h*h)):(1.07*w)-(148*(w*w)/(h*h));return{value,unit:'kg'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\mews.js
+============================================================
+
+const calc={id:'mews',name:'Modified Early Warning Score',shortName:'MEWS',categoryId:'general',description:'Physiologic early warning score.',type:'score',
+inputs:[{id:'sbp',label:'Systolic BP',unit:'mmHg',min:20,max:300},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},{id:'temp',label:'Temperature',unit:'Â°C',min:25,max:45,step:0.1},{id:'avpu',label:'AVPU / consciousness',type:'choice',options:[{value:0,label:'Alert'},{value:1,label:'Voice'},{value:2,label:'Pain'},{value:3,label:'Unresponsive'}]}],
+calculate(v){const s=(+v.sbp<70?3:+v.sbp<80?2:+v.sbp<100?1:+v.sbp<=199?0:2)+(+v.hr<40?2:+v.hr<51?1:+v.hr<=100?0:+v.hr<=110?1:+v.hr<=129?2:3)+(+v.rr<9?2:+v.rr<=14?0:+v.rr<=20?1:+v.rr<=29?2:3)+(+v.temp<35?2:+v.temp<38.5?0:2)+Number(v.avpu);return{value:s,unit:'points'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\morse.js
+============================================================
+
+const calc={id:'morse',name:'Morse Fall Scale',shortName:'Morse',categoryId:'general',description:'Hospital fall-risk assessment.',type:'score',
+inputs:[{id:'history',label:'History of falling',type:'boolean'},{id:'secondary',label:'Secondary diagnosis',type:'boolean'},{id:'aid',label:'Ambulatory aid',type:'choice',options:[{value:0,label:'None / bed rest / nurse assist'},{value:15,label:'Crutches / cane / walker'},{value:30,label:'Furniture'}],optionsLayout:'stack'},{id:'iv',label:'IV / heparin lock',type:'boolean'},{id:'gait',label:'Gait / transferring',type:'choice',options:[{value:0,label:'Normal / bed rest'},{value:10,label:'Weak'},{value:20,label:'Impaired'}],optionsLayout:'stack'},{id:'mental',label:'Mental status overestimates ability',type:'boolean'}],
+calculate(v){const s=(v.history?25:0)+(v.secondary?15:0)+Number(v.aid)+(v.iv?20:0)+Number(v.gait)+(v.mental?15:0);return{value:s,unit:'points',interpretation:s<25?'Low risk':s<=44?'Moderate risk':'High risk'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\news2.js
+============================================================
+
+const calc={id:'news2',name:'NEWS2',shortName:'NEWS2',categoryId:'general',description:'National Early Warning Score 2.',type:'score',
+inputs:[{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},{id:'spo2',label:'SpOâ‚‚',unit:'%',min:50,max:100},{id:'suppO2',label:'Supplemental oxygen?',type:'boolean'},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:20,max:300},{id:'pulse',label:'Pulse',unit:'/min',min:20,max:250},{id:'conscious',label:'New confusion / altered consciousness?',type:'boolean'},{id:'temp',label:'Temperature',unit:'Â°C',min:25,max:45,step:0.1}],
+calculate(v){const rr=+v.rr,sp=+v.spo2,sb=+v.sbp,p=+v.pulse,t=+v.temp;const s=(rr<=8?3:rr<=11?1:rr<=20?0:rr<=24?2:3)+(sp<=91?3:sp<=93?2:sp<=95?1:0)+(v.suppO2?2:0)+(sb<=90?3:sb<=100?2:sb<=110?1:sb<=219?0:3)+(p<=40?3:p<=50?1:p<=90?0:p<=110?1:p<=130?2:3)+(v.conscious?3:0)+(t<=35?3:t<=36?1:t<=38?0:t<=39?1:2);return{value:s,unit:'points',interpretation:s>=7?'High clinical concern':s>=5?'Medium concern':'Lower score',note:'NEWS2 oxygen-saturation Scale 2 is appropriate for most adults; Scale 1/2 use should follow the validated clinical context.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\general\waterlow.js
+============================================================
+
+const waterlow = {
+  id: 'waterlow',
+  name: 'Waterlow Score',
+  shortName: 'Waterlow Score',
+  type: 'score',
+  categoryId: 'general',
+  category: 'General Medicine',
+  description: 'Waterlow Score from the MedCalc master calculator catalogue.',
+  keywords: ['Waterlow Score', 'General Medicine'],
+  aliases: ['Waterlow Score'],
+  inputs: [
+ {id:'build',label:'Build / BMI',type:'number',min:0,step:1},
+ {id:'skin',label:'Skin type score',type:'number',min:0,step:1},
+ {id:'sexAge',label:'Sex / age score',type:'number',min:0,step:1},
+ {id:'continence',label:'Continence score',type:'number',min:0,step:1},
+ {id:'mobility',label:'Mobility score',type:'number',min:0,step:1},
+ {id:'appetite',label:'Appetite / nutrition score',type:'number',min:0,step:1},
+ {id:'tissue',label:'Tissue malnutrition score',type:'number',min:0,step:1},
+ {id:'neurologic',label:'Neurological deficit score',type:'number',min:0,step:1},
+ {id:'surgeryTrauma',label:'Surgery / trauma score',type:'number',min:0,step:1},
+ {id:'medications',label:'Medication score',type:'number',min:0,step:1}
+],
+  calculate(values) {
+    const keys=['build','skin','sexAge','continence','mobility','appetite','tissue','neurologic','surgeryTrauma','medications']
+    if(keys.some(k=>!Number.isFinite(Number(values[k])))) return {error:'Enter all Waterlow component scores.'}
+    const score=keys.reduce((s,k)=>s+Number(values[k]),0)
+    return {value:score,displayValue:String(score),unit:'points',category:score<10?'At risk':score<15?'High risk':score<20?'High risk':'Very high risk'}
+  },
+  references: ['Waterlow J. Pressure sore risk assessment.']
+}
+
+export default waterlow

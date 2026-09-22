@@ -1,104 +1,60 @@
 ﻿const gcs = {
-  id: 'gcs',
-  name: 'Glasgow Coma Scale',
-  shortName: 'GCS',
-  type: 'score',
-  categoryId: 'neurology',
-  category: 'Neurology',
-  description: 'Assesses level of consciousness using eye, verbal, and motor responses.',
-  keywords: [
-    'Glasgow Coma Scale',
-    'GCS',
-    'coma',
-    'consciousness',
-    'eye opening',
-    'verbal response',
-    'motor response',
-    'neurological assessment'
+  id:'gcs',
+  name:'Glasgow Coma Scale',
+  shortName:'GCS',
+  type:'score',
+  categoryId:'neurology',
+  category:'Neurology',
+  description:'Standardized assessment of eye, verbal and motor responses.',
+  keywords:['GCS','Glasgow Coma Scale','consciousness'],
+
+  inputs:[
+    {id:'eye',label:'Eye opening',type:'choice',options:[
+      {value:4,label:'4 — Spontaneous'},
+      {value:3,label:'3 — To voice'},
+      {value:2,label:'2 — To pressure'},
+      {value:1,label:'1 — None'}
+    ],optionsLayout:'stack'},
+
+    {id:'verbal',label:'Verbal response',type:'choice',options:[
+      {value:5,label:'5 — Oriented'},
+      {value:4,label:'4 — Confused'},
+      {value:3,label:'3 — Inappropriate words'},
+      {value:2,label:'2 — Incomprehensible sounds'},
+      {value:1,label:'1 — None'}
+    ],optionsLayout:'stack'},
+
+    {id:'motor',label:'Motor response',type:'choice',options:[
+      {value:6,label:'6 — Obeys commands'},
+      {value:5,label:'5 — Localizes'},
+      {value:4,label:'4 — Normal flexion'},
+      {value:3,label:'3 — Abnormal flexion'},
+      {value:2,label:'2 — Extension'},
+      {value:1,label:'1 — None'}
+    ],optionsLayout:'stack'}
   ],
-  aliases: [
-    'Glasgow Coma Scale',
-    'Glasgow Coma Score',
-    'GCS',
-    'coma scale'
-  ],
-  inputs: [
-    {
-      id: 'eye',
-      label: 'Eye Opening',
-      type: 'choice',
-      options: [
-        { value: 4, label: '4 — Spontaneous' },
-        { value: 3, label: '3 — To voice' },
-        { value: 2, label: '2 — To pain' },
-        { value: 1, label: '1 — None' }
-      ]
-    },
-    {
-      id: 'verbal',
-      label: 'Verbal Response',
-      type: 'choice',
-      options: [
-        { value: 5, label: '5 — Oriented' },
-        { value: 4, label: '4 — Confused' },
-        { value: 3, label: '3 — Inappropriate words' },
-        { value: 2, label: '2 — Incomprehensible sounds' },
-        { value: 1, label: '1 — None' }
-      ]
-    },
-    {
-      id: 'motor',
-      label: 'Motor Response',
-      type: 'choice',
-      options: [
-        { value: 6, label: '6 — Obeys commands' },
-        { value: 5, label: '5 — Localizes pain' },
-        { value: 4, label: '4 — Withdraws' },
-        { value: 3, label: '3 — Flexion' },
-        { value: 2, label: '2 — Extension' },
-        { value: 1, label: '1 — None' }
-      ]
-    }
-  ],
-  calculate(values) {
-    const fields = [
-      values.eye,
-      values.verbal,
-      values.motor
-    ]
 
-    if (fields.some(value => value === undefined || value === '')) {
-      return { error: 'Please score all three GCS components.' }
-    }
+  calculate(v){
+    const eye=Number(v.eye)
+    const verbal=Number(v.verbal)
+    const motor=Number(v.motor)
 
-    const score = fields.reduce(
-      (total, value) => total + Number(value),
-      0
-    )
-
-    let interpretation = ''
-
-    if (score === 15) {
-      interpretation = 'GCS 15'
-    } else if (score >= 13) {
-      interpretation = 'Mild impairment'
-    } else if (score >= 9) {
-      interpretation = 'Moderate impairment'
-    } else {
-      interpretation = 'Severe impairment'
-    }
+    const score=eye+verbal+motor
 
     return {
-      value: score,
-      displayValue: String(score),
-      unit: '/15',
-      category: interpretation
+      value:score,
+      displayValue:String(score),
+      unit:'/15',
+      category:
+        score>=13?'Mild impairment range':
+        score>=9?'Moderate impairment range':
+        'Severe impairment range',
+      interpretation:`GCS = ${score}/15 (E${eye} V${verbal} M${motor}).`,
+      note:'Record the individual E, V and M components as well as the total. Intubation, sedation, aphasia and other factors can limit interpretation.'
     }
   },
-  references: [
-    'Teasdale G, Jennett B. Assessment of coma and impaired consciousness. Lancet. 1974.',
-    'MDCalc. Glasgow Coma Scale (GCS).'
-  ]
+
+  references:['Teasdale and Jennett. Glasgow Coma Scale']
 }
 
 export default gcs

@@ -1,95 +1,52 @@
-const calc = {
-  id: 'mdrd',
-  name: 'MDRD eGFR',
-  shortName: 'MDRD',
-  categoryId: 'nephrology',
-  description: 'Four-variable MDRD equation for estimated glomerular filtration rate.',
-  type: 'calculation',
+﻿const mdrd = {
+  id:'mdrd',
+  name:'eGFR — MDRD',
+  shortName:'MDRD',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Four-variable re-expressed MDRD equation using standardized creatinine.',
+  keywords:['MDRD','eGFR','kidney function'],
 
-  inputs: [
+  inputs:[
     {
-      id: 'creatinine',
-      label: 'Serum creatinine',
-      type: 'number',
-      unit: 'mg/dL',
-      min: 0.1,
-      step: 0.01
+      id:'sex',
+      label:'Sex',
+      type:'choice',
+      options:[
+        {value:'male',label:'Male'},
+        {value:'female',label:'Female'}
+      ],
+      optionsLayout:'stack'
     },
-    {
-      id: 'age',
-      label: 'Age',
-      type: 'number',
-      unit: 'years',
-      min: 18,
-      max: 120,
-      step: 1
-    },
-    {
-      id: 'sex',
-      label: 'Sex',
-      type: 'choice',
-      options: [
-        {
-          value: 'male',
-          label: 'Male'
-        },
-        {
-          value: 'female',
-          label: 'Female'
-        }
-      ]
-    }
+    {id:'age',label:'Age',type:'number',unit:'years',min:18,max:120,step:1},
+    {id:'creatinine',label:'Serum creatinine',type:'number',unit:'mg/dL',min:0.1,max:20,step:0.01}
   ],
 
-  calculate(v) {
-    const creatinine = Number(v.creatinine)
-    const age = Number(v.age)
+  calculate(v){
+    const age=Number(v.age)
+    const cr=Number(v.creatinine)
 
-    if (
-      !Number.isFinite(creatinine) ||
-      !Number.isFinite(age) ||
-      creatinine <= 0 ||
-      age < 18
-    ) {
-      return {
-        error: 'Please enter a valid adult age and serum creatinine.'
-      }
-    }
+    if(age<18||cr<=0)
+      return {error:'Enter valid adult age and creatinine.'}
 
-    const femaleFactor =
-      v.sex === 'female'
-        ? 0.742
-        : 1
-
-    const egfr =
-      175 *
-      Math.pow(creatinine, -1.154) *
-      Math.pow(age, -0.203) *
-      femaleFactor
+    const value=
+      175*
+      Math.pow(cr,-1.154)*
+      Math.pow(age,-0.203)*
+      (v.sex==='female'?0.742:1)
 
     return {
-      value: Number(egfr.toFixed(1)),
-      unit: 'mL/min/1.73 m²',
-      interpretation:
-        egfr >= 90
-          ? 'G1 range'
-          : egfr >= 60
-            ? 'G2 range'
-            : egfr >= 45
-              ? 'G3a range'
-              : egfr >= 30
-                ? 'G3b range'
-                : egfr >= 15
-                  ? 'G4 range'
-                  : 'G5 range',
-      note: 'Four-variable MDRD equation. The original MDRD equation included a historical race coefficient; this implementation uses the race-free form.'
+      value,
+      displayValue:value.toFixed(1),
+      unit:'mL/min/1.73 m²',
+      category:'MDRD eGFR',
+      interpretation:`MDRD eGFR = ${value.toFixed(1)} mL/min/1.73 m².`,
+      note:'MDRD is a legacy eGFR equation and is less accurate at higher GFR values. This implementation does not use a race coefficient.'
     }
   },
 
-  references: [
-    'Levey et al. MDRD Study equation.',
-    'NIDDK: Previous eGFR Equations for Reference.'
-  ]
+  references:['Re-expressed MDRD Study equation','National Kidney Foundation']
 }
 
-export default calc
+export default mdrd

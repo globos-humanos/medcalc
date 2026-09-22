@@ -1,4 +1,5 @@
-const calc={id:'mews',name:'Modified Early Warning Score',shortName:'MEWS',categoryId:'general',description:'Physiologic early warning score.',type:'score',
-inputs:[{id:'sbp',label:'Systolic BP',unit:'mmHg',min:20,max:300},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},{id:'temp',label:'Temperature',unit:'°C',min:25,max:45,step:0.1},{id:'avpu',label:'AVPU / consciousness',type:'choice',options:[{value:0,label:'Alert'},{value:1,label:'Voice'},{value:2,label:'Pain'},{value:3,label:'Unresponsive'}]}],
+﻿const calc={id:'mews',name:'Modified Early Warning Score',shortName:'MEWS',categoryId: 'general-medicine',description:'Physiologic early warning score.',type:'score',
+inputs:[{id:'sbp',label:'Systolic BP',unit:'mmHg',min:20,max:300},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},{id:'temp',label:'Temperature',unit:'Â°C',min:25,max:45,step:0.1},{id:'avpu',label:'AVPU / consciousness',type:'choice',options:[{value:0,label:'Alert'},{value:1,label:'Voice'},{value:2,label:'Pain'},{value:3,label:'Unresponsive'}]}],
 calculate(v){const s=(+v.sbp<70?3:+v.sbp<80?2:+v.sbp<100?1:+v.sbp<=199?0:2)+(+v.hr<40?2:+v.hr<51?1:+v.hr<=100?0:+v.hr<=110?1:+v.hr<=129?2:3)+(+v.rr<9?2:+v.rr<=14?0:+v.rr<=20?1:+v.rr<=29?2:3)+(+v.temp<35?2:+v.temp<38.5?0:2)+Number(v.avpu);return{value:s,unit:'points'}}
 };export default calc
+

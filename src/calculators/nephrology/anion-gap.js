@@ -1,75 +1,36 @@
 ﻿const anionGap = {
-  id: 'anion-gap',
-  name: 'Anion Gap Calculator',
-  shortName: 'AG',
-  type: 'calculator',
-  categoryId: 'nephrology',
-  category: 'Nephrology',
-  description: 'Calculates the serum anion gap from sodium, chloride, and bicarbonate.',
-  keywords: [
-    'anion gap',
-    'AG',
-    'metabolic acidosis',
-    'sodium',
-    'chloride',
-    'bicarbonate',
-    'HCO3'
-  ],
-  aliases: [
-    'anion gap',
-    'serum anion gap',
-    'AG'
-  ],
-  inputs: [
-    {
-      id: 'sodium',
-      label: 'Serum Sodium',
-      type: 'number',
-      unit: 'mEq/L',
-      min: 0,
-      step: 0.1
-    },
-    {
-      id: 'chloride',
-      label: 'Serum Chloride',
-      type: 'number',
-      unit: 'mEq/L',
-      min: 0,
-      step: 0.1
-    },
-    {
-      id: 'bicarbonate',
-      label: 'Serum Bicarbonate',
-      type: 'number',
-      unit: 'mEq/L',
-      min: 0,
-      step: 0.1
-    }
-  ],
-  calculate(values) {
-    const sodium = Number(values.sodium)
-    const chloride = Number(values.chloride)
-    const bicarbonate = Number(values.bicarbonate)
+  id:'anion-gap',
+  name:'Serum Anion Gap',
+  shortName:'Anion Gap',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Calculates the serum anion gap without potassium.',
+  keywords:['anion gap','metabolic acidosis'],
 
-    if (
-      !sodium || !chloride || !bicarbonate ||
-      sodium <= 0 || chloride <= 0 || bicarbonate <= 0
-    ) {
-      return { error: 'Please enter valid sodium, chloride, and bicarbonate values.' }
-    }
+  inputs:[
+    {id:'na',label:'Sodium',type:'number',unit:'mEq/L',min:80,max:220,step:0.1},
+    {id:'cl',label:'Chloride',type:'number',unit:'mEq/L',min:50,max:180,step:0.1},
+    {id:'hco3',label:'Bicarbonate',type:'number',unit:'mEq/L',min:5,max:60,step:0.1},
+    {id:'albumin',label:'Albumin',type:'number',unit:'g/dL',min:0.5,max:8,step:0.1}
+  ],
 
-    const gap = sodium - chloride - bicarbonate
+  calculate(v){
+    const ag=Number(v.na)-Number(v.cl)-Number(v.hco3)
+    const corrected=ag+2.5*(4-Number(v.albumin))
 
     return {
-      value: gap,
-      displayValue: gap.toFixed(1),
-      unit: 'mEq/L',
-      category: gap > 12 ? 'Elevated anion gap' : 'Anion gap'
+      value:ag,
+      displayValue:ag.toFixed(1),
+      unit:'mEq/L',
+      category:'Serum anion gap',
+      interpretation:
+        `Measured AG = ${ag.toFixed(1)} mEq/L; albumin-corrected AG = ${corrected.toFixed(1)} mEq/L.`,
+      note:'Albumin is a major unmeasured anion. The albumin-corrected value can be useful when albumin is below the usual reference concentration.'
     }
   },
-  references: [
-    'MDCalc. Anion Gap Calculator.'
-  ]
+
+  references:['Serum anion gap equation','Albumin-corrected anion gap']
 }
 
 export default anionGap

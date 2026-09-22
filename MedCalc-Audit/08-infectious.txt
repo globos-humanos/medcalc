@@ -1,0 +1,302 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: INFECTIOUS
+============================================================
+
+
+============================================================
+FILE: src\calculators\infectious\centor.js
+============================================================
+
+const calc = {
+  id: 'centor',
+  name: 'Centor Score',
+  shortName: 'Centor',
+  categoryId: 'infectious',
+  description: 'Clinical prediction rule for streptococcal pharyngitis in adults.',
+  type: 'score',
+
+  inputs: [
+    {
+      id: 'fever',
+      label: 'Fever >38°C',
+      type: 'boolean'
+    },
+    {
+      id: 'noCough',
+      label: 'Absence of cough',
+      type: 'boolean'
+    },
+    {
+      id: 'nodes',
+      label: 'Tender anterior cervical nodes',
+      type: 'boolean'
+    },
+    {
+      id: 'exudate',
+      label: 'Tonsillar swelling/exudate',
+      type: 'boolean'
+    }
+  ],
+
+  calculate(v) {
+    const score =
+      (v.fever === true ? 1 : 0) +
+      (v.noCough === true ? 1 : 0) +
+      (v.nodes === true ? 1 : 0) +
+      (v.exudate === true ? 1 : 0)
+
+    return {
+      value: score,
+      unit: '/4',
+      interpretation:
+        score <= 1
+          ? 'Low likelihood'
+          : score === 2
+            ? 'Intermediate likelihood'
+            : 'Higher likelihood'
+    }
+  }
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\infectious\duke.js
+============================================================
+
+const duke = {
+  id: 'duke',
+  name: 'Duke Criteria',
+  shortName: 'Duke Criteria',
+  type: 'score',
+  categoryId: 'infectious',
+  category: 'Infectious Disease',
+  description: 'Duke Criteria from the MedCalc master calculator catalogue.',
+  keywords: ['Duke Criteria', 'Infectious Disease'],
+  aliases: ['Duke Criteria'],
+  inputs: [{id:'major',label:'Major criteria',type:'number',min:0,step:1},{id:'minor',label:'Minor criteria',type:'number',min:0,step:1}],
+  calculate(values) {
+    const ma=Number(values.major),mi=Number(values.minor); if(![ma,mi].every(Number.isFinite)) return {error:'Enter major and minor criteria.'}
+    return {value:ma+mi,displayValue:`${ma} major + ${mi} minor`,unit:'criteria',category:'Duke criteria'}
+  },
+  references: ['Original infectious disease score/criteria publication.']
+}
+
+export default duke
+
+============================================================
+FILE: src\calculators\infectious\feverpain.js
+============================================================
+
+const feverpain = {
+  id: 'feverpain',
+  name: 'FeverPAIN Score',
+  shortName: 'FeverPAIN Score',
+  type: 'score',
+  categoryId: 'infectious',
+  category: 'Infectious Disease',
+  description: 'FeverPAIN Score from the MedCalc master calculator catalogue.',
+  keywords: ['FeverPAIN Score', 'Infectious Disease'],
+  aliases: ['FeverPAIN Score'],
+  inputs: [{id:'fever',label:'Fever in previous 24 h',type:'boolean'},{id:'purulence',label:'Purulence',type:'boolean'},{id:'attendRapid',label:'Attend rapidly / within 3 days',type:'boolean'},{id:'severelyInflamed',label:'Severely inflamed tonsils',type:'boolean'},{id:'noCough',label:'No cough or coryza',type:'boolean'}],
+  calculate(values) {
+    const k=['fever','purulence','attendRapid','severelyInflamed','noCough']; if(k.some(x=>typeof values[x]!=='boolean')) return {error:'Complete FeverPAIN inputs.'}
+    const s=k.reduce((n,x)=>n+(values[x]?1:0),0); return {value:s,displayValue:String(s),unit:'/ 5',category:'FeverPAIN'}
+  },
+  references: ['Original infectious disease score/criteria publication.']
+}
+
+export default feverpain
+
+============================================================
+FILE: src\calculators\infectious\mcisaac.js
+============================================================
+
+const calc = {
+  id: 'mcisaac',
+  name: 'McIsaac Score',
+  shortName: 'McIsaac',
+  categoryId: 'infectious',
+  description: 'Modified Centor clinical prediction rule for streptococcal pharyngitis.',
+  type: 'score',
+
+  inputs: [
+    {
+      id: 'fever',
+      label: 'Fever >38°C',
+      type: 'boolean'
+    },
+    {
+      id: 'noCough',
+      label: 'Absence of cough',
+      type: 'boolean'
+    },
+    {
+      id: 'nodes',
+      label: 'Tender anterior cervical nodes',
+      type: 'boolean'
+    },
+    {
+      id: 'exudate',
+      label: 'Tonsillar swelling/exudate',
+      type: 'boolean'
+    },
+    {
+      id: 'age',
+      label: 'Age adjustment',
+      type: 'choice',
+      options: [
+        {
+          value: 1,
+          label: '3–14 years'
+        },
+        {
+          value: 0,
+          label: '15–44 years'
+        },
+        {
+          value: -1,
+          label: '≥45 years'
+        }
+      ]
+    }
+  ],
+
+  calculate(v) {
+    if (
+      v.age === undefined ||
+      v.age === null ||
+      v.age === ''
+    ) {
+      return {
+        error: 'Please select an age group.'
+      }
+    }
+
+    const score =
+      (v.fever === true ? 1 : 0) +
+      (v.noCough === true ? 1 : 0) +
+      (v.nodes === true ? 1 : 0) +
+      (v.exudate === true ? 1 : 0) +
+      Number(v.age)
+
+    return {
+      value: score,
+      unit: '/5',
+      interpretation:
+        score <= 1
+          ? 'Low likelihood'
+          : score <= 3
+            ? 'Intermediate likelihood'
+            : 'Higher likelihood'
+    }
+  }
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\infectious\meds.js
+============================================================
+
+const meds = {
+  id: 'meds',
+  name: 'MEDS Score',
+  shortName: 'MEDS Score',
+  type: 'score',
+  categoryId: 'infectious',
+  category: 'Infectious Disease',
+  description: 'MEDS Score from the MedCalc master calculator catalogue.',
+  keywords: ['MEDS Score', 'Infectious Disease'],
+  aliases: ['MEDS Score'],
+  inputs: [{id:'score',label:'MEDS score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter MEDS score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:'MEDS'}
+  },
+  references: ['Original infectious disease score/criteria publication.']
+}
+
+export default meds
+
+============================================================
+FILE: src\calculators\infectious\modified-duke.js
+============================================================
+
+const modifiedDuke = {
+  id: 'modifiedDuke',
+  name: 'Modified Duke Criteria',
+  shortName: 'Modified Duke Criteria',
+  type: 'score',
+  categoryId: 'infectious',
+  category: 'Infectious Disease',
+  description: 'Modified Duke Criteria from the MedCalc master calculator catalogue.',
+  keywords: ['Modified Duke Criteria', 'Infectious Disease'],
+  aliases: ['Modified Duke Criteria'],
+  inputs: [{id:'major',label:'Major criteria',type:'number',min:0,step:1},{id:'minor',label:'Minor criteria',type:'number',min:0,step:1}],
+  calculate(values) {
+    const ma=Number(values.major),mi=Number(values.minor); if(![ma,mi].every(Number.isFinite)) return {error:'Enter major and minor criteria.'}
+    const definite=(ma>=2)||(ma===1&&mi>=3)||(ma===1&&mi>=3); return {value:ma*2+mi,displayValue:`${ma} major + ${mi} minor`,unit:'criteria',category:definite?'Definite IE criteria pattern':'Does not meet definite pattern'}
+  },
+  references: ['Original infectious disease score/criteria publication.']
+}
+
+export default modifiedDuke
+
+============================================================
+FILE: src\calculators\infectious\piro.js
+============================================================
+
+const piro = {
+  id: 'piro',
+  name: 'PIRO Score',
+  shortName: 'PIRO Score',
+  type: 'score',
+  categoryId: 'infectious',
+  category: 'Infectious Disease',
+  description: 'PIRO Score from the MedCalc master calculator catalogue.',
+  keywords: ['PIRO Score', 'Infectious Disease'],
+  aliases: ['PIRO Score'],
+  inputs: [{id:'score',label:'PIRO score',type:'number',min:0,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter PIRO score.'}
+    return {value:s,displayValue:String(s),unit:'points',category:'PIRO'}
+  },
+  references: ['Original infectious disease score/criteria publication.']
+}
+
+export default piro
+
+============================================================
+FILE: src\calculators\infectious\pitt.js
+============================================================
+
+const calc={
+ id:'pitt-bacteremia',name:'Pitt Bacteremia Score',shortName:'Pitt',categoryId:'infectious',
+ description:'Published Pitt bacteremia severity score.',type:'score',
+ inputs:[
+  {id:'temp',label:'Temperature',unit:'°C',min:25,max:45,step:0.1},
+  {id:'mental',label:'Mental status',type:'choice',options:[{value:0,label:'Alert'},{value:1,label:'Disoriented'},{value:2,label:'Stuporous'},{value:4,label:'Comatose'}],optionsLayout:'stack'},
+  {id:'hypotension',label:'Arterial hypotension',type:'boolean'},{id:'vent',label:'Mechanical ventilation',type:'boolean'},{id:'cardiac',label:'Cardiac arrest',type:'boolean'}
+ ],
+ calculate(v){const t=+v.temp;const tempPts=t<=35?2:t<36?1:t<39?0:t<40?1:2;const value=tempPts+Number(v.mental||0)+(v.hypotension?2:0)+(v.vent?2:0)+(v.cardiac?4:0);return{value,unit:'points',interpretation:value>=4?'Pitt score ≥4':'Pitt score <4'}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\infectious\qsofa.js
+============================================================
+
+const calc={id:'qsofa',name:'qSOFA',shortName:'qSOFA',categoryId:'infectious',description:'Quick Sequential Organ Failure Assessment.',type:'score',
+inputs:[{id:'rr',label:'Respiratory rate ≥22/min?',type:'boolean'},{id:'sbp',label:'Systolic BP ≤100 mmHg?',type:'boolean'},{id:'mental',label:'Altered mentation?',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/3',interpretation:s>=2?'qSOFA ≥2':'qSOFA <2',note:'qSOFA is not a standalone sepsis diagnostic test.'}}
+};export default calc
+
+============================================================
+FILE: src\calculators\infectious\sirs.js
+============================================================
+
+const calc={id:'sirs',name:'SIRS Criteria',shortName:'SIRS',categoryId:'infectious',description:'Systemic inflammatory response syndrome criteria.',type:'score',
+inputs:[{id:'temp',label:'Temperature',unit:'°C',min:25,max:45,step:0.1},{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80},{id:'paco2',label:'PaCO₂',unit:'mmHg',min:10,max:150},{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'bands',label:'Bands >10%',type:'boolean'}],
+calculate(v){const s=(+v.temp>38||+v.temp<36?1:0)+(+v.hr>90?1:0)+(+v.rr>20||+v.paco2<32?1:0)+(+v.wbc>12||+v.wbc<4||v.bands?1:0);return{value:s,unit:'/4',interpretation:s>=2?'SIRS criteria met':'SIRS criteria not met'}}
+};export default calc

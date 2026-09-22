@@ -1,0 +1,650 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: NEUROLOGY
+============================================================
+
+
+============================================================
+FILE: src\calculators\neurology\abcd2.js
+============================================================
+
+const abcd2={id:'abcd2',name:'ABCDÂ² Score',shortName:'ABCDÂ²',categoryId:'neurology',description:'Early stroke risk after transient ischemic attack.',type:'score',
+inputs:[{id:'age',label:'Age â‰¥60?',type:'boolean'},{id:'bp',label:'BP â‰¥140/90?',type:'boolean'},{id:'clinical',label:'Clinical features',type:'choice',options:[{value:2,label:'Unilateral weakness'},{value:1,label:'Speech impairment without weakness'},{value:0,label:'Other'}],optionsLayout:'stack'},{id:'duration',label:'TIA symptom duration',type:'choice',options:[{value:2,label:'â‰¥60 min'},{value:1,label:'10â€“59 min'},{value:0,label:'<10 min'}],optionsLayout:'stack'},{id:'diabetes',label:'Diabetes?',type:'boolean'}],
+calculate(v){const s=(v.age?1:0)+(v.bp?1:0)+Number(v.clinical)+Number(v.duration)+(v.diabetes?1:0);return{value:s,unit:'/7',interpretation:s>=6?'High score':s>=4?'Moderate score':'Lower score'}}
+};export default abcd2
+
+============================================================
+FILE: src\calculators\neurology\canadian-ct-head.js
+============================================================
+
+const calc = {
+  id: 'canadian-ct-head',
+  name: 'Canadian CT Head Rule',
+  shortName: 'CCHR',
+  categoryId: 'neurology',
+  description: 'Clinical decision rule for CT imaging after minor head injury in eligible adults.',
+
+  inputs: [
+    {
+      id: 'age',
+      label: 'Age',
+      type: 'number',
+      unit: 'years',
+      min: 16,
+      max: 120,
+      step: 1
+    },
+    {
+      id: 'gcs2h',
+      label: 'GCS <15 at 2 hours after injury',
+      type: 'boolean'
+    },
+    {
+      id: 'openSkull',
+      label: 'Suspected open or depressed skull fracture',
+      type: 'boolean'
+    },
+    {
+      id: 'basalSkull',
+      label: 'Signs of basal skull fracture',
+      type: 'boolean'
+    },
+    {
+      id: 'vomiting',
+      label: 'Vomiting â‰¥2 episodes',
+      type: 'boolean'
+    },
+    {
+      id: 'amnesia',
+      label: 'Amnesia before impact â‰¥30 minutes',
+      type: 'boolean'
+    },
+    {
+      id: 'dangerousMechanism',
+      label: 'Dangerous mechanism',
+      type: 'boolean'
+    }
+  ],
+
+  calculate(v) {
+    const age = Number(v.age)
+
+    if (!Number.isFinite(age) || age < 16) {
+      return {
+        error: 'The Canadian CT Head Rule was derived for eligible adults with minor head injury.'
+      }
+    }
+
+    const highRisk =
+      v.gcs2h === true ||
+      v.openSkull === true ||
+      v.basalSkull === true ||
+      v.vomiting === true ||
+      age >= 65
+
+    const mediumRisk =
+      v.amnesia === true ||
+      v.dangerousMechanism === true
+
+    const total =
+      Number(v.gcs2h === true) +
+      Number(v.openSkull === true) +
+      Number(v.basalSkull === true) +
+      Number(v.vomiting === true) +
+      Number(age >= 65) +
+      Number(v.amnesia === true) +
+      Number(v.dangerousMechanism === true)
+
+    if (highRisk) {
+      return {
+        value: 'CT indicated',
+        unit: 'CCHR',
+        interpretation: `${total} positive criterion(s); high-risk criterion present`,
+        note: 'The rule is intended for eligible patients with minor head injury. Confirm the ruleâ€™s inclusion and exclusion criteria before applying it.'
+      }
+    }
+
+    if (mediumRisk) {
+      return {
+        value: 'CT / observation decision',
+        unit: 'CCHR',
+        interpretation: `${total} positive criterion(s); medium-risk criterion present`,
+        note: 'A medium-risk factor is present. Clinical context and observation may influence management.'
+      }
+    }
+
+    return {
+      value: 'No CCHR criterion',
+      unit: 'CCHR',
+      interpretation: 'No high- or medium-risk criterion selected',
+      note: 'This does not replace clinical assessment and is only applicable to the ruleâ€™s intended patient population.'
+    }
+  },
+
+  references: [
+    'Stiell IG et al. The Canadian CT Head Rule for patients with minor head injury. Lancet. 2001.',
+    'Canadian CT Head Rule validation literature.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\neurology\fisher.js
+============================================================
+
+const fisher={id:'fisher',name:'Fisher Grade',shortName:'Fisher',categoryId:'neurology',description:'CT blood burden classification in subarachnoid hemorrhage.',type:'score',
+inputs:[{id:'grade',label:'CT finding',type:'choice',options:[{value:1,label:'No blood detected'},{value:2,label:'Diffuse thin SAH <1 mm'},{value:3,label:'Localized clot or thick SAH >1 mm'},{value:4,label:'Intraventricular or intracerebral blood with diffuse/thin SAH'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'grade',interpretation:`Fisher grade ${v.grade}`}}
+};export default fisher
+
+============================================================
+FILE: src\calculators\neurology\four.js
+============================================================
+
+const four = {
+  id: 'four',
+  name: 'FOUR Score',
+  shortName: 'FOUR',
+  type: 'score',
+  categoryId: 'neurology',
+  category: 'Neurology',
+  description: 'Grades coma severity using eye, motor, brainstem reflex, and respiration responses.',
+  keywords: [
+    'FOUR score',
+    'Full Outline of UnResponsiveness',
+    'coma',
+    'consciousness',
+    'brainstem reflexes',
+    'respiration',
+    'neurology'
+  ],
+  aliases: [
+    'FOUR',
+    'FOUR score',
+    'Full Outline of UnResponsiveness'
+  ],
+  inputs: [
+    {
+      id: 'eye',
+      label: 'Eye Response',
+      type: 'choice',
+      options: [
+        { value: 4, label: '4 — Tracking / blinking to command' },
+        { value: 3, label: '3 — Open, not tracking' },
+        { value: 2, label: '2 — Opens to loud voice' },
+        { value: 1, label: '1 — Opens to pain' },
+        { value: 0, label: '0 — Remains closed' }
+      ]
+    },
+    {
+      id: 'motor',
+      label: 'Motor Response',
+      type: 'choice',
+      options: [
+        { value: 4, label: '4 — Thumbs-up / fist / peace sign' },
+        { value: 3, label: '3 — Localizes pain' },
+        { value: 2, label: '2 — Flexion to pain' },
+        { value: 1, label: '1 — Extension to pain' },
+        { value: 0, label: '0 — No response / myoclonus' }
+      ]
+    },
+    {
+      id: 'brainstem',
+      label: 'Brainstem Reflexes',
+      type: 'choice',
+      options: [
+        { value: 4, label: '4 — Pupil and corneal reflexes present' },
+        { value: 3, label: '3 — One pupil wide and fixed' },
+        { value: 2, label: '2 — Pupil OR corneal reflex absent' },
+        { value: 1, label: '1 — Pupil AND corneal reflexes absent' },
+        { value: 0, label: '0 — Pupil, corneal and cough absent' }
+      ]
+    },
+    {
+      id: 'respiration',
+      label: 'Respiration',
+      type: 'choice',
+      options: [
+        { value: 4, label: '4 — Regular, not intubated' },
+        { value: 3, label: '3 — Cheyne-Stokes, not intubated' },
+        { value: 2, label: '2 — Irregular, not intubated' },
+        { value: 1, label: '1 — Breathes above ventilator rate' },
+        { value: 0, label: '0 — At ventilator rate / apnea' }
+      ]
+    }
+  ],
+  calculate(values) {
+    const fields = [
+      values.eye,
+      values.motor,
+      values.brainstem,
+      values.respiration
+    ]
+
+    if (fields.some(value => value === undefined || value === '')) {
+      return { error: 'Please score all four FOUR components.' }
+    }
+
+    const score = fields.reduce(
+      (total, value) => total + Number(value),
+      0
+    )
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/16',
+      category: score <= 4 ? 'Very low score' : 'FOUR Score'
+    }
+  },
+  references: [
+    'Wijdicks EFM, et al. Validation of a new coma scale: the FOUR score. Ann Neurol. 2005.',
+    'MDCalc. FOUR (Full Outline of UnResponsiveness) Score.'
+  ]
+}
+
+export default four
+
+============================================================
+FILE: src\calculators\neurology\gcs.js
+============================================================
+
+const gcs = {
+  id: 'gcs',
+  name: 'Glasgow Coma Scale',
+  shortName: 'GCS',
+  type: 'score',
+  categoryId: 'neurology',
+  category: 'Neurology',
+  description: 'Assesses level of consciousness using eye, verbal, and motor responses.',
+  keywords: [
+    'Glasgow Coma Scale',
+    'GCS',
+    'coma',
+    'consciousness',
+    'eye opening',
+    'verbal response',
+    'motor response',
+    'neurological assessment'
+  ],
+  aliases: [
+    'Glasgow Coma Scale',
+    'Glasgow Coma Score',
+    'GCS',
+    'coma scale'
+  ],
+  inputs: [
+    {
+      id: 'eye',
+      label: 'Eye Opening',
+      type: 'choice',
+      options: [
+        { value: 4, label: '4 — Spontaneous' },
+        { value: 3, label: '3 — To voice' },
+        { value: 2, label: '2 — To pain' },
+        { value: 1, label: '1 — None' }
+      ]
+    },
+    {
+      id: 'verbal',
+      label: 'Verbal Response',
+      type: 'choice',
+      options: [
+        { value: 5, label: '5 — Oriented' },
+        { value: 4, label: '4 — Confused' },
+        { value: 3, label: '3 — Inappropriate words' },
+        { value: 2, label: '2 — Incomprehensible sounds' },
+        { value: 1, label: '1 — None' }
+      ]
+    },
+    {
+      id: 'motor',
+      label: 'Motor Response',
+      type: 'choice',
+      options: [
+        { value: 6, label: '6 — Obeys commands' },
+        { value: 5, label: '5 — Localizes pain' },
+        { value: 4, label: '4 — Withdraws' },
+        { value: 3, label: '3 — Flexion' },
+        { value: 2, label: '2 — Extension' },
+        { value: 1, label: '1 — None' }
+      ]
+    }
+  ],
+  calculate(values) {
+    const fields = [
+      values.eye,
+      values.verbal,
+      values.motor
+    ]
+
+    if (fields.some(value => value === undefined || value === '')) {
+      return { error: 'Please score all three GCS components.' }
+    }
+
+    const score = fields.reduce(
+      (total, value) => total + Number(value),
+      0
+    )
+
+    let interpretation = ''
+
+    if (score === 15) {
+      interpretation = 'GCS 15'
+    } else if (score >= 13) {
+      interpretation = 'Mild impairment'
+    } else if (score >= 9) {
+      interpretation = 'Moderate impairment'
+    } else {
+      interpretation = 'Severe impairment'
+    }
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/15',
+      category: interpretation
+    }
+  },
+  references: [
+    'Teasdale G, Jennett B. Assessment of coma and impaired consciousness. Lancet. 1974.',
+    'MDCalc. Glasgow Coma Scale (GCS).'
+  ]
+}
+
+export default gcs
+
+============================================================
+FILE: src\calculators\neurology\hunt-hess.js
+============================================================
+
+const hh={id:'hunt-hess',name:'Hunt and Hess Grade',shortName:'Hunt-Hess',categoryId:'neurology',description:'Clinical grading of subarachnoid hemorrhage severity.',type:'score',
+inputs:[{id:'grade',label:'Clinical grade',type:'choice',options:[{value:1,label:'I â€” Asymptomatic / mild headache'},{value:2,label:'II â€” Moderateâ€“severe headache, nuchal rigidity'},{value:3,label:'III â€” Drowsiness / confusion / mild focal deficit'},{value:4,label:'IV â€” Stupor / moderateâ€“severe deficit'},{value:5,label:'V â€” Coma / moribund'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'grade',interpretation:`Hunt-Hess grade ${v.grade}`}}
+};export default hh
+
+============================================================
+FILE: src\calculators\neurology\ich.js
+============================================================
+
+const ich={id:'ich',name:'ICH Score',shortName:'ICH',categoryId:'neurology',description:'Intracerebral hemorrhage severity score.',type:'score',
+inputs:[{id:'gcs',label:'GCS',min:3,max:15},{id:'volume',label:'Hematoma volume',unit:'mL',min:0,max:300},{id:'ivh',label:'Intraventricular hemorrhage?',type:'boolean'},{id:'infratentorial',label:'Infratentorial origin?',type:'boolean'},{id:'age',label:'Age â‰¥80?',type:'boolean'}],
+calculate(v){const g=Number(v.gcs),vol=Number(v.volume);const s=(g>=13?0:g>=5?1:2)+(vol>=30?1:0)+(v.ivh?1:0)+(v.infratentorial?1:0)+(v.age?1:0);return{value:s,unit:'/6',interpretation:`ICH score ${s}`}}
+};export default ich
+
+============================================================
+FILE: src\calculators\neurology\marshall-ct.js
+============================================================
+
+const marshallCt = {
+  id: 'marshallCt',
+  name: 'Marshall CT Classification',
+  shortName: 'Marshall CT Classification',
+  type: 'score',
+  categoryId: 'neurology',
+  category: 'Neurology',
+  description: 'Marshall CT Classification from the MedCalc master calculator catalogue.',
+  keywords: ['Marshall CT Classification', 'Neurology'],
+  aliases: ['Marshall CT Classification'],
+  inputs: [{id:'class',label:'Marshall CT class',type:'number',min:1,max:6,step:1}],
+  calculate(values) {
+    const s=Number(values.class); if(!Number.isFinite(s)) return {error:'Enter Marshall CT class.'}
+    return {value:s,displayValue:String(s),unit:'class',category:'Marshall CT classification'}
+  },
+  references: ['Original validated neurologic score/classification publication.']
+}
+
+export default marshallCt
+
+============================================================
+FILE: src\calculators\neurology\modified-fisher.js
+============================================================
+
+const mf={id:'modified-fisher',name:'Modified Fisher Scale',shortName:'Modified Fisher',categoryId:'neurology',description:'Modified CT grading for SAH and vasospasm risk.',type:'score',
+inputs:[{id:'sah',label:'SAH thickness',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Thin <1 mm'},{value:2,label:'Thick â‰¥1 mm'}],optionsLayout:'stack'},{id:'ivh',label:'Intraventricular hemorrhage?',type:'boolean'}],
+calculate(v){const s=Number(v.sah)+(v.ivh?2:0);return{value:s,unit:'grade',interpretation:`Modified Fisher grade ${s}`}}
+};export default mf
+
+============================================================
+FILE: src\calculators\neurology\mrs.js
+============================================================
+
+const mrs={id:'mrs',name:'Modified Rankin Scale',shortName:'mRS',categoryId:'neurology',description:'Global disability after stroke or neurologic disease.',type:'score',
+inputs:[{id:'grade',label:'Current functional status',type:'choice',options:[{value:0,label:'0 â€” No symptoms'},{value:1,label:'1 â€” No significant disability'},{value:2,label:'2 â€” Slight disability'},{value:3,label:'3 â€” Moderate disability'},{value:4,label:'4 â€” Moderately severe disability'},{value:5,label:'5 â€” Severe disability'},{value:6,label:'6 â€” Death'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'mRS',interpretation:`mRS ${v.grade}`}}
+};export default mrs
+
+============================================================
+FILE: src\calculators\neurology\new-orleans.js
+============================================================
+
+const newOrleans = {
+  id: 'newOrleans',
+  name: 'New Orleans Criteria',
+  shortName: 'New Orleans Criteria',
+  type: 'score',
+  categoryId: 'neurology',
+  category: 'Neurology',
+  description: 'New Orleans Criteria from the MedCalc master calculator catalogue.',
+  keywords: ['New Orleans Criteria', 'Neurology'],
+  aliases: ['New Orleans Criteria'],
+  inputs: [{id:'criteria',label:'Number of positive criteria',type:'number',min:0,max:7,step:1}],
+  calculate(values) {
+    const s=Number(values.criteria); if(!Number.isFinite(s)) return {error:'Enter number of positive criteria.'}
+    return {value:s,displayValue:String(s),unit:'/ 7',category:s===0?'No listed NOC trigger':'NOC positive'}
+  },
+  references: ['Original validated neurologic score/classification publication.']
+}
+
+export default newOrleans
+
+============================================================
+FILE: src\calculators\neurology\nihss.js
+============================================================
+
+const nihss={id:'nihss',name:'NIH Stroke Scale',shortName:'NIHSS',categoryId:'neurology',description:'Quantifies neurologic deficit in acute stroke.',type:'score',
+inputs:['LOC','LOC questions','LOC commands','Best gaze','Visual fields','Facial palsy','Motor arm â€” left','Motor arm â€” right','Motor leg â€” left','Motor leg â€” right','Limb ataxia','Sensory','Best language','Dysarthria','Extinction / inattention'].map((label,i)=>({id:`n${i}`,label,type:'choice',options:[0,1,2,3,4].map(v=>({value:v,label:String(v)})),optionsLayout:'stack'})),
+calculate(v){const score=Object.keys(v).reduce((s,k)=>s+Number(v[k]),0);return{value:score,unit:'points',interpretation:score===0?'No measurable deficit':score<=4?'Minor stroke severity':score<=15?'Moderate stroke severity':score<=20?'Moderateâ€“severe stroke severity':'Severe stroke severity',note:'NIHSS item-specific maximums differ; this interface requires item-level clinical selection and should be refined to exact item maximums before production use.'}}
+};export default nihss
+
+============================================================
+FILE: src\calculators\neurology\pecarn.js
+============================================================
+
+const calc = {
+  id: 'pecarn',
+  name: 'PECARN Pediatric Head Injury Rule',
+  shortName: 'PECARN',
+  categoryId: 'neurology',
+  description: 'PECARN clinical prediction rule for clinically important traumatic brain injury after minor blunt head trauma.',
+
+  inputs: [
+    {
+      id: 'ageGroup',
+      label: 'Age group',
+      type: 'choice',
+      options: [
+        {
+          value: 'under2',
+          label: '<2 years'
+        },
+        {
+          value: '2plus',
+          label: 'â‰¥2 years'
+        }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'alteredMentalStatus',
+      label: 'Altered mental status / GCS <15',
+      type: 'boolean'
+    },
+    {
+      id: 'palpableSkull',
+      label: 'Palpable skull fracture',
+      type: 'boolean'
+    },
+    {
+      id: 'nonFrontalHematoma',
+      label: 'Non-frontal scalp hematoma',
+      type: 'boolean'
+    },
+    {
+      id: 'loc5sec',
+      label: 'Loss of consciousness â‰¥5 seconds',
+      type: 'boolean'
+    },
+    {
+      id: 'actingAbnormal',
+      label: 'Not acting normally according to parent',
+      type: 'boolean'
+    },
+    {
+      id: 'anyLoc',
+      label: 'Any loss of consciousness',
+      type: 'boolean'
+    },
+    {
+      id: 'vomiting',
+      label: 'Vomiting',
+      type: 'boolean'
+    },
+    {
+      id: 'basilarSkull',
+      label: 'Signs of basilar skull fracture',
+      type: 'boolean'
+    },
+    {
+      id: 'severeHeadache',
+      label: 'Severe headache',
+      type: 'boolean'
+    },
+    {
+      id: 'severeMechanism',
+      label: 'Severe mechanism of injury',
+      type: 'boolean'
+    }
+  ],
+
+  calculate(v) {
+    if (!v.ageGroup) {
+      return {
+        error: 'Please select the age group.'
+      }
+    }
+
+    if (v.ageGroup === 'under2') {
+
+      const highRisk =
+        v.alteredMentalStatus === true ||
+        v.palpableSkull === true
+
+      const intermediateRisk =
+        v.nonFrontalHematoma === true ||
+        v.loc5sec === true ||
+        v.severeMechanism === true ||
+        v.actingAbnormal === true
+
+      if (highRisk) {
+        return {
+          value: 'CT recommended',
+          unit: 'PECARN',
+          interpretation: 'Higher-risk category',
+          note: 'Age <2 years: altered mental status or palpable skull fracture.'
+        }
+      }
+
+      if (intermediateRisk) {
+        return {
+          value: 'Observation vs CT',
+          unit: 'PECARN',
+          interpretation: 'Intermediate-risk category',
+          note: 'Consider observation versus CT using clinical factors, including multiple findings, worsening symptoms, age <3 months, clinician experience and caregiver preference.'
+        }
+      }
+
+      return {
+        value: 'CT not routinely indicated',
+        unit: 'PECARN',
+        interpretation: 'Very low-risk category',
+        note: 'No PECARN predictor selected for the <2-year rule.'
+      }
+    }
+
+    const highRisk =
+      v.alteredMentalStatus === true ||
+      v.basilarSkull === true
+
+    const intermediateRisk =
+      v.anyLoc === true ||
+      v.vomiting === true ||
+      v.severeMechanism === true ||
+      v.severeHeadache === true
+
+    if (highRisk) {
+      return {
+        value: 'CT recommended',
+        unit: 'PECARN',
+        interpretation: 'Higher-risk category',
+        note: 'Age â‰¥2 years: altered mental status or signs of basilar skull fracture.'
+      }
+    }
+
+    if (intermediateRisk) {
+      return {
+        value: 'Observation vs CT',
+        unit: 'PECARN',
+        interpretation: 'Intermediate-risk category',
+        note: 'Consider observation versus CT using clinical factors and the overall presentation.'
+      }
+    }
+
+    return {
+      value: 'CT not routinely indicated',
+      unit: 'PECARN',
+      interpretation: 'Very low-risk category',
+      note: 'No PECARN predictor selected for the â‰¥2-year rule.'
+    }
+  },
+
+  references: [
+    'Kuppermann N et al. Identification of children at very low risk of clinically-important brain injuries after head trauma. Lancet. 2009.',
+    'PECARN pediatric head trauma prediction rule validation literature.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\neurology\rotterdam.js
+============================================================
+
+const rotterdam = {
+  id: 'rotterdam',
+  name: 'Rotterdam CT Score',
+  shortName: 'Rotterdam CT Score',
+  type: 'score',
+  categoryId: 'neurology',
+  category: 'Neurology',
+  description: 'Rotterdam CT Score from the MedCalc master calculator catalogue.',
+  keywords: ['Rotterdam CT Score', 'Neurology'],
+  aliases: ['Rotterdam CT Score'],
+  inputs: [{id:'score',label:'Rotterdam CT score',type:'number',min:1,max:6,step:1}],
+  calculate(values) {
+    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter Rotterdam score.'}
+    return {value:s,displayValue:String(s),unit:'/ 6',category:'Rotterdam CT score'}
+  },
+  references: ['Original validated neurologic score/classification publication.']
+}
+
+export default rotterdam
+
+============================================================
+FILE: src\calculators\neurology\wfns.js
+============================================================
+
+const wfns={id:'wfns',name:'WFNS Grade',shortName:'WFNS',categoryId:'neurology',description:'World Federation of Neurosurgical Societies grade for SAH.',type:'score',
+inputs:[{id:'gcs',label:'GCS',min:3,max:15},{id:'deficit',label:'Motor deficit?',type:'boolean'}],
+calculate(v){const g=Number(v.gcs);const grade=g===15&&!v.deficit?1:g>=13?2:g>=7?3:g<=6&&!v.deficit?4:5;return{value:grade,unit:'grade',interpretation:`WFNS grade ${grade}`}}
+};export default wfns

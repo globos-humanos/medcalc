@@ -1,65 +1,35 @@
 ﻿const correctedCalcium = {
-  id: 'corrected-calcium',
-  name: 'Corrected Calcium Calculator',
-  shortName: 'Corrected Ca',
-  type: 'calculator',
-  categoryId: 'nephrology',
-  category: 'Nephrology',
-  description: 'Corrects total serum calcium for serum albumin.',
-  keywords: [
-    'corrected calcium',
-    'albumin corrected calcium',
-    'calcium',
-    'hypocalcemia',
-    'hypercalcemia',
-    'albumin'
-  ],
-  aliases: [
-    'corrected calcium',
-    'calcium correction',
-    'albumin corrected calcium'
-  ],
-  inputs: [
-    {
-      id: 'calcium',
-      label: 'Total Calcium',
-      type: 'number',
-      unit: 'mg/dL',
-      min: 0,
-      step: 0.1
-    },
-    {
-      id: 'albumin',
-      label: 'Albumin',
-      type: 'number',
-      unit: 'g/dL',
-      min: 0,
-      step: 0.1
-    }
-  ],
-  calculate(values) {
-    const calcium = Number(values.calcium)
-    const albumin = Number(values.albumin)
+  id:'corrected-calcium',
+  name:'Corrected Calcium',
+  shortName:'Corrected Ca',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Albumin-adjusted total serum calcium.',
+  keywords:['corrected calcium','albumin','calcium'],
 
-    if (
-      !calcium || !albumin ||
-      calcium <= 0 || albumin <= 0
-    ) {
-      return { error: 'Please enter valid calcium and albumin values.' }
-    }
+  inputs:[
+    {id:'calcium',label:'Measured total calcium',type:'number',unit:'mg/dL',min:2,max:20,step:0.1},
+    {id:'albumin',label:'Albumin',type:'number',unit:'g/dL',min:0.5,max:8,step:0.1}
+  ],
 
-    const corrected = calcium + 0.8 * (4 - albumin)
+  calculate(v){
+    const ca=Number(v.calcium)
+    const albumin=Number(v.albumin)
+
+    const value=ca+0.8*(4-albumin)
 
     return {
-      value: corrected,
-      displayValue: corrected.toFixed(1),
-      unit: 'mg/dL',
-      category: 'Albumin-corrected calcium'
+      value,
+      displayValue:value.toFixed(2),
+      unit:'mg/dL',
+      category:'Albumin-corrected calcium',
+      interpretation:`Corrected calcium ≈ ${value.toFixed(2)} mg/dL.`,
+      note:'Albumin correction is an estimate. Ionized calcium may be preferable when clinically important calcium abnormalities are suspected.'
     }
   },
-  references: [
-    'Common clinical correction: corrected calcium = measured calcium + 0.8 × (4.0 − albumin).'
-  ]
+
+  references:['Albumin-corrected calcium equation']
 }
 
 export default correctedCalcium

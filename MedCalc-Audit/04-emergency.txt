@@ -1,0 +1,492 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: EMERGENCY
+============================================================
+
+
+============================================================
+FILE: src\calculators\emergency\air.js
+============================================================
+
+const air={id:'air',name:'AIR Score for Appendicitis',shortName:'AIR',categoryId:'emergency',description:'Appendicitis Inflammatory Response score.',type:'score',
+inputs:[{id:'vomiting',label:'Vomiting?',type:'boolean'},{id:'rlq',label:'Right lower quadrant pain?',type:'boolean'},{id:'rebound',label:'Rebound / muscular defense',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Mild'},{value:2,label:'Moderate'},{value:3,label:'Strong'}],optionsLayout:'stack'},{id:'temp',label:'Temperature ≥38.5°C?',type:'boolean'},{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'neut',label:'Neutrophils',unit:'%',min:0,max:100}],
+calculate(v){const s=(v.vomiting?1:0)+(v.rlq?1:0)+Number(v.rebound)+(v.temp?1:0)+(Number(v.wbc)>=15?2:Number(v.wbc)>=10?1:0)+(Number(v.neut)>=85?2:Number(v.neut)>=70?1:0);return{value:s,unit:'/12',interpretation:s<=4?'Low risk':s<=8?'Intermediate risk':'High risk'}}
+};export default air
+
+============================================================
+FILE: src\calculators\emergency\alvarado.js
+============================================================
+
+const alvarado={id:'alvarado',name:'Alvarado Score',shortName:'Alvarado',categoryId:'emergency',description:'Clinical score for suspected acute appendicitis.',type:'score',
+inputs:[{id:'migration',label:'Migration of pain to right lower quadrant?',type:'boolean'},{id:'anorexia',label:'Anorexia?',type:'boolean'},{id:'nausea',label:'Nausea/vomiting?',type:'boolean'},{id:'tenderness',label:'Right lower quadrant tenderness?',type:'boolean'},{id:'rebound',label:'Rebound tenderness?',type:'boolean'},{id:'temp',label:'Temperature ≥37.3°C?',type:'boolean'},{id:'wbc',label:'WBC >10,000/mm³?',type:'boolean'},{id:'neutrophils',label:'Neutrophilia / left shift?',type:'boolean'}],
+calculate(v){const s=(v.migration?1:0)+(v.anorexia?1:0)+(v.nausea?1:0)+(v.tenderness?2:0)+(v.rebound?1:0)+(v.temp?1:0)+(v.wbc?2:0)+(v.neutrophils?1:0);return{value:s,unit:'/9',interpretation:s<=4?'Low probability':s<=6?'Intermediate probability':'High probability'}}
+};export default alvarado
+
+============================================================
+FILE: src\calculators\emergency\canadian-cspine.js
+============================================================
+
+const cspine={id:'canadian-cspine',name:'Canadian C-Spine Rule',shortName:'Canadian C-Spine',categoryId:'emergency',description:'Cervical-spine imaging decision rule for alert, stable trauma patients.',type:'score',
+inputs:[{id:'highRisk',label:'Any high-risk factor?',type:'boolean'},{id:'lowRisk',label:'At least one low-risk factor allowing safe ROM assessment?',type:'boolean'},{id:'rom',label:'Able to actively rotate neck 45° left and right?',type:'boolean'}],
+calculate(v){const positive=v.highRisk||(!v.lowRisk)||!v.rom;return{value:positive?'Imaging indicated':'No imaging by rule',unit:'result',note:'The Canadian C-Spine Rule applies only to its validated patient population.'}}
+};export default cspine
+
+============================================================
+FILE: src\calculators\emergency\fast.js
+============================================================
+
+const calc = {
+  id: 'fast',
+  name: 'FAST / eFAST Assessment',
+  shortName: 'FAST / eFAST',
+  categoryId: 'emergency',
+  description: 'Focused assessment with sonography for trauma, including extended thoracic assessment.',
+
+  inputs: [
+    {
+      id: 'pericardial',
+      label: 'Pericardial fluid',
+      type: 'boolean'
+    },
+    {
+      id: 'ruq',
+      label: 'Free fluid in right upper quadrant',
+      type: 'boolean'
+    },
+    {
+      id: 'luq',
+      label: 'Free fluid in left upper quadrant',
+      type: 'boolean'
+    },
+    {
+      id: 'pelvis',
+      label: 'Free fluid in pelvis',
+      type: 'boolean'
+    },
+    {
+      id: 'rightChest',
+      label: 'Right thoracic abnormality / pneumothorax',
+      type: 'boolean'
+    },
+    {
+      id: 'leftChest',
+      label: 'Left thoracic abnormality / pneumothorax',
+      type: 'boolean'
+    }
+  ],
+
+  calculate(v) {
+    const abdominalOrPericardial =
+      v.pericardial === true ||
+      v.ruq === true ||
+      v.luq === true ||
+      v.pelvis === true
+
+    const thoracic =
+      v.rightChest === true ||
+      v.leftChest === true
+
+    if (abdominalOrPericardial || thoracic) {
+      return {
+        value: 'Abnormal',
+        unit: 'FAST / eFAST',
+        interpretation:
+          abdominalOrPericardial && thoracic
+            ? 'Positive findings in abdominal/pericardial and thoracic views'
+            : abdominalOrPericardial
+              ? 'Positive FAST finding'
+              : 'Positive eFAST thoracic finding',
+        note: 'This is a structured assessment aid, not a substitute for real-time ultrasound examination or clinical judgment.'
+      }
+    }
+
+    return {
+      value: 'No positive finding selected',
+      unit: 'FAST / eFAST',
+      interpretation: 'No positive finding entered',
+      note: 'A negative FAST/eFAST assessment does not independently exclude injury.'
+    }
+  },
+
+  references: [
+    'Focused Assessment with Sonography in Trauma (FAST).',
+    'Extended FAST (eFAST) trauma ultrasound assessment.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\emergency\iss.js
+============================================================
+
+const iss={id:'iss',name:'Injury Severity Score',shortName:'ISS',categoryId:'emergency',description:'Anatomic trauma severity score using the three most severe AIS injuries from different body regions.',type:'score',
+inputs:[0,1,2,3,4,5].map(i=>({id:`r${i}`,label:`Body region ${i+1} AIS`,min:0,max:6,step:1})),
+calculate(v){const vals=Object.values(v).map(Number).sort((a,b)=>b-a);const s=vals.slice(0,3).reduce((a,b)=>a+b*b,0);return{value:s,unit:'ISS',note:'True ISS requires AIS-coded injuries by body region; entering generic AIS values is an interface simplification.'}}
+};export default iss
+
+============================================================
+FILE: src\calculators\emergency\lrineq.js
+============================================================
+
+const lrinec={id:'lrinec',name:'LRINEC Score',shortName:'LRINEC',categoryId:'emergency',description:'Laboratory Risk Indicator for Necrotizing Fasciitis.',type:'score',
+inputs:[{id:'crp',label:'CRP',unit:'mg/L',min:0,max:1000},{id:'wbc',label:'WBC',unit:'×10⁹/L',min:0,max:100},{id:'hb',label:'Hemoglobin',unit:'g/dL',min:0,max:25,step:0.1},{id:'na',label:'Sodium',unit:'mmol/L',min:80,max:180},{id:'creatinine',label:'Creatinine',unit:'mg/dL',min:0,max:20,step:0.1},{id:'glucose',label:'Glucose',unit:'mg/dL',min:20,max:1000}],
+calculate(v){const crp=Number(v.crp),w=Number(v.wbc),hb=Number(v.hb),na=Number(v.na),cr=Number(v.creatinine),g=Number(v.glucose);const s=(crp>=150?4:0)+(w<15?0:w<=25?1:2)+(hb>13.5?0:hb>=11?1:2)+(na>=135?0:2)+(cr>=1.6?2:0)+(g>180?1:0);return{value:s,unit:'/13',interpretation:s>=8?'High-risk range':s>=6?'Intermediate-risk range':'Low-risk range',note:'LRINEC cannot safely exclude necrotizing infection when low; urgent clinical/surgical assessment takes priority.'}}
+};export default lrinec
+
+============================================================
+FILE: src\calculators\emergency\modified-shock-index.js
+============================================================
+
+const msi={id:'modified-shock-index',name:'Modified Shock Index',shortName:'MSI',categoryId:'emergency',description:'Heart rate divided by mean arterial pressure.',type:'calculation',
+inputs:[{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'map',label:'Mean arterial pressure',unit:'mmHg',min:20,max:250}],
+calculate(v){return{value:Number(v.hr)/Number(v.map),unit:'ratio'}}
+};export default msi
+
+============================================================
+FILE: src\calculators\emergency\nexus.js
+============================================================
+
+const nexus={id:'nexus',name:'NEXUS C-Spine Criteria',shortName:'NEXUS',categoryId:'emergency',description:'Clinical criteria for cervical-spine imaging after trauma.',type:'score',
+inputs:[{id:'midline',label:'Posterior midline cervical tenderness?',type:'boolean'},{id:'intox',label:'Intoxication?',type:'boolean'},{id:'neuro',label:'Focal neurologic deficit?',type:'boolean'},{id:'distracting',label:'Painful distracting injury?',type:'boolean'},{id:'alert',label:'Normal alertness?',type:'boolean'}],
+calculate(v){const positive=v.midline||v.intox||v.neuro||v.distracting||!v.alert;return{value:positive?'NEXUS positive':'NEXUS negative',unit:'result'}}
+};export default nexus
+
+============================================================
+FILE: src\calculators\emergency\niss.js
+============================================================
+
+const niss={id:'niss',name:'New Injury Severity Score',shortName:'NISS',categoryId:'emergency',description:'Squares the three highest AIS injury severities regardless of body region.',type:'score',
+inputs:[0,1,2].map(i=>({id:`ais${i}`,label:`AIS injury ${i+1}`,min:0,max:6,step:1})),
+calculate(v){const s=Object.values(v).map(Number).sort((a,b)=>b-a).slice(0,3).reduce((a,b)=>a+b*b,0);return{value:s,unit:'NISS',note:'Requires AIS-coded injuries.'}}
+};export default niss
+
+============================================================
+FILE: src\calculators\emergency\ottawa-ankle.js
+============================================================
+
+const ankle={id:'ottawa-ankle',name:'Ottawa Ankle Rules',shortName:'Ottawa Ankle',categoryId:'emergency',description:'Assesses need for ankle/foot radiographs after acute injury.',type:'score',
+inputs:[{id:'posteriorMalleolus',label:'Bone tenderness posterior edge/tip of either malleolus?',type:'boolean'},{id:'navicular',label:'Navicular tenderness?',type:'boolean'},{id:'base5',label:'Base of 5th metatarsal tenderness?',type:'boolean'},{id:'walk',label:'Unable to bear weight both immediately and in ED?',type:'boolean'}],
+calculate(v){const positive=v.posteriorMalleolus||v.navicular||v.base5||v.walk;return{value:positive?'Radiography indicated by rule':'No radiography by rule',unit:'result',note:'Apply only to the validated acute ankle/foot injury population.'}}
+};export default ankle
+
+============================================================
+FILE: src\calculators\emergency\ottawa-knee.js
+============================================================
+
+const knee={id:'ottawa-knee',name:'Ottawa Knee Rules',shortName:'Ottawa Knee',categoryId:'emergency',description:'Assesses need for knee radiographs after acute injury.',type:'score',
+inputs:[{id:'age55',label:'Age ≥55?',type:'boolean'},{id:'fibula',label:'Isolated fibular head tenderness?',type:'boolean'},{id:'patella',label:'Patellar tenderness with no other bone tenderness?',type:'boolean'},{id:'flexion',label:'Unable to flex knee to 90°?',type:'boolean'},{id:'weight',label:'Unable to bear weight for four steps both immediately and in ED?',type:'boolean'}],
+calculate(v){const positive=Object.values(v).some(Boolean);return{value:positive?'Radiography indicated by rule':'No radiography by rule',unit:'result'}}
+};export default knee
+
+============================================================
+FILE: src\calculators\emergency\perc.js
+============================================================
+
+const perc = {
+  id: 'perc',
+  name: 'PERC Rule for Pulmonary Embolism',
+  shortName: 'PERC',
+  type: 'score',
+  categoryId: 'emergency',
+  category: 'Emergency',
+  description: 'Applies the eight Pulmonary Embolism Rule-out Criteria to patients already judged low risk for PE.',
+  keywords: ['PERC', 'pulmonary embolism', 'PE', 'rule out', 'VTE'],
+  aliases: ['PERC rule', 'Pulmonary Embolism Rule-out Criteria'],
+  inputs: [
+    { id: 'age50', label: 'Age ≥50 years', type: 'boolean' },
+    { id: 'hr100', label: 'Heart rate ≥100/min', type: 'boolean' },
+    { id: 'o2low', label: 'Room-air O₂ saturation <95%', type: 'boolean' },
+    { id: 'legSwelling', label: 'Unilateral leg swelling', type: 'boolean' },
+    { id: 'hemoptysis', label: 'Hemoptysis', type: 'boolean' },
+    { id: 'surgeryTrauma', label: 'Recent surgery or trauma requiring general anesthesia within 4 weeks', type: 'boolean' },
+    { id: 'priorVte', label: 'Prior PE or DVT', type: 'boolean' },
+    { id: 'hormone', label: 'Hormone use', type: 'boolean' }
+  ],
+  calculate(values) {
+    const ids = ['age50', 'hr100', 'o2low', 'legSwelling', 'hemoptysis', 'surgeryTrauma', 'priorVte', 'hormone']
+    if (ids.some(id => typeof values[id] !== 'boolean')) return { error: 'Please answer all eight PERC criteria.' }
+
+    const score = ids.reduce((sum, id) => sum + (values[id] ? 1 : 0), 0)
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: '/ 8 criteria',
+      category: score === 0 ? 'PERC negative' : 'PERC positive'
+    }
+  },
+  references: [
+    'Kline JA, et al. Clinical criteria to prevent unnecessary diagnostic testing in emergency department patients with suspected pulmonary embolism. J Thromb Haemost. 2004;2:1247–1255.',
+    'MDCalc — PERC Rule for Pulmonary Embolism.'
+  ]
+}
+
+export default perc
+
+============================================================
+FILE: src\calculators\emergency\revised-geneva.js
+============================================================
+
+const revisedGeneva = {
+  id: 'revised-geneva',
+  name: 'Revised Geneva Score for Pulmonary Embolism',
+  shortName: 'Revised Geneva',
+  type: 'score',
+  categoryId: 'emergency',
+  category: 'Emergency',
+  description: 'Calculates the revised Geneva pretest probability score for pulmonary embolism using objective clinical criteria.',
+  keywords: ['Geneva', 'revised Geneva', 'PE', 'pulmonary embolism', 'VTE'],
+  aliases: ['Revised Geneva Score', 'Geneva PE score'],
+  inputs: [
+    { id: 'age65', label: 'Age >65 years', type: 'boolean' },
+    { id: 'previousVte', label: 'Previous DVT or PE', type: 'boolean' },
+    { id: 'surgeryFracture', label: 'Surgery under general anesthesia or lower-limb fracture within 1 month', type: 'boolean' },
+    { id: 'malignancy', label: 'Active malignant condition', type: 'boolean' },
+    { id: 'legPain', label: 'Unilateral lower-limb pain', type: 'boolean' },
+    { id: 'hemoptysis', label: 'Hemoptysis', type: 'boolean' },
+    {
+      id: 'heartRate',
+      label: 'Heart Rate',
+      type: 'choice',
+      options: [
+        { value: '0', label: '<75/min' },
+        { value: '3', label: '75–94/min' },
+        { value: '5', label: '≥95/min' }
+      ]
+    },
+    { id: 'painEdema', label: 'Pain on lower-limb palpation and unilateral edema', type: 'boolean' }
+  ],
+  calculate(values) {
+    const boolIds = ['age65', 'previousVte', 'surgeryFracture', 'malignancy', 'legPain', 'hemoptysis', 'painEdema']
+    if (boolIds.some(id => typeof values[id] !== 'boolean') || !values.heartRate) {
+      return { error: 'Please complete all Revised Geneva criteria.' }
+    }
+
+    const score =
+      (values.age65 ? 1 : 0) +
+      (values.previousVte ? 3 : 0) +
+      (values.surgeryFracture ? 2 : 0) +
+      (values.malignancy ? 2 : 0) +
+      (values.legPain ? 3 : 0) +
+      (values.hemoptysis ? 2 : 0) +
+      Number(values.heartRate) +
+      (values.painEdema ? 4 : 0)
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: 'points',
+      category:
+        score <= 3 ? 'Low pretest probability' :
+        score <= 10 ? 'Intermediate pretest probability' :
+        'High pretest probability'
+    }
+  },
+  references: [
+    'Le Gal G, et al. Prediction of pulmonary embolism in the emergency department: the revised Geneva score. Ann Intern Med. 2006;144:165–171.',
+    'MDCalc — Geneva Score (Revised) for Pulmonary Embolism.'
+  ]
+}
+
+export default revisedGeneva
+
+============================================================
+FILE: src\calculators\emergency\ripasa.js
+============================================================
+
+const ripasa={id:'ripasa',name:'RIPASA Score',shortName:'RIPASA',categoryId:'emergency',description:'Appendicitis diagnostic score.',type:'score',
+inputs:[{id:'male',label:'Male sex?',type:'boolean'},{id:'age40',label:'Age <40 years?',type:'boolean'},{id:'foreign',label:'Foreign visitor / non-Asian population?',type:'boolean'},{id:'painR',label:'Pain right iliac fossa?',type:'boolean'},{id:'migration',label:'Migration of pain?',type:'boolean'},{id:'anorexia',label:'Anorexia?',type:'boolean'},{id:'nausea',label:'Nausea/vomiting?',type:'boolean'},{id:'duration',label:'Symptoms <48 hours?',type:'boolean'},{id:'tender',label:'RLQ tenderness?',type:'boolean'},{id:'guarding',label:'Guarding?',type:'boolean'},{id:'rebound',label:'Rebound tenderness?',type:'boolean'},{id:'rovsing',label:'Rovsing sign?',type:'boolean'},{id:'fever',label:'Fever?',type:'boolean'},{id:'raisedWbc',label:'Raised WBC?',type:'boolean'},{id:'neut',label:'Neutrophilia?',type:'boolean'},{id:'urine',label:'Urine analysis normal?',type:'boolean'}],
+calculate(v){const s=(v.male?1:0)+(v.age40?1:0)+(v.foreign?1:0)+(v.painR?0.5:0)+(v.migration?0.5:0)+(v.anorexia?1:0)+(v.nausea?1:0)+(v.duration?1:0)+(v.tender?1:0)+(v.guarding?2:0)+(v.rebound?1:0)+(v.rovsing?2:0)+(v.fever?1:0)+(v.raisedWbc?1:0)+(v.neut?1:0)+(v.urine?1:0);return{value:s,unit:'points',note:'RIPASA has population- and implementation-specific point definitions; validate the exact local version before formal use.'}}
+};export default ripasa
+
+============================================================
+FILE: src\calculators\emergency\rts.js
+============================================================
+
+const rts={id:'rts',name:'Revised Trauma Score',shortName:'RTS',categoryId:'emergency',description:'Physiologic trauma score from GCS, systolic BP and respiratory rate.',type:'score',
+inputs:[{id:'gcs',label:'GCS',min:3,max:15},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:0,max:300},{id:'rr',label:'Respiratory rate',unit:'/min',min:0,max:80}],
+calculate(v){const g=Number(v.gcs),s=Number(v.sbp),r=Number(v.rr);const gc=g===15?4:g>=13?3:g>=9?2:g>=6?1:0;const sc=s>=90?4:s>=76?3:s>=50?2:s>=1?1:0;const rc=r>=10&&r<=29?4:r>=30?3:r>=6?2:r>=1?1:0;const value=0.9368*gc+0.7326*sc+0.2908*rc;return{value,unit:'RTS',note:'This is the weighted RTS physiologic score; TRISS uses RTS with age and injury severity.'}}
+};export default rts
+
+============================================================
+FILE: src\calculators\emergency\shock-index.js
+============================================================
+
+const shock={id:'shock-index',name:'Shock Index',shortName:'Shock Index',categoryId:'emergency',description:'Heart rate divided by systolic blood pressure.',type:'calculation',
+inputs:[{id:'hr',label:'Heart rate',unit:'/min',min:20,max:250},{id:'sbp',label:'Systolic BP',unit:'mmHg',min:30,max:300}],
+calculate(v){return{value:Number(v.hr)/Number(v.sbp),unit:'ratio',note:'Interpret in clinical context; thresholds vary by population.'}}
+};export default shock
+
+============================================================
+FILE: src\calculators\emergency\triss.js
+============================================================
+
+const triss={id:'triss',name:'TRISS Framework',shortName:'TRISS',categoryId:'emergency',description:'Trauma outcome framework combining RTS, ISS, age and mechanism.',type:'calculation',
+inputs:[{id:'rts',label:'RTS',min:0,max:7.84,step:0.01},{id:'iss',label:'ISS',min:0,max:75},{id:'age',label:'Age',unit:'years',min:0,max:120},{id:'blunt',label:'Blunt trauma?',type:'boolean'}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'TRISS survival probability requires mechanism-specific published coefficients and model version; this screen does not invent a probability.'}}
+};export default triss
+
+============================================================
+FILE: src\calculators\emergency\wells-dvt.js
+============================================================
+
+const wellsDvt = {
+  id: 'wells-dvt',
+  name: 'Wells Criteria for DVT',
+  shortName: 'Wells DVT',
+  type: 'score',
+  categoryId: 'emergency',
+  category: 'Emergency',
+  description: 'Calculates the Wells clinical score for pretest probability of lower-extremity DVT.',
+  keywords: ['Wells', 'DVT', 'deep vein thrombosis', 'VTE'],
+  aliases: ['Wells DVT', 'Wells criteria DVT'],
+  inputs: [
+    { id: 'cancer', label: 'Active cancer', type: 'boolean' },
+    { id: 'bedriddenSurgery', label: 'Bedridden >3 days or major surgery within 12 weeks', type: 'boolean' },
+    { id: 'calfSwelling', label: 'Calf swelling >3 cm compared with the other leg', type: 'boolean' },
+    { id: 'collateralVeins', label: 'Collateral superficial veins, nonvaricose', type: 'boolean' },
+    { id: 'entireLeg', label: 'Entire leg swollen', type: 'boolean' },
+    { id: 'tenderness', label: 'Localized tenderness along deep venous system', type: 'boolean' },
+    { id: 'pittingEdema', label: 'Pitting edema confined to symptomatic leg', type: 'boolean' },
+    { id: 'paralysis', label: 'Paralysis, paresis, or recent plaster immobilization of lower extremity', type: 'boolean' },
+    { id: 'previousDvt', label: 'Previously documented DVT', type: 'boolean' },
+    { id: 'alternativeDiagnosis', label: 'Alternative diagnosis as likely or more likely than DVT', type: 'boolean' }
+  ],
+  calculate(values) {
+    const ids = ['cancer', 'bedriddenSurgery', 'calfSwelling', 'collateralVeins', 'entireLeg', 'tenderness', 'pittingEdema', 'paralysis', 'previousDvt', 'alternativeDiagnosis']
+    if (ids.some(id => typeof values[id] !== 'boolean')) return { error: 'Please answer all Wells DVT criteria.' }
+
+    let score = 0
+    ids.slice(0, 9).forEach(id => {
+      if (values[id]) score += 1
+    })
+    if (values.alternativeDiagnosis) score -= 2
+
+    return {
+      value: score,
+      displayValue: String(score),
+      unit: 'points',
+      category:
+        score <= 0 ? 'DVT unlikely' :
+        score <= 2 ? 'Moderate-risk range' :
+        'DVT likely'
+    }
+  },
+  references: [
+    'Wells PS, et al. Evaluation of D-dimer in the diagnosis of suspected deep-vein thrombosis. N Engl J Med. 2003;349:1227–1235.',
+    'MDCalc — Wells Criteria for DVT.'
+  ]
+}
+
+export default wellsDvt
+
+============================================================
+FILE: src\calculators\emergency\wells-pe.js
+============================================================
+
+const wellsPe = {
+  id: 'wells-pe',
+  name: 'Wells Criteria for Pulmonary Embolism',
+  shortName: 'Wells PE',
+  type: 'score',
+  categoryId: 'emergency',
+  category: 'Emergency',
+  description: 'Estimates pre-test probability of pulmonary embolism using the Wells criteria.',
+  keywords: [
+    'Wells',
+    'Wells PE',
+    'pulmonary embolism',
+    'PE',
+    'DVT',
+    'hemoptysis',
+    'malignancy',
+    'tachycardia'
+  ],
+  aliases: [
+    'Wells PE',
+    'Wells criteria',
+    'Wells score pulmonary embolism'
+  ],
+  inputs: [
+    {
+      id: 'dvtSigns',
+      label: 'Clinical signs of DVT',
+      type: 'boolean'
+    },
+    {
+      id: 'peLikely',
+      label: 'PE is the most likely diagnosis or equally likely',
+      type: 'boolean'
+    },
+    {
+      id: 'heartRate',
+      label: 'Heart rate >100 bpm',
+      type: 'boolean'
+    },
+    {
+      id: 'immobilization',
+      label: 'Immobilization =3 days or surgery in previous 4 weeks',
+      type: 'boolean'
+    },
+    {
+      id: 'previousVte',
+      label: 'Previous objectively diagnosed PE or DVT',
+      type: 'boolean'
+    },
+    {
+      id: 'hemoptysis',
+      label: 'Hemoptysis',
+      type: 'boolean'
+    },
+    {
+      id: 'malignancy',
+      label: 'Malignancy treated within 6 months or palliative',
+      type: 'boolean'
+    }
+  ],
+  calculate(values) {
+    const fields = [
+      'dvtSigns',
+      'peLikely',
+      'heartRate',
+      'immobilization',
+      'previousVte',
+      'hemoptysis',
+      'malignancy'
+    ]
+
+    if (fields.some(field => values[field] === undefined)) {
+      return { error: 'Please answer every Wells criterion.' }
+    }
+
+    let score = 0
+
+    if (values.dvtSigns) score += 3
+    if (values.peLikely) score += 3
+    if (values.heartRate) score += 1.5
+    if (values.immobilization) score += 1.5
+    if (values.previousVte) score += 1.5
+    if (values.hemoptysis) score += 1
+    if (values.malignancy) score += 1
+
+    const interpretation =
+      score > 4
+        ? 'PE likely'
+        : 'PE unlikely'
+
+    return {
+      value: score,
+      displayValue: Number.isInteger(score)
+        ? String(score)
+        : score.toFixed(1),
+      unit: 'points',
+      category: interpretation
+    }
+  },
+  references: [
+    'Wells PS, et al. Ann Intern Med. 2001;135(2):98-107.',
+    'MDCalc. Wells Criteria for Pulmonary Embolism.'
+  ]
+}
+
+export default wellsPe

@@ -1,19 +1,52 @@
-const sofa = {
+﻿const sofa = {
   id: 'sofa',
   name: 'SOFA Score',
   shortName: 'SOFA',
   type: 'score',
   categoryId: 'icu',
   category: 'ICU',
-  description: 'Calculates the classic Sequential Organ Failure Assessment score across six organ systems.',
-  keywords: ['SOFA', 'sequential organ failure assessment', 'sepsis', 'organ dysfunction', 'ICU'],
-  aliases: ['sequential organ failure assessment'],
+  description: 'Sequential Organ Failure Assessment score across six organ systems.',
+  keywords: ['SOFA', 'Sequential Organ Failure Assessment', 'sepsis', 'organ failure'],
+  aliases: ['Sequential Organ Failure Assessment'],
+
   inputs: [
-    { id: 'pao2', label: 'PaO₂', type: 'number', unit: 'mmHg', step: 1 },
-    { id: 'fio2', label: 'FiO₂', type: 'number', unit: '%', min: 21, max: 100, step: 1 },
-    { id: 'respSupport', label: 'Mechanical ventilation / qualifying respiratory support', type: 'boolean' },
-    { id: 'platelets', label: 'Platelets', type: 'number', unit: '×10³/µL', step: 1 },
-    { id: 'bilirubin', label: 'Total Bilirubin', type: 'number', unit: 'mg/dL', min: 0, step: 0.1 },
+    {
+      id: 'pao2',
+      label: 'PaO₂',
+      unit: 'mmHg',
+      min: 0,
+      max: 800,
+      step: 1
+    },
+    {
+      id: 'fio2',
+      label: 'FiO₂',
+      unit: '%',
+      min: 21,
+      max: 100,
+      step: 1
+    },
+    {
+      id: 'respSupport',
+      label: 'Mechanical ventilation / qualifying respiratory support?',
+      type: 'boolean'
+    },
+    {
+      id: 'platelets',
+      label: 'Platelets',
+      unit: '×10³/µL',
+      min: 0,
+      max: 1000,
+      step: 1
+    },
+    {
+      id: 'bilirubin',
+      label: 'Total bilirubin',
+      unit: 'mg/dL',
+      min: 0,
+      max: 50,
+      step: 0.1
+    },
     {
       id: 'cardiovascular',
       label: 'Cardiovascular status',
@@ -27,25 +60,62 @@ const sofa = {
       ],
       optionsLayout: 'stack'
     },
-    { id: 'gcs', label: 'Glasgow Coma Scale', type: 'number', min: 3, max: 15, step: 1 },
-    { id: 'creatinine', label: 'Creatinine', type: 'number', unit: 'mg/dL', min: 0, step: 0.1 },
-    { id: 'urineOutput', label: 'Urine output over 24 hours (optional)', type: 'number', unit: 'mL/day', min: 0, step: 1 }
+    {
+      id: 'gcs',
+      label: 'Glasgow Coma Scale',
+      min: 3,
+      max: 15,
+      step: 1
+    },
+    {
+      id: 'creatinine',
+      label: 'Creatinine',
+      unit: 'mg/dL',
+      min: 0,
+      max: 20,
+      step: 0.1
+    },
+    {
+      id: 'urineOutput',
+      label: 'Urine output over 24 hours',
+      unit: 'mL/day',
+      min: 0,
+      max: 10000,
+      step: 1
+    }
   ],
+
   calculate(values) {
     const n = id => Number(values[id])
-    const required = ['pao2', 'fio2', 'platelets', 'bilirubin', 'gcs', 'creatinine']
-    if (!values.respSupport && values.respSupport !== false) return { error: 'Please specify respiratory support.' }
-    if (!values.cardiovascular || required.some(id => !Number.isFinite(n(id)))) {
-      return { error: 'Please complete all required SOFA inputs.' }
+
+    const required = [
+      'pao2',
+      'fio2',
+      'platelets',
+      'bilirubin',
+      'gcs',
+      'creatinine',
+      'urineOutput'
+    ]
+
+    if (
+      required.some(id => !Number.isFinite(n(id))) ||
+      values.respSupport === undefined ||
+      !values.cardiovascular
+    ) {
+      return {
+        error: 'Please complete all SOFA inputs.'
+      }
     }
 
-    const ratio = n('pao2') / (n('fio2') / 100)
+    const pfRatio =
+      n('pao2') / (n('fio2') / 100)
 
     const respiratory =
-      ratio < 100 && values.respSupport ? 4 :
-      ratio < 200 && values.respSupport ? 3 :
-      ratio < 300 ? 2 :
-      ratio < 400 ? 1 : 0
+      pfRatio < 100 && values.respSupport ? 4 :
+      pfRatio < 200 && values.respSupport ? 3 :
+      pfRatio <= 300 ? 2 :
+      pfRatio <= 400 ? 1 : 0
 
     const coagulation =
       n('platelets') < 20 ? 4 :
@@ -59,7 +129,8 @@ const sofa = {
       n('bilirubin') >= 2 ? 2 :
       n('bilirubin') >= 1.2 ? 1 : 0
 
-    const cardiovascular = Number(values.cardiovascular)
+    const cardiovascular =
+      Number(values.cardiovascular)
 
     const cns =
       n('gcs') < 6 ? 4 :
@@ -67,22 +138,21 @@ const sofa = {
       n('gcs') <= 12 ? 2 :
       n('gcs') <= 14 ? 1 : 0
 
-    const urine = values.urineOutput === '' || values.urineOutput == null
-      ? null
-      : n('urineOutput')
-
-    const renalByCr =
+    const renalByCreatinine =
       n('creatinine') >= 5 ? 4 :
       n('creatinine') >= 3.5 ? 3 :
       n('creatinine') >= 2 ? 2 :
       n('creatinine') >= 1.2 ? 1 : 0
 
     const renalByUrine =
-      Number.isFinite(urine)
-        ? (urine < 200 ? 4 : urine < 500 ? 3 : 0)
-        : 0
+      n('urineOutput') < 200 ? 4 :
+      n('urineOutput') < 500 ? 3 : 0
 
-    const renal = Math.max(renalByCr, renalByUrine)
+    const renal =
+      Math.max(
+        renalByCreatinine,
+        renalByUrine
+      )
 
     const total =
       respiratory +
@@ -94,14 +164,17 @@ const sofa = {
 
     return {
       value: total,
-      displayValue: String(total),
-      unit: '/ 24 points',
-      category: `Resp ${respiratory} • Coag ${coagulation} • Liver ${liver} • CV ${cardiovascular} • CNS ${cns} • Renal ${renal}`
+      displayValue: `${total}/24`,
+      unit: 'points',
+      category:
+        `Resp ${respiratory} • Coag ${coagulation} • Liver ${liver} • CV ${cardiovascular} • CNS ${cns} • Renal ${renal}`,
+      note:
+        'SOFA quantifies dysfunction across six organ systems. The score itself is not an individual mortality probability.'
     }
   },
+
   references: [
-    'Vincent JL, et al. The SOFA (Sepsis-related Organ Failure Assessment) score. Intensive Care Med. 1996;22:707–710.',
-    'Merck Manual Professional Edition — Sequential Organ Failure Assessment (SOFA) Score.'
+    'Vincent JL, et al. The SOFA (Sepsis-related Organ Failure Assessment) score. Intensive Care Med. 1996;22:707–710.'
   ]
 }
 

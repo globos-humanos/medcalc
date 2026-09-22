@@ -1,19 +1,32 @@
 ﻿const calciumPhosphate = {
-  id: 'calciumPhosphate',
-  name: 'Calcium–Phosphate Product',
-  shortName: 'Calcium–Phosphate Product',
-  type: 'score',
-  categoryId: 'nephrology',
-  category: 'Nephrology',
-  description: 'Calcium–Phosphate Product from the MedCalc master calculator catalogue.',
-  keywords: ['Calcium–Phosphate Product', 'Nephrology'],
-  aliases: ['Calcium–Phosphate Product'],
-  inputs: [{id:'calcium',label:'Calcium',type:'number',unit:'mg/dL',min:0,step:0.1},{id:'phosphate',label:'Phosphate',type:'number',unit:'mg/dL',min:0,step:0.1}],
-  calculate(values) {
-    const c=Number(values.calcium),p=Number(values.phosphate); if(![c,p].every(Number.isFinite)) return {error:'Enter calcium and phosphate.'}
-    const v=c*p; return {value:v,displayValue:v.toFixed(1),unit:'mg²/dL²',category:'Ca × phosphate product'}
+  id:'calcium-phosphate-product',
+  name:'Calcium–Phosphate Product',
+  shortName:'Ca × P',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Product of serum calcium and phosphate concentrations.',
+  keywords:['calcium phosphate product','CKD-MBD'],
+
+  inputs:[
+    {id:'calcium',label:'Calcium',type:'number',unit:'mg/dL',min:0,max:20,step:0.1},
+    {id:'phosphate',label:'Phosphate',type:'number',unit:'mg/dL',min:0,max:20,step:0.1}
+  ],
+
+  calculate(v){
+    const value=Number(v.calcium)*Number(v.phosphate)
+
+    return {
+      value,
+      displayValue:value.toFixed(1),
+      unit:'mg²/dL²',
+      category:'Calcium × phosphate product',
+      interpretation:`Ca × P = ${value.toFixed(1)} mg²/dL².`,
+      note:'The calcium-phosphate product is a derived laboratory measure and should not be interpreted as a standalone treatment target.'
+    }
   },
-  references: ['Standard renal/electrolyte equation reference.']
+
+  references:['Calcium-phosphate product']
 }
 
 export default calciumPhosphate

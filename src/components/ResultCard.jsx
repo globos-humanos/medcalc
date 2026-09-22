@@ -1,4 +1,4 @@
-function ResultCard({ result }) {
+﻿function ResultCard({ result }) {
   if (!result) {
     return null
   }
@@ -6,7 +6,13 @@ function ResultCard({ result }) {
   if (result.error) {
     return (
       <div className="result-card error">
-        {result.error}
+        <div className="result-label">
+          Unable to calculate
+        </div>
+
+        <div className="result-error-message">
+          {result.error}
+        </div>
       </div>
     )
   }
@@ -17,9 +23,9 @@ function ResultCard({ result }) {
     result.score ??
     ''
 
-  const interpretation =
-    result.interpretation ??
+  const meaning =
     result.category ??
+    result.interpretation ??
     null
 
   return (
@@ -39,15 +45,34 @@ function ResultCard({ result }) {
         </div>
       )}
 
-      {interpretation && (
-        <div className="result-category">
-          {interpretation}
+      {meaning && (
+        <div className="result-meaning">
+          <span className="result-section-label">
+            Meaning
+          </span>
+
+          <div className="result-category">
+            {meaning}
+          </div>
         </div>
       )}
 
+      {result.interpretation &&
+        result.interpretation !== meaning && (
+          <div className="result-interpretation">
+            {result.interpretation}
+          </div>
+        )}
+
       {result.note && (
         <div className="result-note">
-          {result.note}
+          <span className="result-section-label">
+            Clinical note
+          </span>
+
+          <p>
+            {result.note}
+          </p>
         </div>
       )}
 

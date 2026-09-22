@@ -1,0 +1,487 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: SURGERY
+============================================================
+
+
+============================================================
+FILE: src\calculators\surgery\ariscat.js
+============================================================
+
+const ariscat={id:'ariscat',name:'ARISCAT Score',shortName:'ARISCAT',categoryId:'surgery',description:'Risk of postoperative pulmonary complications.',type:'score',
+inputs:[{id:'age',label:'Age',type:'choice',options:[{value:0,label:'<51'},{value:3,label:'51–80'},{value:16,label:'>80'}]},{id:'spo2',label:'Preoperative SpO₂',type:'choice',options:[{value:0,label:'≥96%'},{value:8,label:'91–95%'},{value:24,label:'≤90%'}]},{id:'respInfection',label:'Respiratory infection in last month?',type:'boolean'},{id:'anemia',label:'Preoperative hemoglobin ≤10 g/dL?',type:'boolean'},{id:'incision',label:'Surgical incision',type:'choice',options:[{value:0,label:'Peripheral'},{value:8,label:'Upper abdominal'},{value:15,label:'Intrathoracic'}],optionsLayout:'stack'},{id:'duration',label:'Surgery duration',type:'choice',options:[{value:0,label:'<2 h'},{value:16,label:'2–3 h'},{value:23,label:'>3 h'}]},{id:'emergency',label:'Emergency surgery?',type:'boolean'}],
+calculate(v){const s=Number(v.age)+Number(v.spo2)+(v.respInfection?17:0)+(v.anemia?11:0)+Number(v.incision)+Number(v.duration)+(v.emergency?8:0);return{value:s,unit:'points',interpretation:s<26?'Low risk':s<45?'Intermediate risk':'High risk'}}
+};export default ariscat
+
+============================================================
+FILE: src\calculators\surgery\asa.js
+============================================================
+
+const asa={id:'asa',name:'ASA Physical Status',shortName:'ASA',categoryId:'surgery',description:'Preoperative physical-status classification.',type:'score',
+inputs:[{id:'class',label:'Physical status',type:'choice',options:[{value:1,label:'I — Healthy patient'},{value:2,label:'II — Mild systemic disease'},{value:3,label:'III — Severe systemic disease'},{value:4,label:'IV — Severe disease that is a constant threat to life'},{value:5,label:'V — Moribund, not expected to survive without operation'},{value:6,label:'VI — Brain-dead organ donor'}],optionsLayout:'stack'},{id:'emergency',label:'Emergency procedure?',type:'boolean'}],
+calculate(v){return{value:Number(v.class),unit:`${v.emergency?'E ':''}ASA`,interpretation:`ASA ${v.class}${v.emergency?'E':''}`}}
+};export default asa
+
+============================================================
+FILE: src\calculators\surgery\frailty.js
+============================================================
+
+const calc={id:'clinical-frailty-scale',name:'Clinical Frailty Scale',shortName:'CFS',categoryId:'surgery',description:'Clinical frailty grading from very fit to terminally ill.',type:'score',
+inputs:[{id:'grade',label:'Frailty category',type:'choice',options:[{value:1,label:'1 — Very fit'},{value:2,label:'2 — Well'},{value:3,label:'3 — Managing well'},{value:4,label:'4 — Vulnerable'},{value:5,label:'5 — Mildly frail'},{value:6,label:'6 — Moderately frail'},{value:7,label:'7 — Severely frail'},{value:8,label:'8 — Very severely frail'},{value:9,label:'9 — Terminally ill'}],optionsLayout:'stack'}],
+calculate(v){return{value:Number(v.grade),unit:'CFS',interpretation:`CFS ${v.grade}`}}
+};export default calc
+
+============================================================
+FILE: src\calculators\surgery\gupta-mica.js
+============================================================
+
+const surgeryCoefficients={hernia:0,anorectal:-0.16,aortic:1.60,bariatric:-0.25,brain:1.40,breast:-1.61,cardiac:1.01,ent:0.71,foregut:1.39,gbaas:0.59,intestinal:1.14,neck:0.18,obgyn:0.76,orthopedic:0.80,otherAbdomen:1.13,peripheral:0.86,skin:0.54,spine:0.21,thoracic:0.40,vein:-1.09,urology:-0.26};
+const calc={
+ id:'gupta-mica',name:'Gupta MICA Risk Model',shortName:'Gupta MICA',categoryId:'surgery',
+ description:'Published Gupta perioperative myocardial infarction/cardiac arrest logistic model.',type:'score',
+ inputs:[
+  {id:'age',label:'Age',unit:'years',min:18,max:120},
+  {id:'functional',label:'Functional status',type:'choice',options:[{value:0,label:'Independent'},{value:0.65,label:'Partially dependent'},{value:1.03,label:'Totally dependent'}],optionsLayout:'stack'},
+  {id:'asa',label:'ASA physical status',type:'choice',options:[{value:-5.17,label:'I'},{value:-3.29,label:'II'},{value:-1.92,label:'III'},{value:-0.95,label:'IV'},{value:0,label:'V'}],optionsLayout:'stack'},
+  {id:'creatinine',label:'Preoperative creatinine >1.5 mg/dL?',type:'boolean'},
+  {id:'surgery',label:'Procedure category',type:'choice',options:[
+   {value:'hernia',label:'Hernia repair'},{value:'anorectal',label:'Anorectal'},{value:'aortic',label:'Aortic'},{value:'bariatric',label:'Bariatric'},
+   {value:'brain',label:'Brain'},{value:'breast',label:'Breast'},{value:'cardiac',label:'Cardiac'},{value:'ent',label:'ENT'},
+   {value:'foregut',label:'Foregut / HPB'},{value:'gbaas',label:'Gallbladder / appendix / adrenal / spleen'},{value:'intestinal',label:'Intestinal'},
+   {value:'neck',label:'Neck / thyroid / parathyroid'},{value:'obgyn',label:'Obstetric / gynecologic'},{value:'orthopedic',label:'Orthopedic'},
+   {value:'otherAbdomen',label:'Other abdominal'},{value:'peripheral',label:'Peripheral vascular'},{value:'skin',label:'Skin'},
+   {value:'spine',label:'Spine'},{value:'thoracic',label:'Thoracic non-cardiac'},{value:'vein',label:'Vein'},{value:'urology',label:'Urology'}
+  ],optionsLayout:'stack'}
+ ],
+ calculate(v){const x=-5.25+0.02*Number(v.age)+Number(v.functional||0)+Number(v.asa||0)+(v.creatinine?0.61:0)+(surgeryCoefficients[v.surgery]??0);const risk=100*Math.exp(x)/(1+Math.exp(x));return{value:risk,unit:'%',interpretation:`Predicted 30-day MICA risk: ${risk.toFixed(2)}%`}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\surgery\must.js
+============================================================
+
+const must={id:'must',name:'MUST Malnutrition Universal Screening Tool',shortName:'MUST',categoryId:'surgery',description:'Malnutrition screening tool using BMI, weight loss and acute disease effect.',type:'score',
+inputs:[{id:'bmi',label:'BMI',type:'choice',options:[{value:0,label:'≥20'},{value:1,label:'18.5–19.9'},{value:2,label:'<18.5'}]},{id:'loss',label:'Unplanned weight loss in past 3–6 months',type:'choice',options:[{value:0,label:'<5%'},{value:1,label:'5–10%'},{value:2,label:'>10%'}]},{id:'acute',label:'Acute disease effect / no nutritional intake >5 days?',type:'boolean'}],
+calculate(v){const s=Number(v.bmi)+Number(v.loss)+(v.acute?2:0);return{value:s,unit:'points',interpretation:s===0?'Low risk':s===1?'Medium risk':'High risk'}}
+};export default must
+
+============================================================
+FILE: src\calculators\surgery\nrs2002.js
+============================================================
+
+const nrs={id:'nrs2002',name:'NRS-2002',shortName:'NRS-2002',categoryId:'surgery',description:'Nutritional risk screening in hospitalized adults.',type:'score',
+inputs:[{id:'nutrition',label:'Impaired nutritional status',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Mild'},{value:2,label:'Moderate'},{value:3,label:'Severe'}],optionsLayout:'stack'},{id:'severity',label:'Disease severity / increased nutritional requirements',type:'choice',options:[{value:0,label:'None'},{value:1,label:'Mild'},{value:2,label:'Moderate'},{value:3,label:'Severe'}],optionsLayout:'stack'},{id:'age',label:'Age ≥70?',type:'boolean'}],
+calculate(v){const s=Number(v.nutrition)+Number(v.severity)+(v.age?1:0);return{value:s,unit:'points',interpretation:s>=3?'Nutritional risk':'Not at risk by NRS-2002 threshold'}}
+};export default nrs
+
+============================================================
+FILE: src\calculators\surgery\possums.js
+============================================================
+
+const calc = {
+  id: 'possums',
+  name: 'POSSUM',
+  shortName: 'POSSUM',
+  categoryId: 'surgery',
+  description: 'Physiological and Operative Severity Score for the Enumeration of Mortality and Morbidity.',
+
+  inputs: [
+    {
+      id: 'age',
+      label: 'Age',
+      type: 'number',
+      unit: 'years',
+      min: 0,
+      max: 120,
+      step: 1
+    },
+    {
+      id: 'cardiac',
+      label: 'Cardiac status',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'Normal' },
+        { value: 2, label: 'Cardiac drugs / steroids' },
+        { value: 4, label: 'Peripheral edema / warfarin' },
+        { value: 8, label: 'Raised JVP / cardiomegaly' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'respiratory',
+      label: 'Respiratory status',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'Normal' },
+        { value: 2, label: 'Dyspnea on exertion / mild COPD' },
+        { value: 4, label: 'Limiting dyspnea / moderate COPD' },
+        { value: 8, label: 'Dyspnea at rest / fibrosis or consolidation' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'sbp',
+      label: 'Systolic BP',
+      type: 'number',
+      unit: 'mmHg',
+      step: 1
+    },
+    {
+      id: 'pulse',
+      label: 'Pulse',
+      type: 'number',
+      unit: 'beats/min',
+      step: 1
+    },
+    {
+      id: 'gcs',
+      label: 'GCS',
+      type: 'number',
+      min: 3,
+      max: 15,
+      step: 1
+    },
+    {
+      id: 'hemoglobin',
+      label: 'Hemoglobin',
+      type: 'number',
+      unit: 'g/dL',
+      step: 0.1
+    },
+    {
+      id: 'wbc',
+      label: 'White cell count',
+      type: 'number',
+      unit: '×10³/µL',
+      step: 0.1
+    },
+    {
+      id: 'urea',
+      label: 'Urea',
+      type: 'number',
+      unit: 'mmol/L',
+      step: 0.1
+    },
+    {
+      id: 'sodium',
+      label: 'Sodium',
+      type: 'number',
+      unit: 'mmol/L',
+      step: 1
+    },
+    {
+      id: 'potassium',
+      label: 'Potassium',
+      type: 'number',
+      unit: 'mmol/L',
+      step: 0.1
+    },
+    {
+      id: 'ecg',
+      label: 'ECG',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'Normal' },
+        { value: 4, label: 'Atrial fibrillation (60–90/min)' },
+        { value: 8, label: 'Other abnormality / ectopics / Q waves / ST-T changes' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'operativeSeverity',
+      label: 'Operative severity',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'Minor' },
+        { value: 2, label: 'Moderate' },
+        { value: 4, label: 'Major' },
+        { value: 8, label: 'Major+' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'procedures',
+      label: 'Number of procedures',
+      type: 'choice',
+      options: [
+        { value: 1, label: '1' },
+        { value: 4, label: '2' },
+        { value: 8, label: '>2' }
+      ]
+    },
+    {
+      id: 'bloodLoss',
+      label: 'Total blood loss',
+      type: 'number',
+      unit: 'mL',
+      min: 0,
+      step: 1
+    },
+    {
+      id: 'soiling',
+      label: 'Peritoneal soiling',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'None' },
+        { value: 2, label: 'Minor / serous fluid' },
+        { value: 4, label: 'Local pus' },
+        { value: 8, label: 'Free bowel content, pus or blood' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'malignancy',
+      label: 'Malignancy',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'None' },
+        { value: 2, label: 'Primary only' },
+        { value: 4, label: 'Nodal metastases' },
+        { value: 8, label: 'Distant metastases' }
+      ],
+      optionsLayout: 'stack'
+    },
+    {
+      id: 'mode',
+      label: 'Mode of surgery',
+      type: 'choice',
+      options: [
+        { value: 1, label: 'Elective' },
+        { value: 4, label: 'Emergency; >2 h resuscitation possible, surgery <24 h' },
+        { value: 8, label: 'Emergency; immediate surgery <2 h required' }
+      ],
+      optionsLayout: 'stack'
+    }
+  ],
+
+  calculate(v) {
+    const age = Number(v.age)
+    const sbp = Number(v.sbp)
+    const pulse = Number(v.pulse)
+    const gcs = Number(v.gcs)
+    const hb = Number(v.hemoglobin)
+    const wbc = Number(v.wbc)
+    const urea = Number(v.urea)
+    const sodium = Number(v.sodium)
+    const potassium = Number(v.potassium)
+    const bloodLoss = Number(v.bloodLoss)
+
+    if (
+      !Number.isFinite(age) ||
+      !Number.isFinite(sbp) ||
+      !Number.isFinite(pulse) ||
+      !Number.isFinite(gcs) ||
+      !Number.isFinite(hb) ||
+      !Number.isFinite(wbc) ||
+      !Number.isFinite(urea) ||
+      !Number.isFinite(sodium) ||
+      !Number.isFinite(potassium) ||
+      !Number.isFinite(bloodLoss) ||
+      v.cardiac === undefined ||
+      v.respiratory === undefined ||
+      v.ecg === undefined ||
+      v.operativeSeverity === undefined ||
+      v.procedures === undefined ||
+      v.soiling === undefined ||
+      v.malignancy === undefined ||
+      v.mode === undefined
+    ) {
+      return {
+        error: 'Please complete all POSSUM inputs.'
+      }
+    }
+
+    let ps = 0
+
+    if (age <= 60) ps += 1
+    else if (age <= 70) ps += 2
+    else ps += 4
+
+    ps += Number(v.cardiac)
+    ps += Number(v.respiratory)
+
+    if (sbp >= 110 && sbp <= 130) ps += 1
+    else if ((sbp >= 100 && sbp <= 109) || (sbp >= 131 && sbp <= 170)) ps += 2
+    else if ((sbp >= 90 && sbp <= 99) || sbp >= 171) ps += 4
+    else if (sbp < 90) ps += 8
+
+    if (pulse >= 50 && pulse <= 80) ps += 1
+    else if ((pulse >= 40 && pulse <= 49) || (pulse >= 81 && pulse <= 100)) ps += 2
+    else if (pulse >= 101 && pulse <= 120) ps += 4
+    else ps += 8
+
+    if (gcs === 15) ps += 1
+    else if (gcs >= 12) ps += 2
+    else if (gcs >= 9) ps += 4
+    else ps += 8
+
+    if (hb >= 13 && hb <= 16) ps += 1
+    else if ((hb >= 11.5 && hb < 13) || (hb > 16 && hb <= 17)) ps += 2
+    else if ((hb >= 10 && hb < 11.5) || (hb > 17 && hb <= 18)) ps += 4
+    else ps += 8
+
+    if (wbc >= 4 && wbc <= 10) ps += 1
+    else if ((wbc > 10 && wbc <= 20) || (wbc >= 3.1 && wbc < 4)) ps += 2
+    else ps += 4
+
+    if (urea <= 7.5) ps += 1
+    else if (urea <= 10) ps += 2
+    else if (urea <= 15) ps += 4
+    else ps += 8
+
+    if (sodium >= 136) ps += 1
+    else if (sodium >= 131) ps += 2
+    else if (sodium >= 126) ps += 4
+    else ps += 8
+
+    if (potassium >= 3.5 && potassium <= 5) ps += 1
+    else if ((potassium >= 3.2 && potassium < 3.5) || (potassium > 5 && potassium <= 5.3)) ps += 2
+    else if ((potassium >= 2.9 && potassium < 3.2) || (potassium > 5.3 && potassium < 6)) ps += 4
+    else ps += 8
+
+    ps += Number(v.ecg)
+
+    let os = Number(v.operativeSeverity)
+    os += Number(v.procedures)
+
+    if (bloodLoss <= 100) os += 1
+    else if (bloodLoss <= 500) os += 2
+    else if (bloodLoss <= 999) os += 4
+    else os += 8
+
+    os += Number(v.soiling)
+    os += Number(v.malignancy)
+    os += Number(v.mode)
+
+    const morbidityLogit =
+      -5.91 +
+      (0.16 * ps) +
+      (0.19 * os)
+
+    const mortalityLogit =
+      -7.04 +
+      (0.13 * ps) +
+      (0.16 * os)
+
+    const morbidity =
+      100 *
+      Math.exp(morbidityLogit) /
+      (1 + Math.exp(morbidityLogit))
+
+    const mortality =
+      100 *
+      Math.exp(mortalityLogit) /
+      (1 + Math.exp(mortalityLogit))
+
+    return {
+      value: `Morbidity ${morbidity.toFixed(1)}% | Mortality ${mortality.toFixed(1)}%`,
+      unit: `PS ${ps} / OS ${os}`,
+      interpretation: 'POSSUM predicted risk',
+      note: 'POSSUM uses 12 physiological and 6 operative variables. Predicted risks are estimates derived from the original logistic equations.'
+    }
+  },
+
+  references: [
+    'Copeland GP et al. POSSUM: a scoring system for surgical audit. Br J Surg. 1991.',
+    'Prytherch DR et al. POSSUM and Portsmouth POSSUM for predicting mortality. Br J Surg. 1998.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\surgery\p-possum.js
+============================================================
+
+const calc = {
+  id: 'p-possum',
+  name: 'P-POSSUM',
+  shortName: 'P-POSSUM',
+  categoryId: 'surgery',
+  description: 'Portsmouth modification of POSSUM for predicted postoperative mortality.',
+
+  inputs: [
+    {
+      id: 'physiologicalScore',
+      label: 'Physiological Score',
+      type: 'number',
+      min: 12,
+      max: 96,
+      step: 1
+    },
+    {
+      id: 'operativeScore',
+      label: 'Operative Severity Score',
+      type: 'number',
+      min: 6,
+      max: 48,
+      step: 1
+    }
+  ],
+
+  calculate(v) {
+    const ps = Number(v.physiologicalScore)
+    const os = Number(v.operativeScore)
+
+    if (
+      !Number.isFinite(ps) ||
+      !Number.isFinite(os) ||
+      ps < 12 ||
+      os < 6
+    ) {
+      return {
+        error: 'Please enter valid POSSUM physiological and operative scores.'
+      }
+    }
+
+    const mortalityLogit =
+      -9.065 +
+      (0.1692 * ps) +
+      (0.1550 * os)
+
+    const mortality =
+      100 *
+      Math.exp(mortalityLogit) /
+      (1 + Math.exp(mortalityLogit))
+
+    return {
+      value: Number(mortality.toFixed(1)),
+      unit: '% predicted mortality',
+      interpretation: 'P-POSSUM predicted mortality',
+      note: 'P-POSSUM uses the POSSUM physiological and operative scores and a modified mortality equation. It is intended for surgical risk prediction and audit, not as a standalone clinical decision.'
+    }
+  },
+
+  references: [
+    'Prytherch DR et al. POSSUM and Portsmouth POSSUM for predicting mortality. Br J Surg. 1998.'
+  ]
+}
+
+export default calc
+
+============================================================
+FILE: src\calculators\surgery\rcri.js
+============================================================
+
+const rcri={id:'rcri',name:'Revised Cardiac Risk Index',shortName:'RCRI',categoryId:'surgery',description:'Perioperative cardiac risk index.',type:'score',
+inputs:[{id:'highRisk',label:'High-risk surgery',type:'boolean'},{id:'ischemia',label:'History of ischemic heart disease',type:'boolean'},{id:'chf',label:'History of heart failure',type:'boolean'},{id:'cva',label:'History of cerebrovascular disease',type:'boolean'},{id:'diabetes',label:'Diabetes requiring insulin',type:'boolean'},{id:'creatinine',label:'Preoperative creatinine >2 mg/dL',type:'boolean'}],
+calculate(v){const s=Object.values(v).filter(Boolean).length;return{value:s,unit:'/6',interpretation:`RCRI class ${s}`}}
+};export default rcri
+
+============================================================
+FILE: src\calculators\surgery\snaq.js
+============================================================
+
+const snaq={id:'snaq',name:'SNAQ Malnutrition Screening',shortName:'SNAQ',categoryId:'surgery',description:'Short nutritional assessment questionnaire framework.',type:'score',
+inputs:[{id:'weightLoss',label:'Unintentional weight loss?',type:'choice',options:[{value:0,label:'None'},{value:1,label:'3–6 kg'},{value:2,label:'7–10 kg'},{value:3,label:'>10 kg'}]},{id:'appetite',label:'Decreased appetite?',type:'choice',options:[{value:0,label:'No'},{value:1,label:'Yes'}]},{id:'supplement',label:'Nutritional supplement / tube feeding?',type:'choice',options:[{value:0,label:'No'},{value:1,label:'Yes'}]}],
+calculate(v){const s=Number(v.weightLoss)+Number(v.appetite)+Number(v.supplement);return{value:s,unit:'points',note:'SNAQ versions differ; use the validated institutional questionnaire for formal screening.'}}
+};export default snaq
+
+============================================================
+FILE: src\calculators\surgery\surgical-apgar.js
+============================================================
+
+const surgApgar={id:'surgical-apgar',name:'Surgical Apgar Score',shortName:'Surgical Apgar',categoryId:'surgery',description:'Postoperative complication risk score from estimated blood loss, lowest mean arterial pressure and heart rate.',type:'score',
+inputs:[{id:'ebl',label:'Estimated blood loss',unit:'mL',min:0,max:20000},{id:'map',label:'Lowest mean arterial pressure',unit:'mmHg',min:20,max:200},{id:'hr',label:'Lowest heart rate',unit:'/min',min:20,max:250}],
+calculate(v){const e=Number(v.ebl),m=Number(v.map),h=Number(v.hr);const ep=e===0?3:e<=100?2:e<=600?1:0;const mp=m>=70?3:m>=55?2:m>=40?1:0;const hp=h<=55?2:h<=70?1:h<=85?0:h<=100?1:0;const s=ep+mp+hp;return{value:s,unit:'/10',interpretation:s>=7?'Lower risk category':s>=5?'Intermediate category':'Higher risk category'}}
+};export default surgApgar

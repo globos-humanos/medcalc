@@ -1,19 +1,24 @@
-﻿const shineLal = {
-  id: 'shineLal',
-  name: 'Shine-Lal Index',
-  shortName: 'Shine-Lal Index',
-  type: 'score',
-  categoryId: 'hematology',
-  category: 'Hematology & Oncology',
-  description: 'Shine-Lal Index from the MedCalc master calculator catalogue.',
-  keywords: ['Shine-Lal Index', 'Hematology & Oncology'],
-  aliases: ['Shine-Lal Index'],
-  inputs: [{id:'mcv',label:'MCV',type:'number',unit:'fL',step:0.1},{id:'hb',label:'Hemoglobin',type:'number',unit:'g/dL',step:0.1}],
-  calculate(values) {
-    const m=Number(values.mcv),h=Number(values.hb); if(![m,h].every(Number.isFinite)) return {error:'Enter MCV and hemoglobin.'}
-    const s=m*m*h/100; return {value:s,displayValue:s.toFixed(1),unit:'index',category:'Shine-Lal index'}
-  },
-  references: ['Original hematology/oncology score publication.']
+const shineLal={
+id:'shine-lal',
+name:'Shine and Lal Index',
+shortName:'Shine-Lal',
+categoryId:'hematology',
+description:'Microcytic anemia discrimination index for beta-thalassemia trait screening.',
+type:'calculation',
+inputs:[
+{id:'mcv',label:'MCV',unit:'fL',min:20,max:200,step:0.1},
+{id:'mch',label:'MCH',unit:'pg',min:5,max:50,step:0.1}
+],
+calculate(v){
+const mcv=Number(v.mcv);
+const mch=Number(v.mch);
+const value=(mcv*mcv*mch)/100;
+return{
+value:Number(value.toFixed(1)),
+unit:'index',
+interpretation:value<=1530?'Pattern favors beta-thalassemia trait':'Pattern favors iron deficiency',
+note:'Classic formula: (MCV² × MCH) / 100. This is a screening index, not a diagnostic test.'
+};
 }
-
+};
 export default shineLal

@@ -1,19 +1,25 @@
-﻿const rIpi = {
-  id: 'rIpi',
-  name: 'Revised International Prognostic Index',
-  shortName: 'Revised International Prognostic Index',
-  type: 'score',
-  categoryId: 'hematology',
-  category: 'Hematology & Oncology',
-  description: 'Revised International Prognostic Index from the MedCalc master calculator catalogue.',
-  keywords: ['Revised International Prognostic Index', 'Hematology & Oncology'],
-  aliases: ['Revised International Prognostic Index'],
-  inputs: [{id:'score',label:'R-IPI score',type:'number',min:0,max:5,step:1}],
-  calculate(values) {
-    const s=Number(values.score); if(!Number.isFinite(s)) return {error:'Enter R-IPI score.'}
-    return {value:s,displayValue:String(s),unit:'/ 5',category:'R-IPI'}
-  },
-  references: ['Original hematology/oncology score publication.']
+const rIpi={
+id:'r-ipi',
+name:'Revised International Prognostic Index',
+shortName:'R-IPI',
+categoryId:'hematology',
+description:'Revised IPI grouping using the original five IPI adverse factors.',
+type:'score',
+inputs:[
+{id:'age',label:'Age >60 years?',type:'boolean'},
+{id:'ldh',label:'LDH above normal?',type:'boolean'},
+{id:'stage',label:'Ann Arbor stage III–IV?',type:'boolean'},
+{id:'ecog',label:'ECOG performance status ≥2?',type:'boolean'},
+{id:'extranodal',label:'≥2 extranodal disease sites?',type:'boolean'}
+],
+calculate(v){
+const s=(v.age?1:0)+(v.ldh?1:0)+(v.stage?1:0)+(v.ecog?1:0)+(v.extranodal?1:0);
+return{
+value:s,
+unit:'/5',
+interpretation:s===0?'Very good R-IPI group':s<=2?'Good R-IPI group':'Poor R-IPI group',
+note:'R-IPI groups patients according to the number of original IPI adverse factors: 0, 1–2, or 3–5.'
+};
 }
-
+};
 export default rIpi

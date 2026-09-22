@@ -1,52 +1,43 @@
-const calc = {
+﻿const centor = {
   id: 'centor',
   name: 'Centor Score',
   shortName: 'Centor',
-  categoryId: 'infectious',
-  description: 'Clinical prediction rule for streptococcal pharyngitis in adults.',
   type: 'score',
+  categoryId: 'infectious',
+  category: 'Infectious Disease',
+  description: 'Original Centor clinical prediction score for streptococcal pharyngitis.',
+  keywords: ['Centor', 'strep', 'pharyngitis'],
 
   inputs: [
-    {
-      id: 'fever',
-      label: 'Fever >38°C',
-      type: 'boolean'
-    },
-    {
-      id: 'noCough',
-      label: 'Absence of cough',
-      type: 'boolean'
-    },
-    {
-      id: 'nodes',
-      label: 'Tender anterior cervical nodes',
-      type: 'boolean'
-    },
-    {
-      id: 'exudate',
-      label: 'Tonsillar swelling/exudate',
-      type: 'boolean'
-    }
+    { id: 'fever', label: 'Fever >38°C', type: 'boolean' },
+    { id: 'noCough', label: 'Absence of cough', type: 'boolean' },
+    { id: 'nodes', label: 'Tender anterior cervical adenopathy', type: 'boolean' },
+    { id: 'exudate', label: 'Tonsillar exudate or swelling', type: 'boolean' }
   ],
 
   calculate(v) {
     const score =
-      (v.fever === true ? 1 : 0) +
-      (v.noCough === true ? 1 : 0) +
-      (v.nodes === true ? 1 : 0) +
-      (v.exudate === true ? 1 : 0)
+      Number(v.fever) +
+      Number(v.noCough) +
+      Number(v.nodes) +
+      Number(v.exudate)
 
     return {
       value: score,
-      unit: '/4',
-      interpretation:
+      displayValue: `${score}/4`,
+      category:
         score <= 1
-          ? 'Low likelihood'
-          : score === 2
+          ? 'Lower likelihood'
+          : score <= 3
             ? 'Intermediate likelihood'
-            : 'Higher likelihood'
+            : 'Higher likelihood',
+      interpretation: `Centor score = ${score}/4.`,
+      note:
+        'The Centor score does not include age. The age-adjusted version is the McIsaac score.'
     }
-  }
+  },
+
+  references: ['Original Centor clinical prediction rule']
 }
 
-export default calc
+export default centor

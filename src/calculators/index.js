@@ -1,4 +1,4 @@
-// src/calculators/index.js
+﻿// src/calculators/index.js
 
 // =========================
 // GENERAL
@@ -41,7 +41,6 @@ import qrisk3 from './cardiology/qrisk3'
 import seattleHf from './cardiology/seattle-hf'
 import sgarbossa from './cardiology/sgarbossa'
 import timiUaNstemi from './cardiology/timi-ua-nstemi'
-import timi from './cardiology/timi'
 
 // =========================
 // EMERGENCY / TRAUMA
@@ -214,7 +213,7 @@ import bishop from './obgyn/bishop'
 import carpreg2 from './obgyn/carpreg2'
 import edd from './obgyn/edd'
 import figoStaging from './obgyn/figo-staging'
-import fullPiers from './obgyn/fullpiers'
+import fullPiers from './obgyn/full-piers'
 import gestationalAge from './obgyn/gestational-age'
 import modifiedWho from './obgyn/modified-who'
 import partograph from './obgyn/partograph'
@@ -239,6 +238,9 @@ import pediatricAppendicitis from './pediatrics/pediatric-appendicitis'
 import pediatricAsthma from './pediatrics/pediatric-asthma'
 import pediatricGcs from './pediatrics/pediatric-gcs'
 import pediatricSofa from './pediatrics/pediatric-sofa'
+import pediatricPelod2 from './pediatrics/pelod-2'
+import pediatricPim from './pediatrics/pim'
+import pediatricPrismIII from './pediatrics/prism-iii'
 import silverman from './pediatrics/silverman'
 import tal from './pediatrics/tal'
 import westleyCroup from './pediatrics/westley-croup'
@@ -273,9 +275,11 @@ import years from './respiratory/years'
 // =========================
 // SURGERY / PERIOPERATIVE
 // =========================
+import acsNsqip from './surgery/acs-nsqip'
 import ariscat from './surgery/ariscat'
 import asa from './surgery/asa'
 import frailty from './surgery/frailty'
+import frailtyIndex from './surgery/frailty-index'
 import guptaMica from './surgery/gupta-mica'
 import must from './surgery/must'
 import nrs2002 from './surgery/nrs2002'
@@ -327,7 +331,6 @@ export const calculators = [
   seattleHf,
   sgarbossa,
   timiUaNstemi,
-  timi,
 
   // Emergency / Trauma
   air,
@@ -505,6 +508,9 @@ export const calculators = [
   pediatricAsthma,
   pediatricGcs,
   pediatricSofa,
+  pediatricPelod2,
+  pediatricPim,
+  pediatricPrismIII,
   silverman,
   tal,
   westleyCroup,
@@ -535,9 +541,11 @@ export const calculators = [
   years,
 
   // Surgery / Perioperative
+  acsNsqip,
   ariscat,
   asa,
   frailty,
+  frailtyIndex,
   guptaMica,
   must,
   nrs2002,

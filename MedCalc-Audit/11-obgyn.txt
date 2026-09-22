@@ -1,0 +1,214 @@
+============================================================
+MEDCALC CALCULATOR AUDIT: OBGYN
+============================================================
+
+
+============================================================
+FILE: src\calculators\obgyn\bishop.js
+============================================================
+
+const bishop={id:'bishop',name:'Bishop Score',shortName:'Bishop',categoryId:'obgyn',description:'Cervical readiness for labor induction.',type:'score',
+inputs:[{id:'dilation',label:'Dilation',type:'choice',options:[{value:0,label:'Closed'},{value:1,label:'1–2 cm'},{value:2,label:'3–4 cm'},{value:3,label:'≥5 cm'}],optionsLayout:'stack'},{id:'effacement',label:'Effacement',type:'choice',options:[{value:0,label:'0–30%'},{value:1,label:'40–50%'},{value:2,label:'60–70%'},{value:3,label:'≥80%'}],optionsLayout:'stack'},{id:'station',label:'Fetal station',type:'choice',options:[{value:0,label:'−3'},{value:1,label:'−2'},{value:2,label:'−1 / 0'},{value:3,label:'+1 / +2'}],optionsLayout:'stack'},{id:'consistency',label:'Cervical consistency',type:'choice',options:[{value:0,label:'Firm'},{value:1,label:'Medium'},{value:2,label:'Soft'}],optionsLayout:'stack'},{id:'position',label:'Cervical position',type:'choice',options:[{value:0,label:'Posterior'},{value:1,label:'Mid'},{value:2,label:'Anterior'}],optionsLayout:'stack'}],
+calculate(v){const s=Number(v.dilation)+Number(v.effacement)+Number(v.station)+Number(v.consistency)+Number(v.position);return{value:s,unit:'/13',interpretation:s>=8?'Favorable cervix':s>=6?'Intermediate':'Unfavorable cervix'}}
+};export default bishop
+
+============================================================
+FILE: src\calculators\obgyn\carpreg2.js
+============================================================
+
+const calc={
+ id:'carpreg-ii',name:'CARPREG II',shortName:'CARPREG II',categoryId:'obgyn',
+ description:'Published CARPREG II maternal cardiac complication risk score.',type:'score',
+ inputs:[
+  {id:'prior',label:'Prior cardiac event or arrhythmia',type:'boolean'},{id:'nyha',label:'Baseline NYHA III–IV or cyanosis',type:'boolean'},
+  {id:'mechanical',label:'Mechanical valve',type:'boolean'},{id:'ventricular',label:'Ventricular dysfunction',type:'boolean'},
+  {id:'left',label:'High-risk left-sided valve disease / LVOT obstruction',type:'boolean'},{id:'pulm',label:'Pulmonary hypertension',type:'boolean'},
+  {id:'cad',label:'Coronary artery disease',type:'boolean'},{id:'aorta',label:'High-risk aortopathy',type:'boolean'},
+  {id:'noIntervention',label:'No prior cardiac intervention',type:'boolean'},{id:'late',label:'First pregnancy assessment after 20 weeks',type:'boolean'}
+ ],
+ calculate(v){const value=(v.prior?3:0)+(v.nyha?3:0)+(v.mechanical?3:0)+(v.ventricular?2:0)+(v.left?2:0)+(v.pulm?2:0)+(v.cad?2:0)+(v.aorta?2:0)+(v.noIntervention?1:0)+(v.late?1:0);const risk=value<=1?5:value===2?10:value===3?15:value===4?22:41;return{value,unit:'points',interpretation:`CARPREG II predicted event risk band: ${risk}%`}}
+};
+export default calc;
+
+============================================================
+FILE: src\calculators\obgyn\edd.js
+============================================================
+
+const edd={id:'edd',name:'Estimated Date of Delivery',shortName:'EDD',categoryId:'obgyn',description:'Estimated delivery date from first day of the last menstrual period.',type:'calculation',
+inputs:[{id:'lmp',label:'First day of LMP',type:'date'}],
+calculate(v){if(!v.lmp)return{value:'',unit:''};const d=new Date(`${v.lmp}T00:00:00`);d.setDate(d.getDate()+280);return{value:d.toISOString().slice(0,10),unit:'date',note:'Standard Naegele-style estimate; dating may be adjusted by ultrasound and clinical context.'}}
+};export default edd
+
+============================================================
+FILE: src\calculators\obgyn\figo-staging.js
+============================================================
+
+const figo = {
+  id: 'figo',
+  name: 'FIGO Staging',
+  shortName: 'FIGO Staging',
+  type: 'score',
+  categoryId: 'obgyn',
+  category: 'Obstetrics & Gynecology',
+  description: 'FIGO Staging from the MedCalc master calculator catalogue.',
+  keywords: ['FIGO Staging', 'Obstetrics & Gynecology'],
+  aliases: ['FIGO Staging'],
+  inputs: [{id:'stage',label:'FIGO stage',type:'choice',options:[{value:'I',label:'I'},{value:'II',label:'II'},{value:'III',label:'III'},{value:'IV',label:'IV'}]}],
+  calculate(values) {
+    if(!values.stage) return {error:'Select FIGO stage.'}
+    return {value:0,displayValue:values.stage,unit:'stage',category:'FIGO stage'}
+  },
+  references: ['Original obstetric/gynecologic model or classification publication.']
+}
+
+export default figo
+
+============================================================
+FILE: src\calculators\obgyn\fullpiers.js
+============================================================
+
+const fullPiers = {
+  id: 'fullPiers',
+  name: 'FullPIERS Model',
+  shortName: 'FullPIERS Model',
+  type: 'score',
+  categoryId: 'obgyn',
+  category: 'Obstetrics & Gynecology',
+  description: 'FullPIERS Model from the MedCalc master calculator catalogue.',
+  keywords: ['FullPIERS Model', 'Obstetrics & Gynecology'],
+  aliases: ['FullPIERS Model'],
+  inputs: [{id:'risk',label:'Validated FullPIERS risk',type:'number',min:0,max:100,step:0.1,unit:'%'}],
+  calculate(values) {
+    const r=Number(values.risk); if(!Number.isFinite(r)) return {error:'Enter validated FullPIERS output.'}
+    return {value:r,displayValue:r.toFixed(1),unit:'%',category:'FullPIERS predicted adverse outcome risk'}
+  },
+  references: ['Original obstetric/gynecologic model or classification publication.']
+}
+
+export default fullPiers
+
+============================================================
+FILE: src\calculators\obgyn\gestational-age.js
+============================================================
+
+const ga={id:'gestational-age',name:'Gestational Age Calculator',shortName:'Gestational Age',categoryId:'obgyn',description:'Calculates gestational age from LMP.',type:'calculation',
+inputs:[{id:'lmp',label:'First day of LMP',type:'date'},{id:'date',label:'Date of assessment',type:'date'}],
+calculate(v){if(!v.lmp||!v.date)return{value:'',unit:''};const a=new Date(`${v.lmp}T00:00:00`),b=new Date(`${v.date}T00:00:00`);const days=Math.floor((b-a)/86400000);return{value:`${Math.floor(days/7)} weeks ${days%7} days`,unit:'gestational age'}}
+};export default ga
+
+============================================================
+FILE: src\calculators\obgyn\modified-who.js
+============================================================
+
+const modifiedWho = {
+  id: 'modifiedWho',
+  name: 'Modified WHO Maternal Cardiac Risk',
+  shortName: 'Modified WHO Maternal Cardiac Risk',
+  type: 'score',
+  categoryId: 'obgyn',
+  category: 'Obstetrics & Gynecology',
+  description: 'Modified WHO Maternal Cardiac Risk from the MedCalc master calculator catalogue.',
+  keywords: ['Modified WHO Maternal Cardiac Risk', 'Obstetrics & Gynecology'],
+  aliases: ['Modified WHO Maternal Cardiac Risk'],
+  inputs: [{id:'class',label:'Modified WHO class',type:'choice',options:[{value:'I',label:'I'},{value:'II',label:'II'},{value:'II-III',label:'II�III'},{value:'III',label:'III'},{value:'IV',label:'IV'}]}],
+  calculate(values) {
+    if(!values.class) return {error:'Select a WHO class.'}
+    return {value:0,displayValue:values.class,unit:'class',category:'Modified WHO maternal cardiac risk class'}
+  },
+  references: ['Original obstetric/gynecologic model or classification publication.']
+}
+
+export default modifiedWho
+
+============================================================
+FILE: src\calculators\obgyn\partograph.js
+============================================================
+
+const partograph = {
+  id: 'partograph',
+  name: 'Partograph',
+  shortName: 'Partograph',
+  type: 'score',
+  categoryId: 'obgyn',
+  category: 'Obstetrics & Gynecology',
+  description: 'Partograph from the MedCalc master calculator catalogue.',
+  keywords: ['Partograph', 'Obstetrics & Gynecology'],
+  aliases: ['Partograph'],
+  inputs: [{id:'cervicalDil',label:'Cervical dilatation',type:'number',unit:'cm',min:0,max:10,step:0.5},{id:'hours',label:'Hours since labour assessment',type:'number',min:0,step:0.1}],
+  calculate(values) {
+    const d=Number(values.cervicalDil),h=Number(values.hours); if(![d,h].every(Number.isFinite)) return {error:'Enter partograph values.'}
+    return {value:d,displayValue:`${d} cm`,unit:'cervical dilatation',category:`Time: ${h} h`}
+  },
+  references: ['Original obstetric/gynecologic model or classification publication.']
+}
+
+export default partograph
+
+============================================================
+FILE: src\calculators\obgyn\piers.js
+============================================================
+
+const piers={id:'piers',name:'PIERS Model Inputs',shortName:'PIERS',categoryId:'obgyn',description:'Pre-eclampsia adverse outcome risk model input screen.',type:'score',
+inputs:[{id:'gestation',label:'Gestational age',unit:'weeks',min:20,max:45},{id:'chestPain',label:'Chest pain / dyspnea?',type:'boolean'},{id:'oxygen',label:'Oxygen saturation',unit:'%',min:50,max:100},{id:'platelets',label:'Platelets',unit:'×10⁹/L',min:1,max:1000},{id:'creatinine',label:'Creatinine',unit:'µmol/L',min:1,max:2000},{id:'ast',label:'AST',unit:'U/L',min:1,max:10000}],
+calculate(v){return{value:'Inputs captured',unit:'',note:'PIERS/FullPIERS are published multivariable models with specific coefficients and time horizons; this interface does not invent an outcome probability.'}}
+};export default piers
+
+============================================================
+FILE: src\calculators\obgyn\preeclampsia-risk.js
+============================================================
+
+const preeclampsiaRisk = {
+  id: 'preeclampsiaRisk',
+  name: 'Preeclampsia Risk Assessment',
+  shortName: 'Preeclampsia Risk Assessment',
+  type: 'score',
+  categoryId: 'obgyn',
+  category: 'Obstetrics & Gynecology',
+  description: 'Preeclampsia Risk Assessment from the MedCalc master calculator catalogue.',
+  keywords: ['Preeclampsia Risk Assessment', 'Obstetrics & Gynecology'],
+  aliases: ['Preeclampsia Risk Assessment'],
+  inputs: [{id:'riskFactors',label:'Number of major risk factors',type:'number',min:0,step:1}],
+  calculate(values) {
+    const s=Number(values.riskFactors); if(!Number.isFinite(s)) return {error:'Enter risk-factor count.'}
+    return {value:s,displayValue:String(s),unit:'risk factors',category:s>0?'Risk factors present':'No entered major risk factors'}
+  },
+  references: ['Original obstetric/gynecologic model or classification publication.']
+}
+
+export default preeclampsiaRisk
+
+============================================================
+FILE: src\calculators\obgyn\sflt1-plgf.js
+============================================================
+
+const sflt={id:'sflt1-plgf',name:'sFlt-1 / PlGF Ratio',shortName:'sFlt-1/PlGF',categoryId:'obgyn',description:'Angiogenic marker ratio used in pre-eclampsia assessment.',type:'calculation',
+inputs:[{id:'sflt',label:'sFlt-1',unit:'pg/mL',min:0,max:100000},{id:'plgf',label:'PlGF',unit:'pg/mL',min:0.1,max:10000,step:0.1}],
+calculate(v){return{value:Number(v.sflt)/Number(v.plgf),unit:'ratio',note:'Cutoffs are assay- and gestational-age-specific; use the validated assay pathway.'}}
+};export default sflt
+
+============================================================
+FILE: src\calculators\obgyn\years-pregnancy.js
+============================================================
+
+const pyears={id:'pregnancy-adapted-years',name:'Pregnancy-Adapted YEARS',shortName:'Pregnancy YEARS',categoryId:'obgyn',description:'YEARS-based diagnostic strategy for suspected PE in pregnancy.',type:'score',
+inputs:[{id:'dvt',label:'Clinical signs of DVT?',type:'boolean'},{id:'hemoptysis',label:'Hemoptysis?',type:'boolean'},{id:'peLikely',label:'PE most likely diagnosis?',type:'boolean'},{id:'ddimer',label:'D-dimer',unit:'ng/mL',min:0,max:10000}],
+calculate(v){const items=(v.dvt?1:0)+(v.hemoptysis?1:0)+(v.peLikely?1:0);const threshold=items===0?1000:500;return{value:items,unit:'YEARS items',note:`D-dimer threshold shown: ${threshold} ng/mL. Pregnancy-adapted interpretation depends on the complete diagnostic pathway and clinical setting.`}}
+};export default pyears
+
+============================================================
+FILE: src\calculators\obgyn\zahara.js
+============================================================
+
+const calc={
+ id:'zahara',name:'ZAHARA Score',shortName:'ZAHARA',categoryId:'obgyn',
+ description:'Weighted ZAHARA risk score for pregnancy in congenital heart disease.',type:'score',
+ inputs:[
+  {id:'arrhythmia',label:'History of arrhythmia',type:'boolean'},{id:'meds',label:'Cardiovascular medication before pregnancy',type:'boolean'},
+  {id:'nyha',label:'NYHA functional class ≥II',type:'boolean'},{id:'left',label:'Left-sided heart obstruction',type:'boolean'},
+  {id:'systemicRegurg',label:'Moderate/severe systemic AV valve regurgitation',type:'boolean'},
+  {id:'subpulmonaryRegurg',label:'Moderate/severe subpulmonary AV valve regurgitation',type:'boolean'},
+  {id:'mechanical',label:'Mechanical valve prosthesis',type:'boolean'},{id:'cyanotic',label:'Cyanotic heart disease',type:'boolean'}
+ ],
+ calculate(v){const value=(v.arrhythmia?1.5:0)+(v.meds?1.5:0)+(v.nyha?0.75:0)+(v.left?2.5:0)+(v.systemicRegurg?0.75:0)+(v.subpulmonaryRegurg?0.75:0)+(v.mechanical?4.25:0)+(v.cyanotic?1:0);const risk=value<=0.5?2.9:value<=1.5?7.5:value<=2.5?17.5:value<=3.5?43.1:70;return{value,unit:'points',interpretation:`ZAHARA predicted event risk band: ${risk}%`}}
+};
+export default calc;

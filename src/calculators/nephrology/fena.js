@@ -1,99 +1,40 @@
 ﻿const fena = {
-  id: 'fena',
-  name: 'Fractional Excretion of Sodium',
-  shortName: 'FENa',
-  type: 'calculator',
-  categoryId: 'nephrology',
-  category: 'Nephrology',
-  description: 'Calculates fractional excretion of sodium using paired serum and urine measurements.',
-  keywords: [
-    'FENa',
-    'fractional excretion sodium',
-    'fractional excretion of sodium',
-    'acute kidney injury',
-    'AKI',
-    'prerenal',
-    'ATN',
-    'urine sodium'
+  id:'fena',
+  name:'Fractional Excretion of Sodium',
+  shortName:'FENa',
+  type:'calculation',
+  categoryId:'nephrology',
+  category:'Nephrology',
+  description:'Fractional excretion of sodium from paired serum and urine measurements.',
+  keywords:['FENa','AKI','sodium'],
+
+  inputs:[
+    {id:'urineNa',label:'Urine sodium',type:'number',unit:'mmol/L',min:0,step:0.1},
+    {id:'serumNa',label:'Serum sodium',type:'number',unit:'mmol/L',min:50,max:250,step:0.1},
+    {id:'urineCr',label:'Urine creatinine',type:'number',unit:'mg/dL',min:0.1,step:0.1},
+    {id:'serumCr',label:'Serum creatinine',type:'number',unit:'mg/dL',min:0.1,step:0.01}
   ],
-  aliases: [
-    'FENa',
-    'fractional excretion of sodium',
-    'fractional sodium excretion'
-  ],
-  inputs: [
-    {
-      id: 'serumSodium',
-      label: 'Serum Sodium',
-      type: 'number',
-      unit: 'mEq/L',
-      min: 0,
-      step: 0.1
-    },
-    {
-      id: 'serumCreatinine',
-      label: 'Serum Creatinine',
-      type: 'number',
-      unit: 'mg/dL',
-      min: 0,
-      step: 0.01
-    },
-    {
-      id: 'urineSodium',
-      label: 'Urine Sodium',
-      type: 'number',
-      unit: 'mEq/L',
-      min: 0,
-      step: 0.1
-    },
-    {
-      id: 'urineCreatinine',
-      label: 'Urine Creatinine',
-      type: 'number',
-      unit: 'mg/dL',
-      min: 0,
-      step: 0.1
-    }
-  ],
-  calculate(values) {
-    const serumSodium = Number(values.serumSodium)
-    const serumCreatinine = Number(values.serumCreatinine)
-    const urineSodium = Number(values.urineSodium)
-    const urineCreatinine = Number(values.urineCreatinine)
 
-    if (
-      serumSodium <= 0 ||
-      serumCreatinine <= 0 ||
-      urineSodium < 0 ||
-      urineCreatinine <= 0
-    ) {
-      return { error: 'Please enter valid serum and urine values.' }
-    }
-
-    const result =
-      (urineSodium * serumCreatinine) /
-      (serumSodium * urineCreatinine) * 100
-
-    let interpretation = ''
-
-    if (result < 1) {
-      interpretation = '<1% FENa'
-    } else if (result > 2) {
-      interpretation = '>2% FENa'
-    } else {
-      interpretation = '1–2% FENa'
-    }
+  calculate(v){
+    const value=
+      100*
+      (Number(v.urineNa)*Number(v.serumCr))/
+      (Number(v.serumNa)*Number(v.urineCr))
 
     return {
-      value: result,
-      displayValue: result.toFixed(2),
-      unit: '%',
-      category: interpretation
+      value,
+      displayValue:value.toFixed(2),
+      unit:'%',
+      category:
+        value<1?'Low FENa':
+        value<=2?'Intermediate range':
+        'Higher FENa',
+      interpretation:`FENa = ${value.toFixed(2)}%.`,
+      note:'FENa is context-dependent and can be misleading with diuretics, CKD, glomerular disease and some other clinical settings.'
     }
   },
-  references: [
-    'MDCalc. Fractional Excretion of Sodium (FENa).'
-  ]
+
+  references:['Fractional excretion of sodium equation']
 }
 
 export default fena
