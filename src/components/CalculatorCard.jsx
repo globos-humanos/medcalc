@@ -1,38 +1,87 @@
 import { useState } from 'react'
 
+import {
+  Info,
+  BookOpen,
+  Calculator as CalculatorIcon
+} from 'lucide-react'
+
 import InputField from './InputField'
 import ResultCard from './ResultCard'
 import FavoriteButton from './FavoriteButton'
 
-function CalculatorCard({ calculator }) {
-  const [values, setValues] = useState({})
-  const [result, setResult] = useState(null)
+import {
+  useApp
+} from '../context/AppContext'
 
-  function handleChange(id, value) {
+function CalculatorCard({
+  calculator
+}) {
+
+  const [
+    values,
+    setValues
+  ] = useState({})
+
+  const [
+    result,
+    setResult
+  ] = useState(null)
+
+  const [
+    tab,
+    setTab
+  ] = useState('calculate')
+
+  const {
+    addToRecent
+  } = useApp()
+
+  function handleChange(
+    id,
+    value
+  ) {
+
     setValues(previous => ({
       ...previous,
       [id]: value
     }))
+
   }
 
   function calculate() {
-    const calculatedResult = calculator.calculate(values)
 
-    setResult(calculatedResult)
+    const calculatedResult =
+      calculator.calculate(values)
+
+    setResult(
+      calculatedResult
+    )
+
+    addToRecent(
+      calculator.id
+    )
+
   }
 
   function reset() {
+
     setValues({})
     setResult(null)
+
   }
 
   return (
-    <div className="calculator-card">
 
-      {/* Calculator heading */}
-      <div className="calculator-header-row">
+    <div className="calculator-shell">
 
-        <div className="calculator-header">
+      <section className="calculator-title-block">
+
+        <div>
+
+          <p className="page-kicker">
+            CLINICAL CALCULATOR
+          </p>
 
           <h1>
             {calculator.name}
@@ -44,75 +93,209 @@ function CalculatorCard({ calculator }) {
 
         </div>
 
-        {/* Favorite button */}
         <FavoriteButton
-          calculatorId={calculator.id}
+          calculatorId={
+            calculator.id
+          }
         />
 
-      </div>
+      </section>
 
-      {/* Calculator inputs */}
-      <div className="calculator-inputs">
 
-        {calculator.inputs.map(input => (
-          <InputField
-            key={input.id}
-            input={input}
-            value={values[input.id] || ''}
-            onChange={handleChange}
-          />
-        ))}
-
-      </div>
-
-      {/* Actions */}
-      <div className="calculator-actions">
+      <div
+        className="calculator-tabs"
+        role="tablist"
+      >
 
         <button
-          className="calculate-button"
-          onClick={calculate}
+          type="button"
+          className={
+            tab === 'calculate'
+              ? 'active'
+              : ''
+          }
+          onClick={() =>
+            setTab('calculate')
+          }
         >
           Calculate
         </button>
 
         <button
-          className="reset-button"
-          onClick={reset}
+          type="button"
+          className={
+            tab === 'about'
+              ? 'active'
+              : ''
+          }
+          onClick={() =>
+            setTab('about')
+          }
         >
-          Reset
+          About
+        </button>
+
+        <button
+          type="button"
+          className={
+            tab === 'references'
+              ? 'active'
+              : ''
+          }
+          onClick={() =>
+            setTab('references')
+          }
+        >
+          References
         </button>
 
       </div>
 
-      {/* Result */}
-      <ResultCard
-        result={result}
-      />
 
-      {/* References */}
-      {calculator.references?.length > 0 && (
+      {tab === 'calculate' && (
 
-        <div className="references">
+        <>
 
-          <h3>
-            Reference
-          </h3>
+          <section className="calculator-section">
 
-          <ul>
+            <div className="calculator-section-heading">
 
-            {calculator.references.map(reference => (
-              <li key={reference}>
-                {reference}
-              </li>
-            ))}
+              <CalculatorIcon size={17} />
 
-          </ul>
+              <span>
+                Inputs
+              </span>
 
-        </div>
+            </div>
+
+
+            <div className="input-list">
+
+              {calculator.inputs.map(
+                input => (
+
+                  <InputField
+                    key={input.id}
+                    input={input}
+                    value={
+                      values[input.id] ??
+                      ''
+                    }
+                    onChange={
+                      handleChange
+                    }
+                  />
+
+                )
+              )}
+
+            </div>
+
+          </section>
+
+
+          <div className="calculator-actions">
+
+            <button
+              className="calculate-button"
+              onClick={calculate}
+            >
+              Calculate
+            </button>
+
+            <button
+              className="reset-button"
+              onClick={reset}
+            >
+              Reset
+            </button>
+
+          </div>
+
+
+          <ResultCard
+            result={result}
+          />
+
+        </>
+
+      )}
+
+
+      {tab === 'about' && (
+
+        <section className="calculator-info-card">
+
+          <div className="calculator-info-icon">
+            <Info size={19} />
+          </div>
+
+          <div>
+
+            <h2>
+              About this calculator
+            </h2>
+
+            <p>
+              {calculator.description}
+            </p>
+
+          </div>
+
+        </section>
+
+      )}
+
+
+      {tab === 'references' && (
+
+        <section
+          className="calculator-info-card references-card"
+        >
+
+          <div className="calculator-info-icon">
+            <BookOpen size={19} />
+          </div>
+
+          <div>
+
+            <h2>
+              References
+            </h2>
+
+            {calculator.references?.length > 0 ? (
+
+              <ul>
+
+                {calculator.references.map(
+                  reference => (
+
+                    <li key={reference}>
+                      {reference}
+                    </li>
+
+                  )
+                )}
+
+              </ul>
+
+            ) : (
+
+              <p>
+                No references have been added
+                for this calculator yet.
+              </p>
+
+            )}
+
+          </div>
+
+        </section>
 
       )}
 
     </div>
+
   )
 }
 

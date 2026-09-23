@@ -36,7 +36,10 @@ function BottomNav() {
   ]
 
   return (
-    <nav className="bottom-nav">
+    <nav
+      className="bottom-nav"
+      aria-label="Primary navigation"
+    >
 
       {links.map(link => {
 
@@ -48,20 +51,19 @@ function BottomNav() {
             to={link.to}
             end={link.end}
             className={({ isActive }) =>
-              `nav-item ${
-                isActive
-                  ? 'active'
-                  : ''
-              }`
+              `nav-item ${isActive ? 'active' : ''}`
             }
           >
-
-            <Icon size={20} />
+            <span className="nav-icon">
+              <Icon
+                size={19}
+                strokeWidth={2}
+              />
+            </span>
 
             <span>
               {link.label}
             </span>
-
           </NavLink>
         )
       })}

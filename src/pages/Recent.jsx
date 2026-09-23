@@ -1,7 +1,8 @@
 import {
   ArrowRight,
   Calculator,
-  Star
+  Clock3,
+  Trash2
 } from 'lucide-react'
 
 import {
@@ -16,21 +17,22 @@ import {
   useApp
 } from '../context/AppContext'
 
-import FavoriteButton from '../components/FavoriteButton'
-
-function Favorites() {
+function Recent() {
 
   const {
-    favorites
+    recent,
+    clearRecent
   } = useApp()
 
-  const favoriteCalculators =
-    calculators.filter(
-      calculator =>
-        favorites.includes(
-          calculator.id
+  const recentCalculators =
+    recent
+      .map(id =>
+        calculators.find(
+          calculator =>
+            calculator.id === id
         )
-    )
+      )
+      .filter(Boolean)
 
   return (
 
@@ -40,7 +42,7 @@ function Favorites() {
         to="/"
         className="ios-back-link"
       >
-        <Star size={16} />
+        <Clock3 size={16} />
         <span>
           MedCalc
         </span>
@@ -50,36 +52,56 @@ function Favorites() {
       <section className="page-title-block">
 
         <p className="page-kicker">
-          YOUR LIBRARY
+          YOUR ACTIVITY
         </p>
 
-        <h1>
-          Favorites
-        </h1>
+        <div className="activity-title-row">
 
-        <p>
-          Your saved clinical calculators,
-          ready when you need them.
-        </p>
+          <div>
+
+            <h1>
+              Recently Used
+            </h1>
+
+            <p>
+              Calculators you've opened recently.
+            </p>
+
+          </div>
+
+          {recentCalculators.length > 0 && (
+
+            <button
+              type="button"
+              className="activity-clear-button"
+              onClick={clearRecent}
+            >
+              <Trash2 size={14} />
+              Clear
+            </button>
+
+          )}
+
+        </div>
 
       </section>
 
 
-      {favoriteCalculators.length === 0 ? (
+      {recentCalculators.length === 0 ? (
 
         <section className="activity-empty">
 
-          <div className="activity-empty-icon pink">
-            <Star size={24} />
+          <div className="activity-empty-icon">
+            <Clock3 size={24} />
           </div>
 
           <h2>
-            No favorites yet
+            Nothing here yet
           </h2>
 
           <p>
-            Tap the star on any calculator
-            to save it here.
+            Calculators you use will appear
+            here automatically.
           </p>
 
           <Link
@@ -95,7 +117,7 @@ function Favorites() {
 
         <section className="activity-list">
 
-          {favoriteCalculators.map(
+          {recentCalculators.map(
             calculator => (
 
               <Link
@@ -104,7 +126,7 @@ function Favorites() {
                 className="activity-row"
               >
 
-                <div className="activity-row-icon pink">
+                <div className="activity-row-icon">
                   <Calculator size={18} />
                 </div>
 
@@ -119,12 +141,6 @@ function Favorites() {
                   </span>
 
                 </div>
-
-                <FavoriteButton
-                  calculatorId={
-                    calculator.id
-                  }
-                />
 
                 <ArrowRight
                   size={16}
@@ -145,4 +161,4 @@ function Favorites() {
   )
 }
 
-export default Favorites
+export default Recent

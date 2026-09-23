@@ -1,40 +1,24 @@
-﻿import {
-  useState
-} from 'react'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 import {
-  Link,
-  useNavigate
-} from 'react-router-dom'
-
-import {
-  ArrowRight,
-  Clock,
+  Clock3,
   Grid2X2,
-  Star
+  Search,
+  Star,
+  ArrowRight
 } from 'lucide-react'
 
-import {
-  calculators
-} from '../calculators'
-
-import {
-  categories
-} from '../data/categories'
-
-import {
-  useApp
-} from '../context/AppContext'
-
+import { calculators } from '../calculators'
+import { categories } from '../data/categories'
+import { useApp } from '../context/AppContext'
 import CategoryCard from '../components/CategoryCard'
-import CalculatorSearch from '../components/CalculatorSearch'
 
 function Home() {
 
   const navigate = useNavigate()
 
   const {
-    favorites,
     recent
   } = useApp()
 
@@ -53,10 +37,12 @@ function Home() {
       )
       .filter(Boolean)
 
-  function handleSearchSubmit(value) {
+  function handleSearchSubmit(event) {
+
+    event.preventDefault()
 
     const query =
-      value.trim()
+      searchQuery.trim()
 
     if (!query) {
       navigate('/search')
@@ -69,122 +55,168 @@ function Home() {
   }
 
   return (
+
     <main className="home">
 
-      <section className="hero-card">
+      <section className="home-intro">
 
-        <div>
+        <p className="home-greeting">
+          MEDCALC
+        </p>
 
-          <p className="eyebrow">
-            CLINICAL TOOLS
-          </p>
+        <h1>
+          Clinical tools,
+          <br />
+          simplified.
+        </h1>
 
-          <h1>
-            Better decisions,
-            <br />
-            every day.
-          </h1>
-
-          <p>
-            Evidence-based calculators
-            at your fingertips.
-          </p>
-
-        </div>
-
-        <div className="hero-decoration">
-          ðŸ©º
-        </div>
+        <p className="home-description">
+          Essential clinical calculators,
+          organized for everyday practice.
+        </p>
 
       </section>
 
-      <CalculatorSearch
-        value={searchQuery}
-        onChange={setSearchQuery}
-        onSubmit={handleSearchSubmit}
-        placeholder="Search calculators..."
-      />
 
-      <div className="quick-actions">
+      <form
+        className="home-search"
+        onSubmit={handleSearchSubmit}
+      >
+
+        <Search
+          size={19}
+          strokeWidth={2}
+        />
+
+        <input
+          value={searchQuery}
+          onChange={event =>
+            setSearchQuery(
+              event.target.value
+            )
+          }
+          placeholder="Search calculators..."
+          aria-label="Search calculators"
+        />
+
+      </form>
+
+
+      <section className="home-shortcuts">
 
         <Link
           to="/favorites"
-          className="quick-action pink"
+          className="shortcut-tile"
         >
 
-          <Star size={20} />
-
-          <span>
-            Favorites
+          <span className="shortcut-icon pink">
+            <Star
+              size={19}
+              strokeWidth={2}
+            />
           </span>
 
+          <strong>
+            Favorites
+          </strong>
+
         </Link>
+
 
         <Link
-          to="/"
-          className="quick-action purple"
+          to="/recent"
+          className="shortcut-tile"
         >
 
-          <Clock size={20} />
-
-          <span>
-            Recent
+          <span className="shortcut-icon purple">
+            <Clock3
+              size={19}
+              strokeWidth={2}
+            />
           </span>
 
+          <strong>
+            Recent
+          </strong>
+
         </Link>
+
 
         <Link
           to="/search"
-          className="quick-action cyan"
+          className="shortcut-tile"
         >
 
-          <Grid2X2 size={20} />
-
-          <span>
-            All Tools
+          <span className="shortcut-icon blue">
+            <Grid2X2
+              size={19}
+              strokeWidth={2}
+            />
           </span>
+
+          <strong>
+            All Tools
+          </strong>
 
         </Link>
 
-      </div>
+      </section>
+
 
       {recentCalculators.length > 0 && (
 
-        <section className="home-section">
+        <section
+          className="home-section"
+          id="recent"
+        >
 
           <div className="section-heading">
 
-            <h2>
-              Recently Used
-            </h2>
+            <div>
 
-            <Link to="/search">
-              View all
-              <ArrowRight size={15} />
-            </Link>
+              <p className="section-kicker">
+                YOUR ACTIVITY
+              </p>
+
+              <h2>
+                Recently Used
+              </h2>
+
+            </div>
 
           </div>
 
-          <div className="recent-row">
+
+          <div className="recent-list">
 
             {recentCalculators
-              .slice(0, 4)
+              .slice(0, 5)
               .map(calculator => (
 
                 <Link
                   key={calculator.id}
                   to={`/calculator/${calculator.id}`}
-                  className="recent-card"
+                  className="recent-list-row"
                 >
 
-                  <strong>
-                    {calculator.shortName ||
-                      calculator.name}
-                  </strong>
+                  <div className="list-leading-icon">
+                    <Grid2X2 size={17} />
+                  </div>
 
-                  <span>
-                    {calculator.category}
-                  </span>
+                  <div className="list-copy">
+
+                    <strong>
+                      {calculator.shortName ||
+                        calculator.name}
+                    </strong>
+
+                    <span>
+                      {calculator.category}
+                    </span>
+
+                  </div>
+
+                  <ArrowRight size={16} />
 
                 </Link>
 
@@ -196,22 +228,35 @@ function Home() {
 
       )}
 
+
       <section className="home-section">
 
         <div className="section-heading">
 
-          <h2>
-            Categories
-          </h2>
+          <div>
 
-          <Link to="/search">
-            View all
+            <p className="section-kicker">
+              CLINICAL LIBRARY
+            </p>
+
+            <h2>
+              Categories
+            </h2>
+
+          </div>
+
+          <Link
+            to="/search"
+            className="section-link"
+          >
+            See all
             <ArrowRight size={15} />
           </Link>
 
         </div>
 
-        <div className="category-grid">
+
+        <div className="category-list">
 
           {categories.map(category => {
 
@@ -237,6 +282,7 @@ function Home() {
       </section>
 
     </main>
+
   )
 }
 

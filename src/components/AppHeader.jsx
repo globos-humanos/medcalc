@@ -19,11 +19,10 @@ function AppHeader() {
       <div className="brand">
 
         <div className="brand-icon">
-          <Stethoscope size={20} />
+          <Stethoscope size={19} strokeWidth={2.2} />
         </div>
 
-        <div>
-
+        <div className="brand-copy">
           <div className="brand-name">
             MedCalc
           </div>
@@ -31,7 +30,6 @@ function AppHeader() {
           <div className="brand-subtitle">
             Clinical tools, simplified.
           </div>
-
         </div>
 
       </div>
@@ -41,12 +39,10 @@ function AppHeader() {
         onClick={toggleTheme}
         aria-label="Toggle theme"
       >
-
         {theme === 'light'
-          ? <Moon size={19} />
-          : <Sun size={19} />
+          ? <Moon size={18} strokeWidth={2} />
+          : <Sun size={18} strokeWidth={2} />
         }
-
       </button>
 
     </header>

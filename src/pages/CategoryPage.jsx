@@ -42,7 +42,7 @@ function CategoryPage() {
 
     return (
 
-      <main className="category-page">
+      <main className="page category-page">
 
         <section className="category-empty">
 
@@ -76,19 +76,22 @@ function CategoryPage() {
 
   return (
 
-    <main className="category-page">
+    <main className="page category-page">
 
       <Link
         to="/"
-        className="category-back-link"
+        className="ios-back-link"
       >
         <ArrowLeft size={17} />
         <span>
-          All categories
+          MedCalc
         </span>
       </Link>
 
-      <section className="category-hero">
+
+      <section
+        className={`category-hero ${category.color}`}
+      >
 
         <div className="category-hero-icon">
           {category.icon}
@@ -96,7 +99,7 @@ function CategoryPage() {
 
         <div className="category-hero-content">
 
-          <p className="eyebrow">
+          <p className="page-kicker">
             CLINICAL CATEGORY
           </p>
 
@@ -108,44 +111,43 @@ function CategoryPage() {
             {category.description}
           </p>
 
-          <div className="category-count">
+        </div>
 
-            <Calculator size={15} />
+        <div className="category-hero-count">
 
-            <span>
-              {categoryCalculators.length}{' '}
-              {categoryCalculators.length === 1
-                ? 'calculator'
-                : 'calculators'}
-            </span>
+          <Calculator size={15} />
 
-          </div>
+          {categoryCalculators.length}
+          {' '}
+          calculators
 
         </div>
 
       </section>
 
+
       <section className="category-results">
 
-        <div className="category-results-heading">
+        <div className="section-heading">
 
           <div>
 
-            <h2>
-              Clinical tools
-            </h2>
-
-            <p>
-              Select a calculator to get started.
+            <p className="section-kicker">
+              TOOLS
             </p>
+
+            <h2>
+              Clinical calculators
+            </h2>
 
           </div>
 
         </div>
 
+
         {categoryCalculators.length > 0 ? (
 
-          <div className="category-calculator-grid">
+          <div className="calculator-list">
 
             {categoryCalculators.map(
               calculator => (
@@ -153,66 +155,40 @@ function CategoryPage() {
                 <Link
                   key={calculator.id}
                   to={`/calculator/${calculator.id}`}
-                  className="category-calculator-card"
+                  className="calculator-list-row"
                 >
 
-                  <div className="category-card-top">
-
-                    <div className="category-card-icon">
-
-                      <Calculator size={20} />
-
-                    </div>
-
-                    <FavoriteButton
-                      calculatorId={
-                        calculator.id
-                      }
-                    />
-
+                  <div className="calculator-list-icon">
+                    <Calculator size={18} />
                   </div>
 
-                  <div className="category-card-content">
-
-                    <span className="category-card-type">
-
-                      {calculator.type === 'score'
-                        ? 'Clinical Score'
-                        : 'Calculator'}
-
-                    </span>
+                  <div className="calculator-list-copy">
 
                     <h3>
                       {calculator.name}
                     </h3>
 
-                    {calculator.shortName && (
-
-                      <span className="category-card-short-name">
-
-                        {calculator.shortName}
-
-                      </span>
-
-                    )}
-
                     <p>
-                      {calculator.description}
+                      {calculator.description ||
+                        (
+                          calculator.type === 'score'
+                            ? 'Clinical score'
+                            : 'Clinical calculator'
+                        )}
                     </p>
 
                   </div>
 
-                  <div className="category-card-footer">
+                  <FavoriteButton
+                    calculatorId={
+                      calculator.id
+                    }
+                  />
 
-                    <span>
-                      Open calculator
-                    </span>
-
-                    <ArrowRight
-                      size={17}
-                    />
-
-                  </div>
+                  <ArrowRight
+                    className="calculator-list-arrow"
+                    size={16}
+                  />
 
                 </Link>
 

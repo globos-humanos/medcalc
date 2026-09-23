@@ -10,6 +10,7 @@ import BottomNav from './components/BottomNav'
 import Home from './pages/Home'
 import Search from './pages/Search'
 import Favorites from './pages/Favorites'
+import Recent from './pages/Recent'
 import More from './pages/More'
 
 import CategoryPage from './pages/CategoryPage'

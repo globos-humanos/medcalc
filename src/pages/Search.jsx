@@ -11,7 +11,9 @@ import {
 import {
   ArrowRight,
   Calculator,
+  FolderOpen,
   Search as SearchIcon,
+  Tag,
   X
 } from 'lucide-react'
 
@@ -20,6 +22,10 @@ import FavoriteButton from '../components/FavoriteButton'
 import {
   calculators
 } from '../calculators'
+
+import {
+  categories
+} from '../data/categories'
 
 import {
   searchCalculators
@@ -41,36 +47,117 @@ function Search() {
   ] = useState(initialQuery)
 
   const [
-    typeFilter,
-    setTypeFilter
+    filter,
+    setFilter
   ] = useState('all')
 
-  const filteredCalculators =
+
+  const results =
     useMemo(() => {
 
-      let results =
-        searchCalculators(
-          calculators,
-          query
-        )
+      const q =
+        query.trim().toLowerCase()
 
-      if (typeFilter !== 'all') {
-
-        results =
-          results.filter(
-            calculator =>
-              calculator.type ===
-              typeFilter
-          )
-
+      if (!q) {
+        return calculators
       }
 
-      return results
+      if (filter === 'categories') {
+
+        const matchingCategoryIds =
+          categories
+            .filter(category =>
+              category.name
+                .toLowerCase()
+                .includes(q)
+            )
+            .map(category =>
+              category.id
+            )
+
+        return calculators.filter(
+          calculator =>
+            matchingCategoryIds.includes(
+              calculator.categoryId
+            )
+        )
+      }
+
+
+      if (filter === 'keywords') {
+
+        return calculators.filter(
+          calculator => {
+
+            const keywords =
+              Array.isArray(
+                calculator.keywords
+              )
+                ? calculator.keywords
+                : []
+
+            const aliases =
+              Array.isArray(
+                calculator.aliases
+              )
+                ? calculator.aliases
+                : []
+
+            return [
+              ...keywords,
+              ...aliases
+            ].some(value =>
+              String(value)
+                .toLowerCase()
+                .includes(q)
+            )
+
+          }
+        )
+      }
+
+
+      if (filter === 'calculators') {
+
+        return calculators.filter(
+          calculator => {
+
+            const name =
+              String(
+                calculator.name || ''
+              ).toLowerCase()
+
+            const shortName =
+              String(
+                calculator.shortName || ''
+              ).toLowerCase()
+
+            const description =
+              String(
+                calculator.description || ''
+              ).toLowerCase()
+
+            return (
+              name.includes(q) ||
+              shortName.includes(q) ||
+              description.includes(q)
+            )
+
+          }
+        )
+      }
+
+
+      return searchCalculators(
+        calculators,
+        query
+      )
 
     }, [
       query,
-      typeFilter
+      filter
     ])
+
 
   function handleSearchChange(event) {
 
@@ -90,7 +177,9 @@ function Search() {
       setSearchParams({})
 
     }
+
   }
+
 
   function clearSearch() {
 
@@ -99,43 +188,48 @@ function Search() {
 
   }
 
+
+  const filters = [
+    {
+      id: 'all',
+      label: 'All'
+    },
+    {
+      id: 'calculators',
+      label: 'Calculators'
+    },
+    {
+      id: 'categories',
+      label: 'Categories'
+    },
+    {
+      id: 'keywords',
+      label: 'Keywords'
+    }
+  ]
+
+
   return (
 
-    <main className="search-page">
+    <main className="page search-page">
 
-      {/* =========================
-          HEADER
-      ========================== */}
+      <section className="page-title-block">
 
-      <section className="search-header">
+        <p className="page-kicker">
+          MEDCALC
+        </p>
 
-        <div>
+        <h1>
+          Search
+        </h1>
 
-          <p className="eyebrow">
-            MEDCALC
-          </p>
-
-          <h1>
-            Find a calculator
-          </h1>
-
-          <p className="search-subtitle">
-            Search by name, abbreviation,
-            category, or clinical keyword.
-          </p>
-
-        </div>
-
-        <div className="search-header-icon">
-          <SearchIcon size={28} />
-        </div>
+        <p>
+          Find a calculator by name,
+          category, abbreviation, or keyword.
+        </p>
 
       </section>
 
-
-      {/* =========================
-          SEARCH BOX
-      ========================== */}
 
       <section className="search-panel">
 
@@ -150,7 +244,7 @@ function Search() {
             type="search"
             value={query}
             onChange={handleSearchChange}
-            placeholder="Try BMI, Wells, MELD..."
+            placeholder="Search calculators..."
             aria-label="Search calculators"
           />
 
@@ -172,98 +266,67 @@ function Search() {
         </div>
 
 
-        {/* =========================
-            FILTERS
-        ========================== */}
+        <div
+          className="search-filter-row"
+          role="tablist"
+          aria-label="Search type"
+        >
 
-        <div className="search-filter-row">
+          {filters.map(item => (
 
-          <span className="filter-label">
-            Show
-          </span>
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={
+                filter === item.id
+              }
+              className={
+                `search-filter ${
+                  filter === item.id
+                    ? 'active'
+                    : ''
+                }`
+              }
+              onClick={() =>
+                setFilter(item.id)
+              }
+            >
 
-          <button
-            type="button"
-            className={
-              `search-filter ${
-                typeFilter === 'all'
-                  ? 'active'
-                  : ''
-              }`
-            }
-            onClick={() =>
-              setTypeFilter('all')
-            }
-          >
-            All
-          </button>
+              {item.label}
 
-          <button
-            type="button"
-            className={
-              `search-filter ${
-                typeFilter === 'calculator'
-                  ? 'active'
-                  : ''
-              }`
-            }
-            onClick={() =>
-              setTypeFilter('calculator')
-            }
-          >
-            Calculators
-          </button>
+            </button>
 
-          <button
-            type="button"
-            className={
-              `search-filter ${
-                typeFilter === 'score'
-                  ? 'active'
-                  : ''
-              }`
-            }
-            onClick={() =>
-              setTypeFilter('score')
-            }
-          >
-            Scores
-          </button>
+          ))}
 
         </div>
 
       </section>
 
 
-      {/* =========================
-          RESULTS HEADER
-      ========================== */}
-
       <section className="search-results-heading">
 
         <div>
 
+          <p className="section-kicker">
+            {query
+              ? filter === 'categories'
+                ? 'CATEGORY RESULTS'
+                : filter === 'keywords'
+                  ? 'KEYWORD RESULTS'
+                  : 'RESULTS'
+              : 'CLINICAL LIBRARY'}
+          </p>
+
           <h2>
             {query
-              ? 'Search results'
-              : 'All calculators'}
-          </h2>
-
-          <p>
-
-            {query
-              ? `${filteredCalculators.length} ${
-                  filteredCalculators.length === 1
+              ? `${results.length} ${
+                  results.length === 1
                     ? 'result'
                     : 'results'
-                } for "${query}"`
-              : `${filteredCalculators.length} ${
-                  filteredCalculators.length === 1
-                    ? 'calculator'
-                    : 'calculators'
-                } available`}
-
-          </p>
+                }`
+              : `${results.length} calculators`}
+          </h2>
 
         </div>
 
@@ -282,15 +345,11 @@ function Search() {
       </section>
 
 
-      {/* =========================
-          RESULTS
-      ========================== */}
-
-      {filteredCalculators.length > 0 ? (
+      {results.length > 0 ? (
 
         <section className="search-results-grid">
 
-          {filteredCalculators.map(
+          {results.map(
             calculator => (
 
               <Link
@@ -299,19 +358,25 @@ function Search() {
                 className="search-calculator-card"
               >
 
-                <div className="search-card-top">
+                <div className="search-card-icon">
 
-                  <div className="search-card-icon">
-
-                    <Calculator size={20} />
-
-                  </div>
-
-                  <FavoriteButton
-                    calculatorId={
-                      calculator.id
-                    }
-                  />
+                  {filter === 'categories'
+                    ? (
+                      <FolderOpen
+                        size={18}
+                      />
+                    )
+                    : filter === 'keywords'
+                      ? (
+                        <Tag
+                          size={18}
+                        />
+                      )
+                      : (
+                        <Calculator
+                          size={18}
+                        />
+                      )}
 
                 </div>
 
@@ -319,51 +384,35 @@ function Search() {
                 <div className="search-card-content">
 
                   <span className="search-card-category">
-
                     {calculator.category}
-
                   </span>
 
                   <h3>
-
                     {calculator.name}
-
                   </h3>
 
                   {calculator.shortName && (
 
                     <span className="search-card-short-name">
-
                       {calculator.shortName}
-
                     </span>
 
                   )}
 
-                  <p>
-
-                    {calculator.description}
-
-                  </p>
-
                 </div>
 
 
-                <div className="search-card-footer">
+                <FavoriteButton
+                  calculatorId={
+                    calculator.id
+                  }
+                />
 
-                  <span>
 
-                    {calculator.type === 'score'
-                      ? 'Clinical Score'
-                      : 'Calculator'}
-
-                  </span>
-
-                  <ArrowRight
-                    size={17}
-                  />
-
-                </div>
+                <ArrowRight
+                  className="search-card-arrow"
+                  size={16}
+                />
 
               </Link>
 
@@ -374,16 +423,10 @@ function Search() {
 
       ) : (
 
-        /* =========================
-           EMPTY STATE
-        ========================== */
-
         <section className="search-empty">
 
           <div className="search-empty-icon">
-
-            <SearchIcon size={25} />
-
+            <SearchIcon size={23} />
           </div>
 
           <h2>
@@ -392,8 +435,7 @@ function Search() {
 
           <p>
             Try a different name,
-            abbreviation, or clinical
-            keyword.
+            category, or keyword.
           </p>
 
           <button
